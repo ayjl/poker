@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "NODE_ENV=development DEBUG=poker:server nodemon ./bin/www",
-    "startw": "SET DEBUG=poker:server & nodemon ./bin/www"
+    "start": "node ./bin/www",
+    "smac": "DEBUG=poker:server nodemon ./bin/www",
+    "swin": "SET DEBUG=poker:server & nodemon ./bin/www"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
