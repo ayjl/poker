@@ -1,0 +1,7 @@
+{
+  "db": {
+    "host": "prod_host",
+    "user": "prod_user",
+    "pass": "prod_pass"
+  }
+}

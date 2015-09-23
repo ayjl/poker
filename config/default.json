@@ -1,0 +1,7 @@
+{
+  "db": {
+    "host": "dev_host",
+    "user": "dev_user",
+    "pass": "dev_pass"
+  }
+}
