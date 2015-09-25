@@ -1,0 +1,42 @@
+extends layout
+
+block content
+  h1 DB Test
+  input(id='User', type='text')
+  button(id='Save') Save
+
+  h2 User List
+  ul
+  - each user in users
+    li #{user.name}&nbsp;
+      a(href='/db/'+user._id, class='delete-btn') Delete
+
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('#Save').on('click', function() {
+        $.ajax( {
+          type: 'POST',
+          url: '/db',
+          data: {
+            name: $('#User').val()
+          },
+          complete: function() {
+            location.reload();
+          }
+        });
+      });
+
+      $('.delete-btn').on('click', function() {
+        event.preventDefault();
+
+        $.ajax( {
+          type: 'DELETE',
+          url: $(this).attr('href'),
+          complete: function() {
+            location.reload();
+          }
+        });
+
+        return false;
+      });
+    });
