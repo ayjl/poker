@@ -2,8 +2,10 @@ extends layout
 
 block content
   h1 DB Test
-  input(id='User', type='text')
-  button(id='Save') Save
+  label New User
+  form
+    input(id='User', type='text')
+    button Save
 
   h2 User List
   ul
@@ -12,20 +14,21 @@ block content
       a(href='/db/'+user._id, class='delete-btn') Delete
 
   script(type='text/javascript').
-    $(document).ready(function() {
-      $('#Save').on('click', function() {
-        $.ajax( {
-          type: 'POST',
-          url: '/db',
-          data: {
-            name: $('#User').val()
-          },
-          complete: function() {
-            location.reload();
-          }
-        });
+    $('form').submit(function(){
+      $.ajax( {
+        type: 'POST',
+        url: '/db',
+        data: {
+          name: $('#User').val()
+        },
+        complete: function() {
+          location.reload();
+        }
       });
+      return false;
+    });
 
+    $(document).ready(function() {
       $('.delete-btn').on('click', function() {
         event.preventDefault();
 
