@@ -3,8 +3,8 @@ var router = express.Router();
 var config = require('config');
 var User = require('../models/user.js');
 
-/* GET database test */
 router.get('/', function(req, res, next) {
+  // Using callbacks example
   var users = User.find(function(err, users){
     res.render('db-test', { users: users });
   });
@@ -12,12 +12,15 @@ router.get('/', function(req, res, next) {
 
 router.post('/', function(req, res, next) {
   var newUser = new User({ name: req.body.name });
-  newUser.save();
-  res.sendStatus(200);
+  // Using promises example
+  newUser.save().then(function() {
+    res.sendStatus(200);
+  });
 });
 
 router.delete('/:user_id', function(req, res, next) {
-  User.remove({ _id: req.params.user_id }, function() {
+  // Promises seem to be the new way to go
+  User.remove({ _id: req.params.user_id }).then(function() {
     res.sendStatus(200);
   });
 });
