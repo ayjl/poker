@@ -5,8 +5,14 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+var config = require('config');
+var mongoose = require('mongoose');
+mongoose.connect(config.get('db'));
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var dbTest = require('./routes/db-test');
+var socketTest = require('./routes/socket-test');
 
 var app = express();
 
@@ -24,6 +30,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/db', dbTest);
+app.use('/socket', socketTest);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -55,6 +63,8 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
+
 
 
 module.exports = app;

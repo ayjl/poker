@@ -1,8 +1,11 @@
-extends layout
+extends ./layout
 
 block content
-  h1= title
-  p Welcome to #{title}
-  p DB Host: #{db.host}
-  p DB User: #{db.user}
-  p DB Pass: #{db.pass}
+  div.row
+    div.small-12.column
+      h1= title
+      p Welcome to #{title}
+      p
+        a(href="/db") Database Test
+      p
+        a(href="/socket") Socket.io Test

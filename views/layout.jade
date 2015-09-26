@@ -2,6 +2,16 @@ doctype html
 html
   head
     title= title
+    //- CSS
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/normalize.min.css')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/foundation.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    //- JS
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/modernizr.js')
+    script(src='//code.jquery.com/jquery-2.1.4.min.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation.min.js')
   body
+    include ./layouts/header
     block content
+    script.
+      $(document).foundation();

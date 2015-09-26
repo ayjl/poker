@@ -1,7 +1,3 @@
 {
-  "db": {
-    "host": "prod_host",
-    "user": "prod_user",
-    "pass": "prod_pass"
-  }
+  "db": "mongodb://prod:cLojzeHjeR3eEL6Hi6Lx@ds042688.mongolab.com:42688/poker"
 }
