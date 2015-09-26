@@ -1,17 +1,21 @@
-extends layout
+extends ./layout
 
 block content
-  h1 DB Test
-  label New User
-  form
-    input(id='User', type='text')
-    button Save
+  div.row
+    div.small-12.column
+      h1 Database Test
+      form
+        div.row
+          div.small-12.column
+            label New User
+              input#User(type='text', placeholder='Enter a name')
+        button Add User
 
-  h2 User List
-  ul
-  - each user in users
-    li #{user.name}&nbsp;
-      a(href='/db/'+user._id, class='delete-btn') Delete
+      h2 User List
+      ul
+      - each user in users
+        li #{user.name}&nbsp;
+          a(href='/db/'+user._id, class='delete-btn') Delete
 
   script(type='text/javascript').
     $('form').submit(function(){
