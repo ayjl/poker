@@ -17,8 +17,10 @@ block content
     });
 
     socket.on('players', function(players) {
-      $.each(players, function(id, player) {
-        $('#Players').children().eq(player.seat).text(player.name);
+      $('#Players').children().each(function(id) {
+        if(players[id]){
+          $(this).text(players[id].name);
+        }
       });
     });
 
