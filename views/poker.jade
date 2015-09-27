@@ -9,6 +9,11 @@ block content
         - for(var i=0; i<9; i++)
           li Empty
 
+      h3 Community Cards
+        p#Community_Cards None
+      h3 Your Cards
+        p#Player_Cards None
+
   script(type='text/javascript').
     var socket = io('/poker');
 
@@ -26,4 +31,17 @@ block content
 
     socket.on('player leave', function(seat) {
       $('#Players').children().eq(seat).text('Empty');
+    });
+
+    socket.on('player cards', function(cards) {
+      $('#Player_Cards').text(cards.join(' '));
+    });
+
+    socket.on('community cards', function(cards) {
+      $('#Community_Cards').text(cards.join(' '));
+    });
+
+    socket.on('reset', function() {
+      $('#Player_Cards').text('None');
+      $('#Community_Cards').text('None');
     });
