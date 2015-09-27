@@ -1,0 +1,29 @@
+extends ./layout
+
+block content
+  div.row
+    div.small-12.column
+      h1 Table
+      h3 Players
+      ol#Players
+        - for(var i=0; i<9; i++)
+          li Empty
+
+  script(type='text/javascript').
+    var socket = io('/poker');
+
+    socket.on('player join', function(player) {
+      $('#Players').children().eq(player.seat).text(player.name);
+    });
+
+    socket.on('players', function(players) {
+      $('#Players').children().each(function(id) {
+        if(players[id]){
+          $(this).text(players[id].name);
+        }
+      });
+    });
+
+    socket.on('player leave', function(seat) {
+      $('#Players').children().eq(seat).text('Empty');
+    });

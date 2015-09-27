@@ -1,10 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-
-
-/* GET database test */
 router.get('/', function(req, res, next) {
+  req.session.destroy();
   res.render('socket-test');
 });
 

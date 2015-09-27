@@ -1,15 +1,15 @@
-var io = require('socket.io')();
+module.exports = function(io) {
+  io.on('connection', function(socket) {
+    io.emit('chat message', 'A user connected');
 
-io.on('connection', function (socket) {
-  io.emit('chat message', 'A user connected');
+    socket.on('disconnect', function(){
+      io.emit('chat message', 'A user disconnected');
+    });
 
-  socket.on('disconnect', function(){
-    io.emit('chat message', 'A user disconnected');
+    socket.on('chat message', function(msg){
+      io.emit('chat message', msg);
+    });
   });
 
-  socket.on('chat message', function(msg){
-    io.emit('chat message', msg);
-  });
-});
-
-module.exports = io;
+  require('./io/poker')(io);
+};
