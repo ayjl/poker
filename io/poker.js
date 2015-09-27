@@ -3,7 +3,7 @@ module.exports = function(io) {
   var Dict = require('collections/dict');
 
   var table = {
-      seats: [null, null, null, null, null, null, null, null, null]
+      players: [null, null, null, null, null, null, null, null, null]
     , pot: 0
     , cards: []
   };
