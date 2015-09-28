@@ -13,9 +13,12 @@ block content
         p#Community_Cards None
       h3 Your Cards
         p#Player_Cards None
+      h3 Winner
+        p#Winner No one
 
   script(type='text/javascript').
     var socket = io('/poker');
+    var playerID;
 
     socket.on('player join', function(player) {
       $('#Players').children().eq(player.seat).text(player.name);
@@ -23,7 +26,7 @@ block content
 
     socket.on('players', function(players) {
       $('#Players').children().each(function(id) {
-        if(players[id]){
+        if (players[id]) {
           $(this).text(players[id].name);
         }
       });
@@ -44,4 +47,18 @@ block content
     socket.on('reset', function() {
       $('#Player_Cards').text('None');
       $('#Community_Cards').text('None');
+      $('#Winner').text('None');
+    });
+
+    socket.on('winner', function(player) {
+      if (playerID == player.id) {
+        $('#Winner').text('You Win! - '+player.hand.handName);
+      }
+      else {
+        $('#Winner').text(player.name+' - '+player.hand.handName);
+      }
+    });
+
+    socket.on('player id', function(id) {
+      playerID = id;
     });
