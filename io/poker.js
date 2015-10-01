@@ -7,15 +7,13 @@ module.exports = function(io) {
     , cards: []
     , numPlayers: 0
     , playing: false
+    , turn: -1
+    , handPlayers: []
+    , gameState: -1
   };
 
   poker.on('connection', function(socket) {
     var req = socket.handshake;
-
-    var player = {
-        id: req.sessionID
-      , name: req.session.user
-    };
 
     var seat;
 
@@ -25,12 +23,20 @@ module.exports = function(io) {
       }
     }
 
-    player.cards = [];
-    player.hand = null;
-    player.socketID = socket.id;
+    var player = {
+        id: req.sessionID
+      , name: req.session.user
+      , cards: []
+      , hand: null
+      , socketID: socket.id
+      , seat: seat
+      , inHand: false
+    };
+
+    // Should try to avoid exposing this to all clients
+    // and also a player's cards
     table.players.splice(seat, 1, player);
     table.numPlayers++;
-    player.seat = seat;
 
     socket.broadcast.emit('player join', player);
     socket.emit('players', table.players);
@@ -42,6 +48,49 @@ module.exports = function(io) {
       startGame(table, poker, socket, gameTimer);
     }
 
+    // This is inside the poker namespace, so emitting 'action' from the client outside
+    // the poker namespace will not trigger this
+    socket.on('action', function(action) {
+      var idx = getHandPlayerBySocket(socket.id, table);
+      var player = table.handPlayers[idx];
+
+      if (idx != -1 && table.turn == idx) {
+        var prevTableTurn = table.turn;
+
+        if (action.action == 'fold') {
+          table.turn = prevTableTurn;
+
+          table.handPlayers[table.turn].inHand = false;
+          poker.emit('fold', table.handPlayers[table.turn]);
+          table.handPlayers.splice(idx, 1);
+          if (table.handPlayers.length <= 1) {
+            table.turn = 0;
+            progressGameState(table, poker, socket, gameTimer);
+          }
+        }
+        else{
+          table.turn++;
+          // if (table.turn == table.handPlayers.length) {
+            // table.turn -= table.handPlayers.length;
+          // }
+        }
+
+        // Check if all players have had a turn
+        if (table.turn == table.handPlayers.length) {
+          table.turn = 0;
+          progressGameState(table, poker, socket, gameTimer);
+        }
+
+        poker.emit('turn', table.handPlayers[table.turn]);
+
+        console.log('thank you');
+      } else {
+        console.log('not your turn');
+      }
+
+      console.log('table.turn = '+table.turn);
+    });
+
     socket.on('disconnect', function() {
       var seat;
       for (seat = 0; seat < table.players.length; seat++) {
@@ -52,14 +101,24 @@ module.exports = function(io) {
 
       if (seat < table.players.length) {
         socket.broadcast.emit('player leave', seat);
+        player = table.players[seat];
+        if (player.inHand) {
+          player.inHand = false;
+          table.handPlayers.splice(getHandPlayerBySocket(player.socketID, table), 1);
+
+          if (table.handPlayers.length <= 1) {
+            table.turn = 0;
+            progressGameState(table, poker, socket, gameTimer);
+          }
+        }
+        console.log(table.handPlayers);
         table.players.splice(seat, 1, null);
         table.numPlayers--;
       }
 
-      if (table.numPlayers < 2) {
-        resetGame(table);
+      if (table.numPlayers <= 1) {
+        resetGame(table, poker);
         table.playing = false;
-        poker.emit('reset');
         clearTimeout(gameTimer.timer);
       }
     });
@@ -71,19 +130,28 @@ module.exports = function(io) {
 function startGame(table, poker, socket, gameTimer) {
   var deck = require('../helpers/deck')();
   var seat = 0;
-  var playerSeats = [];
+  table.handPlayers = table.players.filter(function(item) {
+    return item;
+  });
+  // table.playersInHand.addEach(table.handPlayers);
 
   // Deal player cards
-  for (var i = 0; i < table.numPlayers; i++) {
-    while (!table.players[seat]) {
-      seat++;
-    }
-    playerSeats.push(seat);
-    table.players[seat].cards.push(deck.shift());
-    seat++;
+  // var it = table.playersInHand.iterator();
+
+  for (var i = 0; i < table.handPlayers.length; i++) {
+    var player = table.handPlayers[i];
+    player.inHand = true;
   }
-  for (var i = 0; i < table.numPlayers; i++) {
-    var player = table.players[playerSeats[i]];
+
+  poker.emit('players in hand', table.handPlayers);
+
+  var player;
+  for (var i = 0; i < table.handPlayers.length; i++) {
+    var player = table.handPlayers[i];
+    player.cards.push(deck.shift());
+  }
+  for (var i = 0; i < table.handPlayers.length; i++) {
+    var player = table.handPlayers[i];
     player.cards.push(deck.shift());
     if (socket.id == player.socketID) {
       socket.emit(player.socketID).emit('player cards', player.cards);
@@ -100,20 +168,65 @@ function startGame(table, poker, socket, gameTimer) {
   table.cards.push(deck.shift());
   deck.shift();
   table.cards.push(deck.shift());
-  poker.emit('community cards', table.cards);
 
-  evalWinner(table);
-  poker.emit('winner', table.winner);
-
-  gameTimer['timer'] = setTimeout(function() {
-    resetGame(table);
-    startGame(table, poker, socket, gameTimer);
-  }, 3000);
+  table.gameState = 0;
+  table.turn = 0;
+  poker.emit('turn', table.handPlayers[table.turn]);
 }
 
-function resetGame(table) {
+function progressGameState(table, poker, socket, gameTimer) {
+  console.log('handplayer count: '+table.handPlayers.length);
+  if (table.handPlayers.length <= 1) {
+    table.winner = table.handPlayers[0];
+    poker.emit('winner', table.winner);
+    console.log(table.winner);
+    console.log('early winner');
+
+    gameTimer['timer'] = setTimeout(function() {
+      resetGame(table, poker);
+      startGame(table, poker, socket, gameTimer);
+    }, 3000);
+
+    return;
+  }
+  
+  switch (table.gameState) {
+    case 0:
+      poker.emit('community cards', table.cards.slice(0, 3));
+      console.log('time for flop');
+      break;
+    case 1:
+      poker.emit('community cards', table.cards.slice(0, 4));
+      console.log('time for turn');
+      break;
+    case 2:
+      poker.emit('community cards', table.cards);
+      console.log('time for river');
+      break;
+    case 3:
+      console.log('time for reveal');
+      evalWinner(table);
+      poker.emit('winner', table.winner);
+
+      gameTimer['timer'] = setTimeout(function() {
+        resetGame(table, poker);
+        startGame(table, poker, socket, gameTimer);
+      }, 3000);
+      break;
+    default:
+      console.log("default switch. should not be here. gameState: "+table.gameState);
+  }
+
+  table.gameState++;
+}
+
+function resetGame(table, poker) {
+  poker.emit('reset');
   table.cards = [];
   table.winner = null;
+  table.turn = -1;
+  table.handPlayers = [];
+  table.gameState = -1;
   for (var i = 0; i < table.players.length; i++) {
     if (table.players[i]) {
       var player = table.players[i];
@@ -149,4 +262,14 @@ function evalWinner(table) {
       }
     }
   }
+}
+
+function getHandPlayerBySocket(socketID, table) {
+  for (var i = 0; i < table.handPlayers.length; i++) {
+    if (table.handPlayers[i] && table.handPlayers[i].socketID == socketID) {
+      return i;
+    }
+  }
+
+  return -1;
 }
