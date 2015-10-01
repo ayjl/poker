@@ -50,7 +50,9 @@ block content
     });
 
     socket.on('player leave', function(seat) {
-      $('#Players').children().eq(seat).text('Empty');
+      $playerEl = $('#Players').children().eq(seat);
+      $playerEl.text('Empty');
+      $playerEl.addClass('poker__players--folded');
     });
 
     socket.on('player cards', function(cards) {
@@ -72,6 +74,9 @@ block content
 
     socket.on('fold', function(player) {
       $('#Players').children().eq(player.seat).addClass('poker__players--folded');
+      if (playerID == player.id) {
+        $('Button').prop('disabled', true);
+      }
     });
 
     socket.on('turn', function(player) {
@@ -104,6 +109,5 @@ block content
       });
       $('#Fold').on('click', function() {
         socket.emit('action', { action: 'fold' });
-        $('Button').prop('disabled', true);
       });
     });

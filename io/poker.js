@@ -64,31 +64,23 @@ module.exports = function(io) {
           poker.emit('fold', table.handPlayers[table.turn]);
           table.handPlayers.splice(idx, 1);
           if (table.handPlayers.length <= 1) {
-            table.turn = 0;
             progressGameState(table, poker, socket, gameTimer);
           }
         }
         else{
           table.turn++;
-          // if (table.turn == table.handPlayers.length) {
-            // table.turn -= table.handPlayers.length;
-          // }
         }
 
         // Check if all players have had a turn
         if (table.turn == table.handPlayers.length) {
-          table.turn = 0;
           progressGameState(table, poker, socket, gameTimer);
         }
 
         poker.emit('turn', table.handPlayers[table.turn]);
-
         console.log('thank you');
       } else {
         console.log('not your turn');
       }
-
-      console.log('table.turn = '+table.turn);
     });
 
     socket.on('disconnect', function() {
@@ -104,22 +96,20 @@ module.exports = function(io) {
         player = table.players[seat];
         if (player.inHand) {
           player.inHand = false;
-          table.handPlayers.splice(getHandPlayerBySocket(player.socketID, table), 1);
+          handPlayerIdx = getHandPlayerBySocket(player.socketID, table);
+          table.handPlayers.splice(handPlayerIdx, 1);
+
+          if (table.turn > handPlayerIdx) {
+            table.turn--;
+          }
 
           if (table.handPlayers.length <= 1) {
-            table.turn = 0;
             progressGameState(table, poker, socket, gameTimer);
           }
         }
         console.log(table.handPlayers);
         table.players.splice(seat, 1, null);
         table.numPlayers--;
-      }
-
-      if (table.numPlayers <= 1) {
-        resetGame(table, poker);
-        table.playing = false;
-        clearTimeout(gameTimer.timer);
       }
     });
   });
@@ -128,15 +118,12 @@ module.exports = function(io) {
 };
 
 function startGame(table, poker, socket, gameTimer) {
+  resetGame(table, poker);
   var deck = require('../helpers/deck')();
   var seat = 0;
   table.handPlayers = table.players.filter(function(item) {
     return item;
   });
-  // table.playersInHand.addEach(table.handPlayers);
-
-  // Deal player cards
-  // var it = table.playersInHand.iterator();
 
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
@@ -145,6 +132,7 @@ function startGame(table, poker, socket, gameTimer) {
 
   poker.emit('players in hand', table.handPlayers);
 
+  // Deal player cards
   var player;
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
@@ -175,17 +163,21 @@ function startGame(table, poker, socket, gameTimer) {
 }
 
 function progressGameState(table, poker, socket, gameTimer) {
-  console.log('handplayer count: '+table.handPlayers.length);
+  table.turn = 0;
+
   if (table.handPlayers.length <= 1) {
     table.winner = table.handPlayers[0];
     poker.emit('winner', table.winner);
-    console.log(table.winner);
-    console.log('early winner');
 
     gameTimer['timer'] = setTimeout(function() {
-      resetGame(table, poker);
       startGame(table, poker, socket, gameTimer);
     }, 3000);
+
+    if (table.numPlayers <= 1) {
+      resetGame(table, poker);
+      table.playing = false;
+      clearTimeout(gameTimer.timer);
+    }
 
     return;
   }
@@ -209,7 +201,6 @@ function progressGameState(table, poker, socket, gameTimer) {
       poker.emit('winner', table.winner);
 
       gameTimer['timer'] = setTimeout(function() {
-        resetGame(table, poker);
         startGame(table, poker, socket, gameTimer);
       }, 3000);
       break;
