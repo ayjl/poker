@@ -15,6 +15,7 @@ block content
       h3 Your Cards
         p#Player_Cards None
         button#Check Check
+        button#Fold Fold
       h3 Winner
         p#Winner No one
 
@@ -23,14 +24,28 @@ block content
     var playerID;
 
     socket.on('player join', function(player) {
-      $('#Players').children().eq(player.seat).text(player.name);
+      $playerEl = $('#Players').children().eq(player.seat);
+      $playerEl.text(player.name);
+      $playerEl.addClass('poker__players--folded');
     });
 
     socket.on('players', function(players) {
       $('#Players').children().each(function(id) {
         if (players[id]) {
           $(this).text(players[id].name);
+          if (!players[id].inHand) {
+            $(this).addClass('poker__players--folded');
+          }
         }
+        else{
+          $(this).addClass('poker__players--folded');
+        }
+      });
+    });
+
+    socket.on('players in hand', function(players) {
+      $.each(players, function(id, player) {
+        $('#Players').children().eq(player.seat).removeClass('poker__players--folded');
       });
     });
 
@@ -50,29 +65,45 @@ block content
       $('#Player_Cards').text('None');
       $('#Community_Cards').text('None');
       $('#Winner').text('None');
+      $('Button').prop('disabled', false);
+      $('.poker__players--active').removeClass('poker__players--active');
+      $('#Players').children().addClass('poker__players--folded');
+    });
+
+    socket.on('fold', function(player) {
+      $('#Players').children().eq(player.seat).addClass('poker__players--folded');
+    });
+
+    socket.on('turn', function(player) {
+      $('.poker__players--active').removeClass('poker__players--active');
+      $('#Players').children().eq(player.seat).addClass('poker__players--active');
     });
 
     socket.on('winner', function(player) {
+      var text = '';
       if (playerID == player.id) {
-        $('#Winner').text('You Win! - '+player.hand.handName);
+        text += 'You Win!';
       }
       else {
-        $('#Winner').text(player.name+' - '+player.hand.handName);
+        text += player.name;
       }
+
+      if(player.hand) {
+        text += ' - '+player.hand.handName;
+      }
+      $('#Winner').text(text);
     });
 
     socket.on('player id', function(id) {
       playerID = id;
     });
 
-    socket.on('turn', function(player) {
-      playerID = id;
-    });
-
     $(document).ready(function() {
       $('#Check').on('click', function() {
-        console.log('check');
         socket.emit('action', { action: 'check' });
-        //- $(this).addClass('hide');
+      });
+      $('#Fold').on('click', function() {
+        socket.emit('action', { action: 'fold' });
+        $('Button').prop('disabled', true);
       });
     });
