@@ -2,17 +2,19 @@ extends ./layout
 
 block content
   div.row
-    div.small-12.column
+    div.small-6.column
       h1 Table
       h3 Players
       ol#Players
         - for(var i=0; i<9; i++)
           li Empty
-
+          
+    div.small-6.column
       h3 Community Cards
         p#Community_Cards None
       h3 Your Cards
         p#Player_Cards None
+        button#Check Check
       h3 Winner
         p#Winner No one
 
@@ -61,4 +63,16 @@ block content
 
     socket.on('player id', function(id) {
       playerID = id;
+    });
+
+    socket.on('turn', function(player) {
+      playerID = id;
+    });
+
+    $(document).ready(function() {
+      $('#Check').on('click', function() {
+        console.log('check');
+        socket.emit('action', { action: 'check' });
+        //- $(this).addClass('hide');
+      });
     });
