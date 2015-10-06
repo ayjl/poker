@@ -15,4 +15,10 @@ h1 {
 
 label {
     color: white;
+    display: block;
+    margin: 15px auto;
+}
+
+div {
+  color:white;
 }
