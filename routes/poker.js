@@ -7,6 +7,7 @@ router.get('/', function(req, res, next) {
     var pad = '000000';
     var padded = pad.substring(0, pad.length - num.length) + num;
     req.session.user = 'Guest' + padded;
+    req.session.chips = 100000;
   }
   
   res.render('poker');
