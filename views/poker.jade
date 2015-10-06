@@ -2,6 +2,12 @@ extends ./layout
 
 block content
   div.row
+    div.poker__Table
+      ul
+        - for(var i=0; i<6; i++)
+          li(class=['poker__card-container', 'poker__card-container--'+i])
+            
+  div.row
     div.small-6.column
       h1 Table
       h3 Players
@@ -55,6 +61,11 @@ block content
 
     socket.on('player cards', function(cards) {
       $('#Player_Cards').text(cards.join(' '));
+      //- $('#Card1').attr('class', 'poker__card poker__card--mycard poker__card--' + cards[0]);
+      //- $('#Card2').attr('class', 'poker__card poker__card--mycard poker__card--' + cards[1]);
+      $('#Card1').attr('class', 'poker__card poker__card--' + cards[0]);
+      $('#Card2').attr('class', 'poker__card poker__card--' + cards[1]);
+      $('#Blank_Card').attr('class', 'poker__card poker__cardback');
     });
 
     socket.on('community cards', function(cards) {
