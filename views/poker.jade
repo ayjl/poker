@@ -18,13 +18,13 @@ block content
       h3 Chips
         p#Chips
       h3 Community Cards
-        p#Community_Cards None
+        p#Community_cards None
       h3 Your Cards
-        p#Player_Cards None
+        p#Player_cards None
         button#Check Check
         button#Fold Fold
         button#Bet 10
-        input(type="number", value=10, min=10)#BetAmount
+        input(type="number", value=10, min=10)#Bet_amount
 
   script(type='text/javascript').
     var socket = io('/poker');
@@ -104,16 +104,16 @@ block content
     });
 
     socket.on('player cards', function(cards) {
-      $('#Player_Cards').text(cards.join(' '));
+      $('#Player_cards').text(cards.join(' '));
     });
 
     socket.on('community cards', function(cards) {
-      $('#Community_Cards').text(cards.join(' '));
+      $('#Community_cards').text(cards.join(' '));
     });
 
     socket.on('reset', function() {
-      $('#Player_Cards').text('None');
-      $('#Community_Cards').text('None');
+      $('#Player_cards').text('None');
+      $('#Community_cards').text('None');
       $('#Winner').text('No one');
       $('#Pot').text(0);
       $('#Check').text('Check');
@@ -168,7 +168,7 @@ block content
     socket.on('confirm bet', function(tableBet, chips) {
       $('#Check').text('Check');
       $('#Chips').text(chips);
-      $('#BetAmount').prop('max', chips);
+      $('#Bet_amount').prop('max', chips);
       bet = tableBet;
       call = 0;
       console.log('Your bet is now '+tableBet+'. You have '+chips+' chips.');
@@ -176,7 +176,7 @@ block content
 
     socket.on('confirm chips', function(chips) {
       $('#Chips').text(chips);
-      $('#BetAmount').prop('max', chips);
+      $('#Bet_amount').prop('max', chips);
     });
 
     socket.on('winner', function(player) {
@@ -199,7 +199,7 @@ block content
       playerID = player.id;
       $('#Player').text(player.name);
       $('#Chips').text(player.chips);
-      $('#BetAmount').prop('max', player.chips);
+      $('#Bet_amount').prop('max', player.chips);
     });
 
     $(document).ready(function() {
@@ -211,17 +211,17 @@ block content
         socket.emit('action', { action: 'fold' });
       });
       $('#Bet').on('click', function() {
-        var amount = parseInt($('#BetAmount').val());
+        var amount = parseInt($('#Bet_amount').val());
         socket.emit('action', { action: 'raise', amount: amount });
       });
-      $('#BetAmount').on('keyup change', function() {
+      $('#Bet_amount').on('keyup change', function() {
         updateBetButton();
       });
     });
 
     function updateBetButton(forced) {
       var $raise = $('#Bet');
-      var $raiseInput = $('#BetAmount');
+      var $raiseInput = $('#Bet_amount');
       var raise = parseInt($raiseInput.val());
       var chips = parseInt($('#Chips').text());
 
