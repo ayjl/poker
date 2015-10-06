@@ -2,23 +2,27 @@ extends ./welcome
 
 block content
   div.row
-    div(class="small-12 column text-center")
-      h1 Poker Pros
-      p
-        a(href="/db") Database Test
-      p
-        a(href="/socket") Socket.io Test
-      p
-        a(href="/poker") Play as a Guest
+    div(class="medium-3 columns")
+      | &nbsp;
+    div(class="medium-4 columns text-center")
+        h1 Poker Pros
+    div(class="medium-3 columns")
+      | &nbsp;
+  div.row
+    div(class="medium-3 columns")
+      | &nbsp; 
+    div(class="medium-4 columns" align="center")
       label
-        | username: 
-        input(type="text", name="user")
-        
-        | password: 
-        input(type="text", name="password")
-        br
-        a(href="/poker", class="button round") Login
-        br
-        a(href="/poker", class="button round") Sign Up
-        br
-        a(href="/poker", class="button round") Play as a Guest
+      | username: 
+      input(type="text", name="user")
+      
+      | password: 
+      input(type="text", name="password")
+      br
+      a(href="/poker", class="button round") Login
+      br
+      a(href="/poker", class="button round") Sign Up
+      br
+      a(href="/poker", class="button round") Play as a Guest
+    div(class="medium-3 columns")
+        | &nbsp;
