@@ -15,3 +15,9 @@ a {
 .poker__players--folded {
   text-decoration: line-through;
 }
+#Bet:before {
+  content: 'Bet ';
+}
+#Bet.raise:before {
+  content: 'Raise to ';
+}
