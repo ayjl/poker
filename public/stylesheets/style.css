@@ -6,3 +6,18 @@ body {
 a {
   color: #00B7FF;
 }
+
+
+.poker__players--active {
+  color: green;
+  font-weight: 700;
+}
+.poker__players--folded {
+  text-decoration: line-through;
+}
+#Bet:before {
+  content: 'Bet ';
+}
+#Bet.raise:before {
+  content: 'Raise to ';
+}
