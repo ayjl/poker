@@ -3,7 +3,6 @@ module.exports = function(io) {
 
   var table = {
       players: [null, null, null, null, null, null, null, null, null]
-    , pot: 0
     , cards: []
     , numPlayers: 0
     , playing: false
@@ -11,9 +10,12 @@ module.exports = function(io) {
     , handPlayers: []
     , handFirstPlayer: null
     , gameState: -1
+    , pot: 0
     , bet: 0
     , roundBet: 0
-    , minRaise: 10
+    , blind: 10
+    , minRaise: 0  // This gets set to the blind before each round of betting
+    , dealer: 0
   };
 
   poker.on('connection', function(socket) {
@@ -83,7 +85,6 @@ module.exports = function(io) {
         }
         else{
           if (action.action == 'raise') {
-            // console.log(action.amount);
             if(!action.amount) {  // In case action.amount is null
               action.amount = 0;
             }
@@ -116,8 +117,6 @@ module.exports = function(io) {
             poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise);
             socket.emit('confirm bet', table.bet, player.chips);
             // socket.broadcast.emit('raise', action.amount);
-
-            console.log(table.pot+' | '+table.bet);
 
             var moveToEnd = table.handPlayers.splice(0, idx);
             table.handPlayers = table.handPlayers.concat(moveToEnd);
@@ -208,7 +207,84 @@ function startGame(table, poker, socket, gameTimer) {
     player.inHand = true;
   }
 
-  poker.emit('players in hand', table.handPlayers);
+  // Assign dealer
+  table.dealer++;
+  if(table.dealer >= table.players.length) {
+    table.dealer -= table.players.length;
+  }
+  while (!table.players[table.dealer] || !table.players[table.dealer].inHand) {
+    table.dealer++;
+    if(table.dealer >= table.players.length) {
+      table.dealer -= table.players.length;
+    }
+  }
+
+  var dealerPlayer = table.players[table.dealer];
+  var dealerInHand = table.handPlayers.indexOf(dealerPlayer);
+
+  // Assign blinds
+  table.pot += table.blind + table.blind/2;
+
+  var smallBlind = dealerInHand;
+  if(table.handPlayers.length > 2) {
+    smallBlind++;
+    if(smallBlind >= table.handPlayers.length) {
+      smallBlind -= table.handPlayers.length;
+    }
+  }
+  var smallBlindPlayer = table.handPlayers[smallBlind];
+
+  var bigBlind = smallBlind + 1;
+  if(bigBlind >= table.handPlayers.length) {
+    bigBlind -= table.handPlayers.length;
+  }
+  var bigBlindPlayer = table.handPlayers[bigBlind];
+
+  // Store the first hand player (the person going to be starting betting each round)
+  if(table.handPlayers.length > 2) {
+    table.handFirstPlayer = smallBlindPlayer;
+  }
+  else {
+    table.handFirstPlayer = bigBlindPlayer;
+  }
+
+  smallBlindPlayer.bet = table.blind/2;
+  smallBlindPlayer.chips -= table.blind/2;
+  storePlayerChips(smallBlindPlayer);
+
+  bigBlindPlayer.bet = table.blind;
+  bigBlindPlayer.chips -= table.blind;
+  storePlayerChips(bigBlindPlayer);
+
+  // Move the blinds players to the end
+  var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
+  if(table.handPlayers.length > 2) {
+    idx += 2;
+  }
+  else {
+    idx += 1;
+  }
+  if(idx >= table.handPlayers.length) {
+    idx -= table.handPlayers.length
+  }
+  var moveToEnd = table.handPlayers.splice(0, idx);
+  table.handPlayers = table.handPlayers.concat(moveToEnd);
+
+  poker.emit('players in hand', {
+      players: table.handPlayers
+    , dealerID: dealerPlayer.id
+    , smallBlindID: smallBlindPlayer.id
+    , bigBlindID: bigBlindPlayer.id
+    , pot: table.pot
+    , blind: table.blind
+  });
+
+  table.bet = table.blind;
+  table.roundBet = table.blind;
+  table.minRaise = table.blind;
+
+  socket.emit(smallBlindPlayer.socketID).emit('confirm chips', smallBlindPlayer.chips);
+  socket.emit(bigBlindPlayer.socketID).emit('confirm chips', bigBlindPlayer.chips);
 
   // Deal player cards
   var player;
@@ -237,14 +313,13 @@ function startGame(table, poker, socket, gameTimer) {
 
   table.gameState = 0;
   table.turn = 0;
-  table.handFirstPlayer = table.handPlayers[0];
   poker.emit('turn', table.handPlayers[table.turn]);
 }
 
 function progressGameState(table, poker, socket, gameTimer) {
   table.turn = 0;
   table.roundBet = 0;
-  table.minRaise = 10;
+  table.minRaise = table.blind;
 
   if (table.handPlayers.length <= 1) {
     table.winner = table.handPlayers[0];
@@ -314,9 +389,10 @@ function resetGame(table, poker) {
   table.handPlayers = [];
   table.gameState = -1;
   table.bet = 0;
-  table.minRaise = 10;
+  table.minRaise = table.blind;
   table.pot = 0;
   table.handFirstPlayer = null;
+
   for (var i = 0; i < table.players.length; i++) {
     if (table.players[i]) {
       var player = table.players[i];

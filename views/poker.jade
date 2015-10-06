@@ -53,10 +53,48 @@ block content
       });
     });
 
-    socket.on('players in hand', function(players) {
-      $.each(players, function(id, player) {
-        $('#Players').children().eq(player.seat).removeClass('poker__players--folded');
+    socket.on('players in hand', function(data) {
+      $.each(data.players, function(id, player) {
+        var $player = $('#Players').children().eq(player.seat);
+        $player.removeClass('poker__players--folded');
+        if(player.id == data.dealerID) {
+          $player.addClass('poker__players--dealer');
+        }
+        if(player.id == data.smallBlindID) {
+          $player.addClass('poker__players--small-blind');
+        }
+        if(player.id == data.bigBlindID) {
+          $player.addClass('poker__players--big-blind');
+        }
       });
+
+      $('#Pot').text(data.pot);
+
+      if(playerID == data.smallBlindID) {
+        bet = data.blind/2;
+      }
+      else if(playerID == data.bigBlindID) {
+        bet = data.blind;
+      }
+
+      var tableBet = data.blind;
+      var roundBet = data.blind;
+      var minRaise = data.blind;
+
+      //- From 'pot' function (unmodified)
+      if(tableBet > bet) {
+        call = tableBet - bet;
+        $('#Check').text('Call ' + tableBet + " (+" + call + ")");
+      }
+
+      minBet = roundBet + minRaise;
+      if(roundBet > 0) {
+        $('#Bet').addClass('raise');
+      }
+      else{
+        $('#Bet').removeClass('raise');
+      }
+      updateBetButton(true);
     });
 
     socket.on('player leave', function(seat) {
@@ -85,7 +123,7 @@ block content
       minBet = 10;
       updateBetButton(true);
       $('button').prop('disabled', true);
-      $('.poker__players--active').removeClass('poker__players--active');
+      $('#Players').children().removeClass();  // Remove all classes
       $('#Players').children().addClass('poker__players--folded');
     });
 
@@ -112,7 +150,7 @@ block content
       
       if(tableBet > bet) {
         call = tableBet - bet;
-        $('#Check').text('Call ' + tableBet + " (+" + call + ")");
+        $('#Check').text('Call ' + roundBet + " (+" + call + ")");
       }
 
       minBet = roundBet + minRaise;
@@ -122,7 +160,7 @@ block content
       else{
         $('#Bet').removeClass('raise');
       }
-      console.log(tableBet, roundBet, minRaise);
+      console.log(tableBet, roundBet, minRaise, bet);
 
       updateBetButton(true);
     });
