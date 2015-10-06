@@ -15,6 +15,15 @@ a {
 .poker__players--folded {
   text-decoration: line-through;
 }
+.poker__players--dealer {
+  text-decoration: underline;
+}
+.poker__players--small-blind:after {
+  content: ' Small Blind';
+}
+.poker__players--big-blind:after {
+  content: ' Big Blind';
+}
 #Bet:before {
   content: 'Bet ';
 }
