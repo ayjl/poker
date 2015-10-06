@@ -1,0 +1,24 @@
+body {
+    background-image: url(/images/chips.jpg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: right bottom;
+    background-color: black;
+    padding: 40px 0;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    color:white;
+}
+
+h1 {
+    color: white;
+}
+
+label {
+    color: white;
+    display: block;
+    margin: 15px auto;
+}
+
+div {
+  color:white;
+}
