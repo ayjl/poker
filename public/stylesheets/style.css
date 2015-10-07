@@ -93,6 +93,12 @@ a {
 	max-width: 100px; max-height: 100px;
 }
 
+.poker__card-rivercontainer--0 {
+	bottom: 0;
+	left: 440px;
+	max-width: 70px; max-height: 100px;
+}
+
 /*.poker__card--mycard {
 	top: 80%;
 	left: 50%;

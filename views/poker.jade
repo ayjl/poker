@@ -12,7 +12,7 @@ block content
       h1 Table
       h3 Players
       ol#Players
-        - for(var i=0; i<9; i++)
+        - for(var i=0; i<6; i++)
           li Empty
           
     div.small-6.column
@@ -61,15 +61,18 @@ block content
 
     socket.on('player cards', function(cards) {
       $('#Player_Cards').text(cards.join(' '));
-      //- $('#Card1').attr('class', 'poker__card poker__card--mycard poker__card--' + cards[0]);
-      //- $('#Card2').attr('class', 'poker__card poker__card--mycard poker__card--' + cards[1]);
-      $('#Card1').attr('class', 'poker__card poker__card--' + cards[0]);
-      $('#Card2').attr('class', 'poker__card poker__card--' + cards[1]);
+      $('#PlayerCard1').attr('class', 'poker__card poker__card--' + cards[0]);
+      $('#PlayerCard2').attr('class', 'poker__card poker__card--' + cards[1]);
       $('#Blank_Card').attr('class', 'poker__card poker__cardback');
     });
 
     socket.on('community cards', function(cards) {
       $('#Community_Cards').text(cards.join(' '));
+      $('#Community_Card1').attr('class', 'poker__card poker__card--' + cards[0]);
+      $('#Community_Card2').attr('class', 'poker__card poker__card--' + cards[1]);
+      $('#Community_Card3').attr('class', 'poker__card poker__card--' + cards[2]);
+      $('#Community_Card4').attr('class', 'poker__card poker__card--' + cards[3]);
+      $('#Community_Card5').attr('class', 'poker__card poker__card--' + cards[4]);
     });
 
     socket.on('reset', function() {
