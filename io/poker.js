@@ -163,6 +163,7 @@ module.exports = function(io) {
       if (seat < table.players.length) {
         socket.broadcast.emit('player leave', seat);
         player = table.players[seat];
+        table.numPlayers--;
         if (player.inHand) {
           if(table.handFirstPlayer == player) {
             if(table.turn + 1 == table.handPlayers.length) {
@@ -186,7 +187,6 @@ module.exports = function(io) {
           }
         }
         table.players.splice(seat, 1, null);
-        table.numPlayers--;
       }
     });
   });
@@ -335,7 +335,10 @@ function progressGameState(table, poker, socket, gameTimer) {
     }, 3000);
 
     if (table.numPlayers <= 1) {
-      resetGame(table, poker);
+      setTimeout(function() {
+        resetGame(table, poker);
+      }, 3000);
+
       table.playing = false;
       clearTimeout(gameTimer.timer);
     }
