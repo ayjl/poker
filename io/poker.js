@@ -40,6 +40,7 @@ module.exports = function(io) {
       , inHand: false
       , bet: 0
       , chips: req.session.chips
+      , allIn: false
     };
 
     // Should try to avoid exposing this to all clients
@@ -126,7 +127,12 @@ module.exports = function(io) {
           // Call
           else if (action.action == 'check' && player.bet < table.bet) {
             var extraPot = table.bet - player.bet;
-            player.bet = table.bet;
+            if(extraPot >= player.chips) {
+              extraPot = player.chips;
+              player.allIn = true;
+            }
+            // player.bet = table.bet;
+            player.bet += extraPot;
             table.pot += extraPot;
             player.chips -= extraPot;
             storePlayerChips(player);
@@ -135,7 +141,25 @@ module.exports = function(io) {
             socket.emit('confirm bet', table.bet, player.chips);
           }
 
+          var notAllInPlayers = table.handPlayers.filter(function(player) {
+            return !player.allIn;
+          });
+
+          if(notAllInPlayers.length <= 1) {
+            table.gameState = 2;
+            progressGameState(table, poker, socket, gameTimer);
+            return;
+          }
+
           table.turn++;
+
+          while(table.handPlayers[table.turn].allIn) {
+            table.turn++;
+            if (table.turn == table.handPlayers.length) {
+              progressGameState(table, poker, socket, gameTimer);
+              return;
+            }
+          }
         }
 
         // Check if all players have had a turn

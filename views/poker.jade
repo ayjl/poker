@@ -25,6 +25,7 @@ block content
         button#Fold Fold
         button#Bet 10
         input(type="number", value=10, min=10)#Bet_amount
+        button#All_in All In
 
   script(type='text/javascript').
     var socket = io('/poker');
@@ -217,15 +218,19 @@ block content
       $('#Bet_amount').on('keyup change', function() {
         updateBetButton();
       });
+      $('#All_in').on('click', function() {
+        $('#Bet_amount').val(parseInt($('#Chips').text()));
+        updateBetButton();
+      });
     });
 
     function updateBetButton(forced) {
       var $raise = $('#Bet');
-      var $raiseInput = $('#Bet_amount');
-      var raise = parseInt($raiseInput.val());
+      var $betInput = $('#Bet_amount');
+      var raise = parseInt($betInput.val());
       var chips = parseInt($('#Chips').text());
 
-      $raiseInput.prop('min', minBet);
+      $betInput.prop('min', minBet);
 
       if(!raise) {
         raise = minBet;
@@ -238,7 +243,7 @@ block content
       }
 
       if(forced) {
-        $raiseInput.val(raise);
+        $betInput.val(raise);
       }
 
       $raise.text(raise);
