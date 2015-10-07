@@ -296,9 +296,9 @@ function startGame(table, poker, socket, gameTimer) {
     var player = table.handPlayers[i];
     player.cards.push(deck.shift());
     if (socket.id == player.socketID) {
-      socket.emit(player.socketID).emit('player cards', player.cards);
+      socket.emit(player.socketID).emit('player cards', player.cards, player.seat);
     } else {
-      socket.broadcast.to(player.socketID).emit('player cards', player.cards);
+      socket.broadcast.to(player.socketID).emit('player cards', player.cards, player.seat);
     }
   }
 

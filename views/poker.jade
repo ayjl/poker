@@ -2,13 +2,25 @@ extends ./layout
 
 block content
   div.row
+    div.poker__Table
+      ul#Community_cards_tmp
+        - for(var i=0; i<5; i++)
+          li.poker__card.poker__card--community
+      ul#Players_tmp
+        - for(var i=0; i<6; i++)
+          li(class=['poker__card-container', 'poker__card-container--'+i])
+            div.poker__card.poker__card--1
+            div.poker__card.poker__card--2
+            p.poker__player-name Seat Available
+
+  div.row
     div.small-6.column
       h1 Table
       h3 Pot
       p#Pot 0
       h3 Players
       ol#Players
-        - for(var i=0; i<9; i++)
+        - for(var i=0; i<6; i++)
           li Empty
       h3 Winner
         p#Winner No one
@@ -37,13 +49,17 @@ block content
       $playerEl = $('#Players').children().eq(player.seat);
       $playerEl.text(player.name);
       $playerEl.addClass('poker__players--folded');
+
+      $('#Players_tmp').children().eq(player.seat).children('p').text(player.name);
     });
 
     socket.on('players', function(players) {
-      $('#Players').children().each(function(id) {
-        if (players[id]) {
-          $(this).text(players[id].name);
-          if (!players[id].inHand) {
+      $('#Players').children().each(function(idx) {
+        if (players[idx]) {
+          $(this).text(players[idx].name);
+          $('#Players_tmp').children().eq(players[idx].seat).children('p').text(players[idx].name);
+
+          if (!players[idx].inHand) {
             $(this).addClass('poker__players--folded');
           }
         }
@@ -65,6 +81,12 @@ block content
         }
         if(player.id == data.bigBlindID) {
           $player.addClass('poker__players--big-blind');
+        }
+
+        if(player.id != playerID) {
+          $player = $('#Players_tmp').children().eq(player.seat);
+          $player.children('.poker__card--1').addClass('poker__cardback');
+          $player.children('.poker__card--2').addClass('poker__cardback');
         }
       });
 
@@ -100,15 +122,28 @@ block content
     socket.on('player leave', function(seat) {
       $playerEl = $('#Players').children().eq(seat);
       $playerEl.text('Empty');
+      $('#Players_tmp').children().eq(seat).children('p').text('Seat Available');
+      $('#Players_tmp').children().eq(seat).addClass('poker__card-container--folded');
       $playerEl.addClass('poker__players--folded');
     });
 
-    socket.on('player cards', function(cards) {
+    socket.on('player cards', function(cards, seat) {
       $('#Player_Cards').text(cards.join(' '));
+
+      var $player = $('#Players_tmp').children().eq(seat);
+      $player.children('.poker__card--1').addClass('poker__card poker__card--' + cards[0]);
+      $player.children('.poker__card--2').addClass('poker__card poker__card--' + cards[1]);
+
+      //- $('#Player_card1').attr('class', 'poker__card poker__card--' + cards[0]);
+      //- $('#Player_card2').attr('class', 'poker__card poker__card--' + cards[1]);
+      //- $('#Blank_Card').attr('class', 'poker__card poker__cardback');
     });
 
     socket.on('community cards', function(cards) {
       $('#Community_Cards').text(cards.join(' '));
+      $.each(cards, function(idx, card) {
+        $('#Community_cards_tmp').children().eq(idx).addClass('poker__card--' + card);
+      })
     });
 
     socket.on('reset', function() {
@@ -125,10 +160,17 @@ block content
       $('button').prop('disabled', true);
       $('#Players').children().removeClass();  // Remove all classes
       $('#Players').children().addClass('poker__players--folded');
+
+      $('#Players_tmp').children().removeClass('poker__card-container--folded');
+
+      $(".poker__card").removeClass(function (index, css) {
+          return (css.match (/poker__card--\w\w/g) || []).join(' ');
+      });
     });
 
     socket.on('fold', function(player) {
       $('#Players').children().eq(player.seat).addClass('poker__players--folded');
+      $('#Players_tmp').children().eq(player.seat).addClass('poker__card-container--folded');
       if (playerID == player.id) {
         $('button').prop('disabled', true);
       }
