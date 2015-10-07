@@ -311,3 +311,19 @@ a {
 .poker__card--Kd {
 	background-position: -3869px -2291px;
 }
+
+.poker__players--dealer {
+  text-decoration: underline;
+}
+.poker__players--small-blind:after {
+  content: ' Small Blind';
+}
+.poker__players--big-blind:after {
+  content: ' Big Blind';
+}
+#Bet:before {
+  content: 'Bet ';
+}
+#Bet.raise:before {
+  content: 'Raise to ';
+}
