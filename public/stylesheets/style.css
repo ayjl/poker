@@ -24,6 +24,8 @@ a {
     /*-moz-transform-origin: 0 0;
     -moz-transform:scale(1.5);*/
     position: relative;
+
+    margin-bottom: 100px;
     /*zoom: 1.5;*/
 }
 
@@ -41,20 +43,42 @@ a {
 .poker__cardback {
 	background-image: url('/img/Playing_Card_Backs_v.2.0.svg');
 	background-position: -1328px -1716px;
-	background-repeat: no-repeat;
-	width: 224px; height: 312px;
-    -moz-transform-origin: 0 0;
-    -moz-transform:scale(0.3);
-    position: absolute;
-    zoom:0.3;
 }
 
+.poker__card--1 {
+  position: static;
+}
+.poker__card--2 {
+  top: 0;
+  left: 50px;
+}
 
+.poker__player-name {
+  text-shadow: 1px 1px 6px #fff;
+}
+
+#Community_cards_tmp{
+  position: absolute;
+  top: 90px;
+  left: 104px;
+}
+.poker__card--community {
+  position: static;
+  display: inline-block;
+}
+
+#Players_tmp {
+  list-style: none;
+}
 .poker__card-container {
 	position: absolute;
 	text-align: center;
 	vertical-align: middle;
 	width: 100px; height: 100px;
+}
+
+.poker__card-container--folded {
+  opacity: 0.5;
 }
 
 .poker__card-container--0 {
