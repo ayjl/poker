@@ -55,6 +55,7 @@ app.use('/users', users);
 app.use('/db', dbTest);
 app.use('/socket', socketTest);
 app.use('/poker', poker);
+app.use('/account', account);
 
 var io = require('socket.io')();
 var sharedsession = require("express-socket.io-session");

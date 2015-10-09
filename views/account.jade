@@ -4,46 +4,21 @@ block content
   div.row
     div.small-12.column
       h1 Account Placeholder
-      form
-        div.row
-          div.small-12.column
-            label New User
-              input#User(type='text', placeholder='Enter a name')
-        button Add User
-
-      h2 User List
-      ul
-      - each user in users
-        li #{user.name}&nbsp;
-          a(href='/db/'+user._id, class='delete-btn') Delete
-
-  script(type='text/javascript').
-    $('form').submit(function(){
-      $.ajax( {
-        type: 'POST',
-        url: '/db',
-        data: {
-          name: $('#User').val()
-        },
-        complete: function() {
-          location.reload();
-        }
-      });
-      return false;
-    });
-
+      p Current Balance is: 
+      button(class='btn', data-action='topup') Top Up Balance
+  
+  script(type='text/javascript').  
     $(document).ready(function() {
-      $('.delete-btn').on('click', function() {
-        event.preventDefault();
+      $('.btn').on('click', function() {
+        //- event.preventDefault();
 
         $.ajax( {
-          type: 'DELETE',
+          type: 'POST',
           url: $(this).attr('href'),
           complete: function() {
             location.reload();
           }
         });
-
         return false;
       });
     });
