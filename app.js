@@ -15,6 +15,7 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
+var account = require('./routes/account');
 var socketTest = require('./routes/socket-test');
 
 var app = express();
