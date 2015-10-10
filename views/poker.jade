@@ -259,6 +259,21 @@ block content
       $('#BetAmount').on('keyup change', function() {
         updateBetButton();
       });
+
+      $(document).keypress(function(event) {
+        switch(event.keyCode) {
+          case 99:  // C
+            $('#Check').click();
+            break;
+          case 102: // F
+            $('#Fold').click();
+            break;
+          case 98:  // B
+          case 114: // R
+            $('#Bet').click();
+            break;
+        }
+      });
     });
 
     function updateBetButton(forced) {
