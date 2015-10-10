@@ -10,8 +10,7 @@ block content
   script(type='text/javascript').  
     $(document).ready(function() {
       $('.btn').on('click', function() {
-        //- event.preventDefault();
-
+        event.preventDefault();
         $.ajax( {
           type: 'POST',
           url: $(this).attr('href'),

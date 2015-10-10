@@ -5,12 +5,12 @@ var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
 
-// router.get('/', function(req, res, next) {
-//   // Using callbacks example
-//   var balance = Session.find(function(err, users){
-//     res.render('account', { users: users });
-//   });
-// });
+router.get('/', function(req, res, next) {
+  // Using callbacks example
+  var curr = Session.find(function(err, users){
+    res.render('account');
+  });
+});
 
 router.post('/', function(req, res, next) {
   var updatedChips = 10000;
