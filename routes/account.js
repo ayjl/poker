@@ -5,25 +5,27 @@ var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
   // Using callbacks example
-  var curr = Session.find(function(err, users){
-    res.render('account');
-  });
+  // var curr = Session.find(function(err, users){
+  res.render('account');
+  // });
 });
 
-router.post('/', function(req, res, next) {
+router.post('/account', function(req, res, next) {
   var updatedChips = 10000;
-  Session
-  .then(function(ses) {
-    var sessionData = JSON.parse(ses.session);
-    sessionData.chips = updatedChips;
-    ses.session = JSON.stringify(sessionData);
-    ses.save();
-  })
-  .catch(function(err) {
-    console.log('error:', err);
-  });
+  var session = req.body.element;
+  // Session
+  // .then(function(ses) {
+  //   var sessionData = JSON.parse(ses.session);
+  //   sessionData.chips = updatedChips;
+  //   ses.session = JSON.stringify(sessionData);
+  //   ses.save();
+  // })
+  session.chips = updatedChips;
+  // .catch(function(err) {
+  //   console.log('error:', err);
+  // });
 });
 
 module.exports = router;

@@ -5,17 +5,23 @@ block content
     div.small-12.column
       h1 Account Placeholder
       p Current Balance is: 
-      button(class='btn', data-action='topup') Top Up Balance
+      button(class='btn', onclick='topup') Top Up Balance
   
   script(type='text/javascript').  
-    $(document).ready(function() {
+    function topup() {
       $('.btn').on('click', function() {
         event.preventDefault();
         $.ajax( {
           type: 'POST',
-          url: $(this).attr('href'),
-          complete: function() {
+          url: '/account',
+          data: {
+            element: document.getElementById('sessionID')
+          },
+          success: function(data) {
             location.reload();
+          },
+          error: function(e) {
+            console.log(e.message);
           }
         });
         return false;
