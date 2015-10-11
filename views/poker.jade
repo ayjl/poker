@@ -14,7 +14,7 @@ block content
               div.poker__card.poker__card-1
               div.poker__card.poker__card-2
               p.poker__player-name Seat Available
-              p.poker__player-chips 100
+              p.poker__player-chips
 
     div.row
       div.small-6.column
@@ -33,19 +33,20 @@ block content
         h3 Chips
           p#Chips
         h3 Community Cards
-          p#Community_Cards None
+          p#Community_cards None
         h3 Your Cards
-          p#Player_Cards None
+          p#Player_cards None
           button#Check Check
           button#Fold Fold
           button#Bet 10
-          input(type="number", value=10, min=10)#BetAmount
+          input(type="number", value=10, min=10)#Bet_amount
           button#All_in All In
 
   script(type='text/javascript').
     var socket = io('/poker');
     var playerID;
     var bet = 0;
+    var roundBet = 0;
     var call = 0;
     var minBet = 10;
 
@@ -96,12 +97,16 @@ block content
         }
 
         if(player.id != playerID) {
-          $playerEl = $('#Players_tmp').children().eq(player.seat);
-          $playerEl.children('.poker__card-1').addClass('poker__card--back');
-          $playerEl.children('.poker__card-2').addClass('poker__card--back');
+          $player.children('.poker__card-1').addClass('poker__card--back');
+          $player.children('.poker__card-2').addClass('poker__card--back');
         } else {
-          $playerEl.children('.poker__card-1').removeClass('poker__card--back');
-          $playerEl.children('.poker__card-2').removeClass('poker__card--back');
+          $player.children('.poker__card-1').removeClass('poker__card--back');
+          $player.children('.poker__card-2').removeClass('poker__card--back');
+        }
+
+        $player.children('.poker__player-chips').text(player.chips);
+        if(player.id == playerID) {
+          $('#Chips').text(player.chips);
         }
       });
 
@@ -114,8 +119,9 @@ block content
         bet = data.blind;
       }
 
+      roundBet = bet;
       var tableBet = data.blind;
-      var roundBet = data.blind;
+      var tableRoundBet = data.blind;
       var minRaise = data.blind;
 
       //- From 'pot' function (unmodified)
@@ -124,8 +130,8 @@ block content
         $('#Check').text('Call ' + tableBet + " (+" + call + ")");
       }
 
-      minBet = roundBet + minRaise;
-      if(roundBet > 0) {
+      minBet = tableRoundBet + minRaise;
+      if(tableRoundBet > 0) {
         $('#Bet').addClass('raise');
       }
       else{
@@ -146,7 +152,7 @@ block content
     });
 
     socket.on('player cards', function(cards, seat) {
-      $('#Player_Cards').text(cards.join(' '));
+      $('#Player_cards').text(cards.join(' '));
 
       var $player = $('#Players_tmp').children().eq(seat);
       $player.children('.poker__card-1').addClass('poker__card poker__card--' + cards[0]);
@@ -157,7 +163,9 @@ block content
       $('#Community_Cards').text(cards.join(' '));
       $.each(cards, function(idx, card) {
         $('#Community_cards_tmp').children().eq(idx).addClass('poker__card--' + card);
-      })
+      });
+
+      roundBet = 0;
     });
 
     socket.on('reset', function() {
@@ -168,6 +176,7 @@ block content
       $('#Check').text('Check');
       $('#Bet').removeClass('raise');
       bet = 0;
+      roundBet = 0;
       call = 0;
       minBet = 10;
       updateBetButton(true);
@@ -204,51 +213,62 @@ block content
       }
     });
 
-    socket.on('pot', function(pot, tableBet, roundBet, minRaise) {
+    socket.on('pot', function(pot, tableBet, tableRoundBet, minRaise, player) {
       $('#Pot').text(pot);
+      if(player) {
+        $('#Players_tmp').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
+
+        if(player.id == playerID) {
+          $('#Chips').text(player.chips);
+        }
+      }
       
       if(tableBet > bet) {
         call = tableBet - bet;
-        $('#Check').text('Call ' + roundBet + " (+" + call + ")");
+        $('#Check').text('Call ' + tableRoundBet + " (+" + call + ")");
       }
 
-      minBet = roundBet + minRaise;
-      if(roundBet > 0) {
+      minBet = tableRoundBet + minRaise;
+      console.log('tableRoundBet:', tableRoundBet);
+      if(tableRoundBet > 0) {
         $('#Bet').addClass('raise');
       }
       else{
         $('#Bet').removeClass('raise');
       }
-      console.log(tableBet, roundBet, minRaise, bet);
+      console.log(tableBet, tableRoundBet, minRaise, bet);
 
       updateBetButton(true);
     });
 
-    socket.on('confirm bet', function(tableBet, chips) {
+    socket.on('confirm bet', function(tableBet, tableRoundBet, player) {
       $('#Check').text('Check');
-      $('#Chips').text(chips);
-      $('#Bet_amount').prop('max', chips);
+      $('#Chips').text(player.chips);
+      $('#Players_tmp').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
+      $('#Bet_amount').prop('max', player.chips);
       bet = tableBet;
+      roundBet = tableRoundBet
       call = 0;
-      console.log('Your bet is now '+tableBet+'. You have '+chips+' chips.');
+      console.log('Your bet is now '+tableBet+'. You have '+player.chips+' chips.');
     });
 
-    socket.on('confirm chips', function(chips) {
-      $('#Chips').text(chips);
-      $('#Bet_amount').prop('max', chips);
-    });
+    socket.on('winner', function(winners) {
+      var textArray = [];
+      $.each(winners, function(idx, player) {
+        if (playerID == player.id) {
+          textArray.unshift('You');
+          $('#Chips').text(player.chips);
+        }
+        else {
+          textArray.push(player.name);
+        }
 
-    socket.on('winner', function(player) {
-      var text = '';
-      if (playerID == player.id) {
-        text += 'You Win!';
-      }
-      else {
-        text += player.name;
-      }
+        $('#Players_tmp').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
+      });
 
-      if(player.hand) {
-        text += ' - ' + player.hand.handName;
+      var text = textArray.join(', ');
+      if(winners[0].hand) {
+        text += ' - ' + winners[0].hand.handName;
       }
       $('#Winner').text(text);
       $('button').prop('disabled', true);
@@ -277,7 +297,8 @@ block content
         updateBetButton();
       });
       $('#All_in').on('click', function() {
-        $('#Bet_amount').val(parseInt($('#Chips').text()));
+        console.log(roundBet);
+        $('#Bet_amount').val(roundBet + parseInt($('#Chips').text()));
         updateBetButton();
       });
 
@@ -314,8 +335,8 @@ block content
       else if(raise < minBet || forced) {
         raise = minBet;
       }
-      else if(raise-bet > chips) {
-        raise = parseInt(chips+bet);
+      else if(raise > chips + roundBet) {
+        raise = parseInt(chips+roundBet);
       }
 
       if(forced) {
