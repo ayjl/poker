@@ -1,31 +1,46 @@
 extends ./layout
 
 block content
-  div.row
-    div.small-6.column
-      h1 Table
-      h3 Pot
-      p#Pot 0
-      h3 Players
-      ol#Players
-        - for(var i=0; i<9; i++)
-          li Empty
-      h3 Winner
-        p#Winner No one
-          
-    div.small-6.column
-      h1#Player
-      h3 Chips
-        p#Chips
-      h3 Community Cards
-        p#Community_cards None
-      h3 Your Cards
-        p#Player_cards None
-        button#Check Check
-        button#Fold Fold
-        button#Bet 10
-        input(type="number", value=10, min=10)#Bet_amount
-        button#All_in All In
+  div.poker-bg
+    div.row.poker-container
+      div.poker__table
+        div.poker__table-inner
+        ul#Community_cards_tmp
+          - for(var i=0; i<5; i++)
+            li.poker__card.poker__card-community
+        ul#Players_tmp
+          - for(var i=0; i<6; i++)
+            li(class=['poker__player', 'poker__player--empty', 'poker__player--'+i])
+              div.poker__card.poker__card-1
+              div.poker__card.poker__card-2
+              p.poker__player-name Seat Available
+              p.poker__player-chips 100
+
+    div.row
+      div.small-6.column
+        h1 Table
+        h3 Pot
+        p#Pot 0
+        h3 Players
+        ol#Players
+          - for(var i=0; i<6; i++)
+            li Empty
+        h3 Winner
+          p#Winner No one
+            
+      div.small-6.column
+        h1#Player
+        h3 Chips
+          p#Chips
+        h3 Community Cards
+          p#Community_Cards None
+        h3 Your Cards
+          p#Player_Cards None
+          button#Check Check
+          button#Fold Fold
+          button#Bet 10
+          input(type="number", value=10, min=10)#BetAmount
+          button#All_in All In
 
   script(type='text/javascript').
     var socket = io('/poker');
@@ -38,13 +53,21 @@ block content
       $playerEl = $('#Players').children().eq(player.seat);
       $playerEl.text(player.name);
       $playerEl.addClass('poker__players--folded');
+
+      var $player = $('#Players_tmp').children().eq(player.seat);
+      $player.removeClass('poker__player--empty');
+      $player.children('.poker__player-name').text(player.name);
     });
 
     socket.on('players', function(players) {
-      $('#Players').children().each(function(id) {
-        if (players[id]) {
-          $(this).text(players[id].name);
-          if (!players[id].inHand) {
+      $('#Players').children().each(function(idx) {
+        if (players[idx]) {
+          $(this).text(players[idx].name);
+          var $player = $('#Players_tmp').children().eq(players[idx].seat);
+          $player.removeClass('poker__player--empty');
+          $player.children('.poker__player-name').text(players[idx].name);
+
+          if (!players[idx].inHand) {
             $(this).addClass('poker__players--folded');
           }
         }
@@ -56,16 +79,29 @@ block content
 
     socket.on('players in hand', function(data) {
       $.each(data.players, function(id, player) {
-        var $player = $('#Players').children().eq(player.seat);
-        $player.removeClass('poker__players--folded');
+        var $playerEl = $('#Players').children().eq(player.seat);
+        var $player = $('#Players_tmp').children().eq(player.seat);
+        $playerEl.removeClass('poker__players--folded');
         if(player.id == data.dealerID) {
-          $player.addClass('poker__players--dealer');
+          $playerEl.addClass('poker__players--dealer');
+          $player.addClass('poker__player--dealer');
         }
         if(player.id == data.smallBlindID) {
-          $player.addClass('poker__players--small-blind');
+          $playerEl.addClass('poker__players--small-blind');
+          $player.addClass('poker__player--small-blind');
         }
         if(player.id == data.bigBlindID) {
-          $player.addClass('poker__players--big-blind');
+          $playerEl.addClass('poker__players--big-blind');
+          $player.addClass('poker__player--big-blind');
+        }
+
+        if(player.id != playerID) {
+          $playerEl = $('#Players_tmp').children().eq(player.seat);
+          $playerEl.children('.poker__card-1').addClass('poker__card--back');
+          $playerEl.children('.poker__card-2').addClass('poker__card--back');
+        } else {
+          $playerEl.children('.poker__card-1').removeClass('poker__card--back');
+          $playerEl.children('.poker__card-2').removeClass('poker__card--back');
         }
       });
 
@@ -99,17 +135,29 @@ block content
     });
 
     socket.on('player leave', function(seat) {
-      $playerEl = $('#Players').children().eq(seat);
+      var $playerEl = $('#Players').children().eq(seat);
       $playerEl.text('Empty');
       $playerEl.addClass('poker__players--folded');
+
+      var $player = $('#Players_tmp').children().eq(seat);
+      $player.children('.poker__player-name').text('Seat Available');
+      $player.addClass('poker__player--folded');
+      $player.addClass('poker__player--empty');
     });
 
-    socket.on('player cards', function(cards) {
-      $('#Player_cards').text(cards.join(' '));
+    socket.on('player cards', function(cards, seat) {
+      $('#Player_Cards').text(cards.join(' '));
+
+      var $player = $('#Players_tmp').children().eq(seat);
+      $player.children('.poker__card-1').addClass('poker__card poker__card--' + cards[0]);
+      $player.children('.poker__card-2').addClass('poker__card poker__card--' + cards[1]);
     });
 
     socket.on('community cards', function(cards) {
-      $('#Community_cards').text(cards.join(' '));
+      $('#Community_Cards').text(cards.join(' '));
+      $.each(cards, function(idx, card) {
+        $('#Community_cards_tmp').children().eq(idx).addClass('poker__card--' + card);
+      })
     });
 
     socket.on('reset', function() {
@@ -126,10 +174,20 @@ block content
       $('button').prop('disabled', true);
       $('#Players').children().removeClass();  // Remove all classes
       $('#Players').children().addClass('poker__players--folded');
+
+      $('.poker__player--dealer').removeClass('poker__player--dealer');
+      $('.poker__player--small-blind').removeClass('poker__player--small-blind');
+      $('.poker__player--big-blind').removeClass('poker__player--big-blind');
+      $('#Players_tmp').children().removeClass('poker__player--folded');
+
+      $(".poker__card").removeClass(function (index, css) {
+          return (css.match (/poker__card--\w{2,4}/g) || []).join(' ');
+      });
     });
 
     socket.on('fold', function(player) {
       $('#Players').children().eq(player.seat).addClass('poker__players--folded');
+      $('#Players_tmp').children().eq(player.seat).addClass('poker__player--folded');
       if (playerID == player.id) {
         $('button').prop('disabled', true);
       }
@@ -222,6 +280,24 @@ block content
         $('#Bet_amount').val(parseInt($('#Chips').text()));
         updateBetButton();
       });
+
+      $(document).keypress(function(event) {
+        switch(event.keyCode) {
+          case 99:  // C
+            $('#Check').click();
+            break;
+          case 102: // F
+            $('#Fold').click();
+            break;
+          case 98:  // B
+          case 114: // R
+            $('#Bet').click();
+            break;
+        }
+      });
+      
+      $(window).on('resize', reposition);
+      reposition();
     });
 
     function updateBetButton(forced) {
@@ -255,4 +331,25 @@ block content
       //- else{ 
         //- $raise.text(raise);
       //- }
+    }
+
+    function reposition() {
+      var w = $('.poker__table').outerWidth();
+      var h = $('.poker__table').outerHeight();
+
+      $('.poker__player').each(function(idx) {
+        if(idx != 1 && idx != 4) {
+          return;
+        }
+
+        var matrix = $(this).css('transform').split(',');
+        if(idx == 1) {
+          matrix[4] = w/2;
+        }
+        else if(idx == 4) {
+          matrix[4] = -w/2;
+        }
+        var transform = matrix.join(',');
+        $(this).css('transform', transform);
+      });
     }
