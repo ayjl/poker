@@ -2,7 +2,7 @@ module.exports = function(io) {
   var poker = io.of('/poker');
 
   var table = {
-      players: [null, null, null, null, null, null, null, null, null]
+      players: [null, null, null, null, null, null]
     , cards: []
     , numPlayers: 0
     , playing: false
@@ -16,6 +16,7 @@ module.exports = function(io) {
     , blind: 10
     , minRaise: 0  // This gets set to the blind before each round of betting
     , dealer: 0
+    , gameTimer: null
   };
 
   poker.on('connection', function(socket) {
@@ -51,10 +52,9 @@ module.exports = function(io) {
     socket.emit('players', table.players);
     socket.emit('player id', player);
 
-    var gameTimer = {};
     if (table.numPlayers > 1 && !table.playing) {
       table.playing = true;
-      startGame(table, poker, socket, gameTimer);
+      startGame(table, poker, socket);
     }
 
     // This is inside the poker namespace, so emitting 'action' from the client outside
@@ -80,7 +80,7 @@ module.exports = function(io) {
           table.handPlayers[table.turn].inHand = false;
           table.handPlayers.splice(idx, 1);
           if (table.handPlayers.length <= 1) {
-            progressGameState(table, poker, socket, gameTimer);
+            progressGameState(table, poker, socket);
           }
         }
         else{
@@ -140,7 +140,7 @@ module.exports = function(io) {
 
         // Check if all players have had a turn
         if (table.turn == table.handPlayers.length) {
-          progressGameState(table, poker, socket, gameTimer);
+          progressGameState(table, poker, socket);
         }
         else {
           poker.emit('turn', table.handPlayers[table.turn]);
@@ -183,7 +183,7 @@ module.exports = function(io) {
           }
 
           if (table.handPlayers.length <= 1) {
-            progressGameState(table, poker, socket, gameTimer);
+            progressGameState(table, poker, socket);
           }
         }
         table.players.splice(seat, 1, null);
@@ -194,8 +194,18 @@ module.exports = function(io) {
   return io;
 };
 
-function startGame(table, poker, socket, gameTimer) {
+function startGame(table, poker, socket) {
+  if(table.gameTimer && !table.gameTimer._called) {
+    return;
+  }
+  
   resetGame(table, poker);
+  console.log(table.gameTimer);
+
+  if(!table.playing) {
+    return;
+  }
+
   var deck = require('../helpers/deck')();
   var seat = 0;
   table.handPlayers = table.players.filter(function(item) {
@@ -316,7 +326,7 @@ function startGame(table, poker, socket, gameTimer) {
   poker.emit('turn', table.handPlayers[table.turn]);
 }
 
-function progressGameState(table, poker, socket, gameTimer) {
+function progressGameState(table, poker, socket) {
   table.turn = 0;
   table.roundBet = 0;
   table.minRaise = table.blind;
@@ -330,18 +340,13 @@ function progressGameState(table, poker, socket, gameTimer) {
       socket.broadcast.to(table.winner.socketID).emit('confirm chips', table.winner.chips);
     }
 
-    gameTimer['timer'] = setTimeout(function() {
-      startGame(table, poker, socket, gameTimer);
-    }, 3000);
-
     if (table.numPlayers <= 1) {
-      setTimeout(function() {
-        resetGame(table, poker);
-      }, 3000);
-
       table.playing = false;
-      clearTimeout(gameTimer.timer);
     }
+
+    table.gameTimer = setTimeout(function() {
+      startGame(table, poker, socket);
+    }, 3000);
 
     return;
   }
@@ -368,8 +373,8 @@ function progressGameState(table, poker, socket, gameTimer) {
       storePlayerChips(table.winner);
       socket.broadcast.to(table.winner.socketID).emit('confirm chips', table.winner.chips);
 
-      gameTimer['timer'] = setTimeout(function() {
-        startGame(table, poker, socket, gameTimer);
+      table.gameTimer = setTimeout(function() {
+        startGame(table, poker, socket);
       }, 3000);
       break;
     default:
