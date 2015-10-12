@@ -4,21 +4,20 @@ block content
   div.row
     div.small-12.column
       h1 Account Placeholder
-      p Current Balance is: 
-      button(class='btn', onclick='topup') Top Up Balance
+      p Current Balance is: <span id='Balance'>#{chips}</span>
+      button(class='btn', id='Topup') Top Up Balance (2000)
   
   script(type='text/javascript').  
-    function topup() {
-      $('.btn').on('click', function() {
-        event.preventDefault();
+    $(document).ready(function() {
+      $('#Topup').on('click', function() {
         $.ajax( {
           type: 'POST',
-          url: '/account',
+          url: '/account/topup-chips',
           data: {
             element: document.getElementById('sessionID')
           },
           success: function(data) {
-            location.reload();
+            $('#Balance').text(data.chips);
           },
           error: function(e) {
             console.log(e.message);
