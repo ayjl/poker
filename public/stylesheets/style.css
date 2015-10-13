@@ -1,7 +1,7 @@
 body {
   padding: 40px 0;
   /*font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;*/
-  font: 14px 'Source Sans Pro', sans-serif;
+  font: 14px 'Source Sans Pro', Arial, sans-serif;
 }
 
 a {
@@ -24,6 +24,8 @@ a {
   /*background-image: url('../img/felt.png');*/
   border: 5px solid #edbc53;
   border-radius: 35%;
+  color: #fff;
+  font-size: 1.5em;
   margin: 130px auto;
   position: relative;
   width: 800px; height: 67%;
@@ -39,15 +41,27 @@ a {
   top: 50%;
   width: 80%; height: 0;
 }
+.poker__table-middle {
+  position: absolute;
+  margin-top: -100px; margin-left: -180px;
+  top: 50%; left: 50%;
+}
 
-#Players_tmp {
+#Community_cards {
+  margin: 0;
+}
+
+#Pot:before {
+  content: 'Pot: $';
+}
+
+#Players {
   list-style: none;
   margin: 0;
 }
 .poker__player {
-  background: rgba(0,0,0,0.7);
+  background-color: rgba(0,0,0,0.7);
   border-radius: 5px;
-  color: #fff;
   display: block;
   margin: -4em;
   position: absolute;
@@ -60,6 +74,16 @@ a {
 }
 .poker__player--empty > .poker__card {
   display: none;
+}
+.poker__player--empty > .poker__player-chips {
+  display: none;
+}
+
+.poker__player--folded {
+  opacity: 0.5;
+}
+.poker__player--winner {
+  background-color: rgba(34,139,34,0.7);
 }
 
 .poker__player--dealer:before {
@@ -207,6 +231,9 @@ a {
 .poker__player-chips {
   margin: 0;
 }
+.poker__player-chips:before {
+  content: '$';
+}
 .poker__card {
   background: white;
   border: 2px solid #fff;
@@ -239,17 +266,9 @@ a {
   width: 83%; height: 0;
 }
 
-#Community_cards_tmp {
-  position: absolute;
-  margin-top: -50px; margin-left: -180px;
-  top: 50%; left: 50%;
-}
 .poker__card-community {
   margin-right: 5px;
   position: relative;
-}
-.poker__player--folded {
-  opacity: 0.5;
 }
 
 .poker__card-1 {
@@ -301,6 +320,15 @@ a {
 }
 #Bet.raise:before {
   content: 'Raise to ';
+}
+
+/* Overrides */
+button,.button,.top-bar-section ul li>a,.pricing-table .title,.pricing-table .price,.tabs dd>a,.tabs .tab-title>a,.side-nav,.side-nav li.active>a:first-child:not(.button),.accordion .accordion-navigation>a,.accordion dd>a,h1,h2,h3,h4,h5,h6,.sub-nav dt,.sub-nav dd,.sub-nav li,.label{
+  font-family: 'Source Sans Pro', Arial, sans-serif;
+}
+
+.button-group > li {
+  margin: 0;
 }
 
 .poker__card--2c:before{background-image:url('../img/clubs-s.png');content:'2';color:#282c36;}.poker__card--2c:after{background-image:url('../img/clubs-l.png');}.poker__card--3c:before{background-image:url('../img/clubs-s.png');content:'3';color:#282c36;}.poker__card--3c:after{background-image:url('../img/clubs-l.png');}.poker__card--4c:before{background-image:url('../img/clubs-s.png');content:'4';color:#282c36;}.poker__card--4c:after{background-image:url('../img/clubs-l.png');}.poker__card--5c:before{background-image:url('../img/clubs-s.png');content:'5';color:#282c36;}.poker__card--5c:after{background-image:url('../img/clubs-l.png');}.poker__card--6c:before{background-image:url('../img/clubs-s.png');content:'6';color:#282c36;}.poker__card--6c:after{background-image:url('../img/clubs-l.png');}.poker__card--7c:before{background-image:url('../img/clubs-s.png');content:'7';color:#282c36;}.poker__card--7c:after{background-image:url('../img/clubs-l.png');}.poker__card--8c:before{background-image:url('../img/clubs-s.png');content:'8';color:#282c36;}.poker__card--8c:after{background-image:url('../img/clubs-l.png');}.poker__card--9c:before{background-image:url('../img/clubs-s.png');content:'9';color:#282c36;}.poker__card--9c:after{background-image:url('../img/clubs-l.png');}.poker__card--Tc:before{background-image:url('../img/clubs-s.png');content:'10';color:#282c36;}.poker__card--Tc:after{background-image:url('../img/clubs-l.png');}.poker__card--Jc:before{background-image:url('../img/clubs-s.png');content:'J';color:#282c36;}.poker__card--Jc:after{background-image:url('../img/clubs-l.png');}.poker__card--Qc:before{background-image:url('../img/clubs-s.png');content:'Q';color:#282c36;}.poker__card--Qc:after{background-image:url('../img/clubs-l.png');}.poker__card--Kc:before{background-image:url('../img/clubs-s.png');content:'K';color:#282c36;}.poker__card--Kc:after{background-image:url('../img/clubs-l.png');}.poker__card--Ac:before{background-image:url('../img/clubs-s.png');content:'A';color:#282c36;}.poker__card--Ac:after{background-image:url('../img/clubs-l.png');}.poker__card--2d:before{background-image:url('../img/diamonds-s.png');content:'2';color:#941c1e;}.poker__card--2d:after{background-image:url('../img/diamonds-l.png');}.poker__card--3d:before{background-image:url('../img/diamonds-s.png');content:'3';color:#941c1e;}.poker__card--3d:after{background-image:url('../img/diamonds-l.png');}.poker__card--4d:before{background-image:url('../img/diamonds-s.png');content:'4';color:#941c1e;}.poker__card--4d:after{background-image:url('../img/diamonds-l.png');}.poker__card--5d:before{background-image:url('../img/diamonds-s.png');content:'5';color:#941c1e;}.poker__card--5d:after{background-image:url('../img/diamonds-l.png');}.poker__card--6d:before{background-image:url('../img/diamonds-s.png');content:'6';color:#941c1e;}.poker__card--6d:after{background-image:url('../img/diamonds-l.png');}.poker__card--7d:before{background-image:url('../img/diamonds-s.png');content:'7';color:#941c1e;}.poker__card--7d:after{background-image:url('../img/diamonds-l.png');}.poker__card--8d:before{background-image:url('../img/diamonds-s.png');content:'8';color:#941c1e;}.poker__card--8d:after{background-image:url('../img/diamonds-l.png');}.poker__card--9d:before{background-image:url('../img/diamonds-s.png');content:'9';color:#941c1e;}.poker__card--9d:after{background-image:url('../img/diamonds-l.png');}.poker__card--Td:before{background-image:url('../img/diamonds-s.png');content:'10';color:#941c1e;}.poker__card--Td:after{background-image:url('../img/diamonds-l.png');}.poker__card--Jd:before{background-image:url('../img/diamonds-s.png');content:'J';color:#941c1e;}.poker__card--Jd:after{background-image:url('../img/diamonds-l.png');}.poker__card--Qd:before{background-image:url('../img/diamonds-s.png');content:'Q';color:#941c1e;}.poker__card--Qd:after{background-image:url('../img/diamonds-l.png');}.poker__card--Kd:before{background-image:url('../img/diamonds-s.png');content:'K';color:#941c1e;}.poker__card--Kd:after{background-image:url('../img/diamonds-l.png');}.poker__card--Ad:before{background-image:url('../img/diamonds-s.png');content:'A';color:#941c1e;}.poker__card--Ad:after{background-image:url('../img/diamonds-l.png');}.poker__card--2h:before{background-image:url('../img/hearts-s.png');content:'2';color:#941c1e;}.poker__card--2h:after{background-image:url('../img/hearts-l.png');}.poker__card--3h:before{background-image:url('../img/hearts-s.png');content:'3';color:#941c1e;}.poker__card--3h:after{background-image:url('../img/hearts-l.png');}.poker__card--4h:before{background-image:url('../img/hearts-s.png');content:'4';color:#941c1e;}.poker__card--4h:after{background-image:url('../img/hearts-l.png');}.poker__card--5h:before{background-image:url('../img/hearts-s.png');content:'5';color:#941c1e;}.poker__card--5h:after{background-image:url('../img/hearts-l.png');}.poker__card--6h:before{background-image:url('../img/hearts-s.png');content:'6';color:#941c1e;}.poker__card--6h:after{background-image:url('../img/hearts-l.png');}.poker__card--7h:before{background-image:url('../img/hearts-s.png');content:'7';color:#941c1e;}.poker__card--7h:after{background-image:url('../img/hearts-l.png');}.poker__card--8h:before{background-image:url('../img/hearts-s.png');content:'8';color:#941c1e;}.poker__card--8h:after{background-image:url('../img/hearts-l.png');}.poker__card--9h:before{background-image:url('../img/hearts-s.png');content:'9';color:#941c1e;}.poker__card--9h:after{background-image:url('../img/hearts-l.png');}.poker__card--Th:before{background-image:url('../img/hearts-s.png');content:'10';color:#941c1e;}.poker__card--Th:after{background-image:url('../img/hearts-l.png');}.poker__card--Jh:before{background-image:url('../img/hearts-s.png');content:'J';color:#941c1e;}.poker__card--Jh:after{background-image:url('../img/hearts-l.png');}.poker__card--Qh:before{background-image:url('../img/hearts-s.png');content:'Q';color:#941c1e;}.poker__card--Qh:after{background-image:url('../img/hearts-l.png');}.poker__card--Kh:before{background-image:url('../img/hearts-s.png');content:'K';color:#941c1e;}.poker__card--Kh:after{background-image:url('../img/hearts-l.png');}.poker__card--Ah:before{background-image:url('../img/hearts-s.png');content:'A';color:#941c1e;}.poker__card--Ah:after{background-image:url('../img/hearts-l.png');}.poker__card--2s:before{background-image:url('../img/spades-s.png');content:'2';color:#282c36;}.poker__card--2s:after{background-image:url('../img/spades-l.png');}.poker__card--3s:before{background-image:url('../img/spades-s.png');content:'3';color:#282c36;}.poker__card--3s:after{background-image:url('../img/spades-l.png');}.poker__card--4s:before{background-image:url('../img/spades-s.png');content:'4';color:#282c36;}.poker__card--4s:after{background-image:url('../img/spades-l.png');}.poker__card--5s:before{background-image:url('../img/spades-s.png');content:'5';color:#282c36;}.poker__card--5s:after{background-image:url('../img/spades-l.png');}.poker__card--6s:before{background-image:url('../img/spades-s.png');content:'6';color:#282c36;}.poker__card--6s:after{background-image:url('../img/spades-l.png');}.poker__card--7s:before{background-image:url('../img/spades-s.png');content:'7';color:#282c36;}.poker__card--7s:after{background-image:url('../img/spades-l.png');}.poker__card--8s:before{background-image:url('../img/spades-s.png');content:'8';color:#282c36;}.poker__card--8s:after{background-image:url('../img/spades-l.png');}.poker__card--9s:before{background-image:url('../img/spades-s.png');content:'9';color:#282c36;}.poker__card--9s:after{background-image:url('../img/spades-l.png');}.poker__card--Ts:before{background-image:url('../img/spades-s.png');content:'10';color:#282c36;}.poker__card--Ts:after{background-image:url('../img/spades-l.png');}.poker__card--Js:before{background-image:url('../img/spades-s.png');content:'J';color:#282c36;}.poker__card--Js:after{background-image:url('../img/spades-l.png');}.poker__card--Qs:before{background-image:url('../img/spades-s.png');content:'Q';color:#282c36;}.poker__card--Qs:after{background-image:url('../img/spades-l.png');}.poker__card--Ks:before{background-image:url('../img/spades-s.png');content:'K';color:#282c36;}.poker__card--Ks:after{background-image:url('../img/spades-l.png');}.poker__card--As:before{background-image:url('../img/spades-s.png');content:'A';color:#282c36;}.poker__card--As:after{background-image:url('../img/spades-l.png');}
