@@ -348,7 +348,7 @@ function progressGameState(table, poker, socket) {
     table.winners = [table.handPlayers[0]];
     if(table.handPlayers[0]) {
       table.winners[0].chips += table.pot;
-      poker.emit('winner', table.winners);
+      poker.emit('winner', table.handPlayers, table.winners);
       storePlayerChips(table.winners[0]);
     }
 
@@ -392,7 +392,7 @@ function progressGameState(table, poker, socket) {
       break;
     case 3:
       evalWinner(table);
-      poker.emit('winner', table.winners);
+      poker.emit('winner', table.handPlayers, table.winners);
 
       table.gameTimer = setTimeout(function() {
         startGame(table, poker, socket);
@@ -517,6 +517,10 @@ function evalWinner(table) {
   for(var i=0; i<table.winners.length; i++) {
     storePlayerChips(table.winners[i]);
   }
+
+  table.winners = table.winners.map(function(player) {
+    return player.id;
+  });
 }
 
 function getHandPlayerBySocket(socketID, table) {
