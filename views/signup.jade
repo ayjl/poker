@@ -1,36 +1,54 @@
 extends ./layout
 
+//- block head
+//-   script(src="gen_validatorv4.js")
+
 block content
   div.row
     div.small-12.column
       h1 Signup
-      input#Username(type='text' placeholder='Enter a username')
-      div#UserAvailability
-      input#Email(type='text' placeholder='Enter your email')
-      div#EmailAvailability
-      input#Password(type='password' placeholder='Enter your password')
-      button.btn(id='Submit') Submit
+      form#Submit
+        input#Username(type='text' placeholder='Enter a username')
+        div#UserAvailability
+        input#Email(type='text' placeholder='Enter your email')
+        div#EmailAvailability
+        input#Password(type='password' placeholder='Enter your password')
+        button.btn(id='Submit') Submit
 
-  script(type='text/javascript').  
-    $(document).ready(function() {
-      $('#Submit').on('click', function() {
-        $.ajax( {
-          type: 'POST',
-          url: '/signup/submission',
-          data: {
-            username: $('#Username')
-            ,email: $('#Email')
-            ,password: $('#Password')
-          },
-          success: function(data) {
-            $('#Balance').text(data.chips);
-          },
-          error: function(e) {
-            console.log(e.message);
-          }
-        });
-        return false;
+  script(type='text/javascript'). 
+    //- var formValidator = new Validator("#Submit");
+    //- formValidator.addValidation("Username", "req", "Please enter a username");
+    //- formValidator.addValidation("Username", "maxlen=50", "Max username length is 50 characters");
+
+    //- formValidator.addValidation("Email", "req", "Please enter an email");
+    //- formValidator.addValidation("Email", "maxlen=50", "Max email length is 50 characters");
+    //- formValidator.addValidation("Email", "email", "Please enter a valid email address");
+
+    //- formValidator.addValidation("Password", "minlen=6", "Min password length is 6 characters");
+    //- formValidator.addValidation("Password", "req", "Please enter a password");
+
+
+    $('#Submit').submit(function() {
+      $.ajax( {
+        type: 'POST',
+        url: '/signup/submission',
+        data: {
+          username: $('#Username').val()
+          ,email: $('#Email').val()
+          ,password: $('#Password').val()
+        },
+        success: function(data) {
+          console.log("Successfully added user");
+          window.location.replace("/account");
+        },
+        error: function(e) {
+          location.reload();
+          console.log(e.message);
+        }
       });
+      return false;
+    }); 
+    $(document).ready(function() {
       $('#Username').blur(function() {
         var username = $(this).val();
         if (username == '') {
