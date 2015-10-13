@@ -16,6 +16,7 @@ var users = require('./routes/users');
 var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
 var account = require('./routes/account');
+var signup = require('./routes/signup');
 var socketTest = require('./routes/socket-test');
 
 var app = express();
@@ -56,6 +57,7 @@ app.use('/db', dbTest);
 app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
+app.use('/signup', signup);
 
 var io = require('socket.io')();
 var sharedsession = require("express-socket.io-session");

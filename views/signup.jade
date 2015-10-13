@@ -1,0 +1,78 @@
+extends ./layout
+
+block content
+  div.row
+    div.small-12.column
+      h1 Signup
+      input#Username(type='text' placeholder='Enter a username')
+      div#UserAvailability
+      input#Email(type='text' placeholder='Enter your email')
+      div#EmailAvailability
+      input#Password(type='password' placeholder='Enter your password')
+      button.btn(id='Submit') Submit
+
+  script(type='text/javascript').  
+    $(document).ready(function() {
+      $('#Submit').on('click', function() {
+        $.ajax( {
+          type: 'POST',
+          url: '/signup/submission',
+          data: {
+            username: $('#Username')
+            ,email: $('#Email')
+            ,password: $('#Password')
+          },
+          success: function(data) {
+            $('#Balance').text(data.chips);
+          },
+          error: function(e) {
+            console.log(e.message);
+          }
+        });
+        return false;
+      });
+      $('#Username').blur(function() {
+        var username = $(this).val();
+        if (username == '') {
+          $("UserAvailability").html("");
+        } else {
+          $.ajax({
+            type: 'GET',
+            url: '/signup/userchecker',
+            data: {
+              username: username
+            },
+            success: function(data) {
+              // TODO if data returns true green tick else red cross
+              $('#UserAvailability').text(data);
+            },
+            error: function(e) {
+              console.log(e.message);
+            }
+          });
+        }
+        return false;
+      });
+      $('#Email').blur(function() {
+        var email = $(this).val();
+        if (email == '') {
+          $("EmailAvailability").html("");
+        } else {
+          $.ajax({
+            type: 'GET',
+            url: '/signup/emailchecker',
+            data: {
+              email: email
+            },
+            success: function(data) {
+              // TODO if data returns true green tick else red cross
+              $('#EmailAvailability').text(data);
+            },
+            error: function(e) {
+              console.log(e.message);
+            }
+          });
+        }
+        return false;
+      });
+    });
