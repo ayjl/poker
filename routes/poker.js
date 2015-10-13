@@ -19,30 +19,30 @@ router.get('/test-eval', function(req, res, next) {
   var evaluator = require("poker-evaluator");
 
   var table = {};
-  table.pot = 101;
+  table.pot = 120;
   table.cards = ['4c', '5c', '6c', '8d', '9d'];
   table.handPlayers = [];
   table.winners = [];
   table.handPlayers.push({
-    bet: 21,
-    cards: ['As', '4c'],
-    chips: 0
-  });
-  table.handPlayers.push({
-    bet: 21,
-    cards: ['As', '4c'],
-    chips: 0
-  });
-  table.handPlayers.push({
     bet: 100,
-    cards: ['Ah', '4d'],
+    cards: ['As', '4c'],
     chips: 0
   });
   table.handPlayers.push({
     bet: 20,
-    cards: ['Ac', '2d'],
+    cards: ['As', '4c'],
     chips: 0
   });
+  // table.handPlayers.push({
+  //   bet: 100,
+  //   cards: ['Ah', '4d'],
+  //   chips: 0
+  // });
+  // table.handPlayers.push({
+  //   bet: 20,
+  //   cards: ['Ac', '2d'],
+  //   chips: 0
+  // });
 
   for (var i = 0; i < table.handPlayers.length; i++) {
     if (table.handPlayers[i]) {
@@ -137,6 +137,11 @@ router.get('/test-eval', function(req, res, next) {
 
   console.log(toUpdate.size);
   table.winners = Array.from(toUpdate);
+  console.log(table.winners);
+
+  table.winners = table.winners.map(function(player) {
+    return player.chips;
+  });
   console.log(table.winners);
 
   res.send(table.winners);
