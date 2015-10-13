@@ -298,9 +298,14 @@ block content
             textArray.push(player.name);
           }
 
-          $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
           $('#Players').children().eq(player.seat).addClass('poker__player--winner');
         }
+
+        if (playerID == player.id) {
+          $('#Chips').text(player.chips);
+          chips = player.chips;
+        }
+        $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
 
         var $cards = $('#Players').children().eq(player.seat).children('.poker__card');
         $cards.removeClass('poker__card--back');

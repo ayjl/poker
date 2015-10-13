@@ -487,13 +487,22 @@ function evalWinner(table) {
     }
 
     for(end=start+1; end<table.winners.length; end++) {
-      if(table.winners[start].hand.handType == table.winners[end].hand.handType && table.winners[start].hand.handRank == table.winners[end].hand.handRank) {
+      if(table.winners[start].hand.handType == table.winners[end].hand.handType &&
+          table.winners[start].hand.handRank == table.winners[end].hand.handRank) {
         numSharing++;
       }
 
       var deduct = Math.min(table.winners[start].bet, table.winners[end].bet);
       winnings += deduct;
       table.winners[end].bet -= deduct;
+    }
+
+    // If the player hasn't actually won any chips, then he is just getting back chips
+    // that no one matched
+    if(winnings == table.winners[start].bet) {
+      table.winners[start].chips = winnings;
+      storePlayerChips(table.winners[start]);
+      continue;
     }
 
     var winningsPerPlayer = winnings / numSharing;
