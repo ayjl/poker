@@ -1,24 +1,7 @@
 module.exports = function(io) {
   var poker = io.of('/poker');
 
-  var table = {
-      players: [null, null, null, null, null, null]
-    , winners: []
-    , cards: []
-    , numPlayers: 0
-    , playing: false
-    , turn: -1
-    , handPlayers: []
-    , handFirstPlayer: null
-    , gameState: -1
-    , pot: 0
-    , bet: 0
-    , roundBet: 0
-    , blind: 10
-    , minRaise: 0  // This gets set to the blind before each round of betting
-    , dealer: 0
-    , gameTimer: null
-  };
+  var table = tables.create(50);
 
   poker.on('connection', function(socket) {
     var req = socket.handshake;

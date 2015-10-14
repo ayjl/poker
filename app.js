@@ -57,14 +57,14 @@ app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
 
+var Tables = require('./helpers/tables');
+tables = new Tables();
+
 var io = require('socket.io')();
 var sharedsession = require("express-socket.io-session");
 io.of('/poker').use(sharedsession(sessionMiddleware, { autosave: true }));
 require('./io')(io);
 app.io = io;
-
-
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

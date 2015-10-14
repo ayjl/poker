@@ -15,6 +15,23 @@ router.get('/', function(req, res, next) {
   res.render('poker');
 });
 
+router.get('/tables', function(req, res, next) {
+  res.render('tables', {tables: tables.all()});
+});
+
+router.post('/tables', function(req, res, next) {
+  var errors = [];
+  var data = JSON.parse(req.body.data);
+  // var blinds = req.body.data.blinds;
+  if(data.blinds >= 50 && data.blinds <= 1000 && data.blinds % 50 == 0) {
+    var table = tables.create(data.blinds);
+  }
+  else{
+    errors.push({name: 'blinds', message: 'Blinds must be between 50 and 1000 and a multiple of 50'});
+  }
+  res.send({errors: errors});
+});
+
 router.get('/test-eval', function(req, res, next) {
   var evaluator = require("poker-evaluator");
 
