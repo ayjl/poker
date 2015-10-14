@@ -328,8 +328,8 @@ function progressGameState(table, poker, socket) {
   table.minRaise = table.blind;
 
   if (table.handPlayers.length <= 1) {
-    table.winners = [table.handPlayers[0]];
     if(table.handPlayers[0]) {
+      table.winners = [table.handPlayers[0].id];
       table.winners[0].chips += table.pot;
       poker.emit('winner', table.handPlayers, table.winners);
       storePlayerChips(table.winners[0]);
