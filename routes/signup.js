@@ -3,18 +3,48 @@ var router = express.Router();
 var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
+var validator = require('validator');
 
 
 router.get('/', function(req, res) {
   res.render('signup');
 });
 
-router.post('/submission', function(req, res, next) {
-  
-  var newUser = new User({ username: req.body.username, email: req.body.email, password: req.body.password, chipCount: 2000});
-  newUser.save().then(function() {
-    res.sendStatus(200);
-  });
+router.post('/', function(req, res, next) {
+  var handle = req.body.data;
+  var errors = [];
+  if(validator.isNull(handle.username)) {
+    errors.push('Username required');
+  }
+  if(!validator.isAlphanumeric(handle.username)) {
+    errors.push('Username must be Alphanumeric');
+  }
+  if(validator.isNull(handle.email)) {
+    errors.push('Email required');
+  }
+  if(validator.isEmail(handle.email)) {
+    errors.push('Invalid email');
+  }
+  if(validator.isNull(handle.password)) {
+    errors.push('Password required');
+  }
+  if(!validator.isLength(handle.password, 6)) {
+    errors.push('Password required');
+  }
+  if (errors.length == 0) {
+    var newUser = new User({ 
+      username: handle.username, 
+      email: handle.email, 
+      password: handle.password, 
+      chipCount: 2000
+    });
+    newUser.save().then(function() {
+      res.sendStatus(200);
+      res.redirect('/account');
+    });
+  } else {
+    res.send(error);
+  }
   
 });
 
