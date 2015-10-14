@@ -1,0 +1,56 @@
+extends ./layout
+
+block content
+  div.row
+    div.small-12.column
+      a.button(href='' data-reveal-id='Create_modal') Create Table
+  div.row
+    div.small-12.column
+      ul
+        - each table in tables
+          li #{table.id}
+
+
+
+  div#Create_modal.reveal-modal.small(data-reveal)
+    div.row
+      div.small-12.column
+        h2 Create a Table
+    form#Create
+      div.row
+        div.small-12.column
+          label Blinds
+            input(name='blinds' type='number' required min=50 max=1000 step=50 value=50)
+            //- select
+              //- option(value='10') 5/10
+              //- option(value='50') 25/50
+              //- option(value='100') 50/100
+      div.row
+        div.small-12.column
+          button.button.small Create
+    a.close-reveal-modal &#215;
+
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('#Create').on('submit', function(event) {
+        event.preventDefault();
+
+        data = formToJSON($(this));
+
+        $.ajax( {
+          type: 'POST',
+          url: '/poker/tables',
+          data: {
+            data: data
+          },
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+          }
+          else{
+            showErrors($('#Create'), data.errors);
+          }
+        });
+
+      });
+    });
