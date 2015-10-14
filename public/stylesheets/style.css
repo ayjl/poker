@@ -8,11 +8,7 @@ a {
   color: #00B7FF;
 }
 
-.poker-bg {
-  background-color: #eee;
-}
-
-.poker-container {
+.poker__container {
   margin-bottom: 100px;
   height: 610px;
 }
@@ -43,8 +39,14 @@ a {
 }
 .poker__table-middle {
   position: absolute;
-  margin-top: -100px; margin-left: -180px;
+  margin-top: -80px; margin-left: -180px;
   top: 50%; left: 50%;
+}
+.poker__controls {
+  display: none;
+}
+.poker__container--seated + .poker__controls {
+  display: block;
 }
 
 #Community_cards {
@@ -70,13 +72,17 @@ a {
   width: 10em; height: 11em;
 }
 .poker__player--empty {
+  cursor: pointer;
   height: 3em;
 }
-.poker__player--empty > .poker__card {
+.poker__container--seated .poker__player--empty {
   display: none;
 }
+.poker__player--empty > .poker__card {
+  display: none !important;
+}
 .poker__player--empty > .poker__player-chips {
-  display: none;
+  display: none !important;
 }
 
 .poker__player--folded {

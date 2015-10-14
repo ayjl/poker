@@ -15,24 +15,24 @@ router.get('/', function(req, res, next) {
   res.render('poker');
 });
 
-router.get('/tables', function(req, res, next) {
-  res.render('tables', {tables: tables.all()});
+router.get('/:table_id', function(req, res, next) {
+  if(!req.session.user) {
+    var num = Math.floor((Math.random() * 100000) + 1).toString();
+    var pad = '000000';
+    var padded = pad.substring(0, pad.length - num.length) + num;
+    req.session.user = 'Guest' + padded;
+    req.session.chips = 1000;
+  }
+
+  if(tables.find(req.params.table_id)) {
+    res.render('poker', { tableID: req.params.table_id });
+  }
+  else {
+    res.redirect('/tables');
+  }
 });
 
-router.post('/tables', function(req, res, next) {
-  var errors = [];
-  var data = JSON.parse(req.body.data);
-  // var blinds = req.body.data.blinds;
-  if(data.blinds >= 50 && data.blinds <= 1000 && data.blinds % 50 == 0) {
-    var table = tables.create(data.blinds);
-  }
-  else{
-    errors.push({name: 'blinds', message: 'Blinds must be between 50 and 1000 and a multiple of 50'});
-  }
-  res.send({errors: errors});
-});
-
-router.get('/test-eval', function(req, res, next) {
+router.get('/test/eval', function(req, res, next) {
   var evaluator = require("poker-evaluator");
 
   var table = {};
