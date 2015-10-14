@@ -307,10 +307,12 @@ block content
         }
         $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
 
-        var $cards = $('#Players').children().eq(player.seat).children('.poker__card');
-        $cards.removeClass('poker__card--back');
-        $cards.eq(0).addClass('poker__card--' + player.cards[0]);
-        $cards.eq(1).addClass('poker__card--' + player.cards[1]);
+        if(winners.length > 1) {
+          var $cards = $('#Players').children().eq(player.seat).children('.poker__card');
+          $cards.removeClass('poker__card--back');
+          $cards.eq(0).addClass('poker__card--' + player.cards[0]);
+          $cards.eq(1).addClass('poker__card--' + player.cards[1]);
+        }
       });
 
       var text = textArray.join(', ');
