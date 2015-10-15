@@ -6,7 +6,7 @@ module.exports = function(io) {
     var tableID = handshakeData._query['table'];
 
     if(!tables.find(tableID)) {
-      next(new Error('Authentication error'));
+      next(new Error('Invalid table'));
     }
     else {
       socket.join(tableID);
@@ -17,7 +17,6 @@ module.exports = function(io) {
 
   poker.on('connection', function(socket) {
     var table = tables.find(socket.tableID);
-    var req = socket.handshake;
 
     if(table.playing && table.gameState <= 3) {
       var cards = [];
@@ -49,38 +48,62 @@ module.exports = function(io) {
       });
     }
     
+    var req = socket.handshake;
+    var playerID = req.sessionID;
+
+    var player = {
+        id: playerID
+      , name: req.session.user
+      , guest: true
+      , cards: []
+      , hand: null
+      , socketID: socket.id
+      , seat: -1
+      , inHand: false
+      , bet: 0
+      , chips: req.session.chips
+      , allIn: false
+    };
+    table.spectators.push(player);
+
+    socket.emit('player id', player);
+
     socket.on('sit', function(seat) {
+      var req = socket.handshake;
       var playerID = req.sessionID;
 
-      for(var i=0; i<table.players.length; i++) {
-        if(table.players[i] && table.players[i].id == playerID) {
-          return;
-        }
-      }
+      var specIdx = findBySocketID(socket.id, table.spectators);
 
-      var player = {
-          id: playerID
-        , name: req.session.user
-        , guest: true
-        , cards: []
-        , hand: null
-        , socketID: socket.id
-        , seat: seat
-        , inHand: false
-        , bet: 0
-        , chips: req.session.chips
-        , allIn: false
-      };
-
-      // Should try to avoid exposing this to all clients
-      // and also a player's cards
-      if(table.players[seat] != null) {
+      // If player is not in the spectator list
+      if(specIdx == -1) {
+        socket.emit('customError', {
+          message: 'Something\'s gone wrong, try refreshing the page.'
+        });
         return;
       }
 
-      socket.emit('player id', player);
+      var player = table.spectators[specIdx];
 
+      // If player is already playing
+      var playerIdx = findByPlayerID(playerID, table.players);
+      if(playerIdx != -1) {
+        socket.emit('customError', {
+          message: 'You\'re already playing on this table in another tab.'
+        });
+        return;
+      }
+
+      // If seat is occupied
+      if(table.players[seat] != null) {
+        socket.emit('customError', {
+          message: 'The seat you selected is already occupied.'
+        });
+        return;
+      }
+
+      table.spectators.splice(specIdx, 1);
       table.players.splice(seat, 1, player);
+      player.seat = seat;
       table.numPlayers++;
 
       socket.broadcast.to(table.id).emit('player join', player, false);
@@ -98,7 +121,7 @@ module.exports = function(io) {
     // the poker namespace will not trigger this
     socket.on('action', function(action) {
       var table = tables.find(socket.tableID);
-      var idx = getHandPlayerBySocket(socket.id, table);
+      var idx = findBySocketID(socket.id, table.handPlayers);
       var player = table.handPlayers[idx];
 
       if (idx != -1 && table.turn == idx) {
@@ -205,12 +228,12 @@ module.exports = function(io) {
 
     socket.on('spectate', function() {
       var table = tables.find(socket.tableID);
-      playerLeave(table, poker, socket);
+      playerLeave(table, poker, socket, 'spectate');
     });
 
     socket.on('disconnect', function() {
       var table = tables.find(socket.tableID);
-      playerLeave(table, poker, socket);
+      playerLeave(table, poker, socket, 'disconnect');
     });
   });
 
@@ -223,6 +246,11 @@ function startGame(table, poker, socket) {
   }
   
   resetGame(table, poker);
+
+  if(table.numPlayers < 2) {
+    table.playing = false;
+    return;
+  }
 
   if(!table.playing) {
     return;
@@ -295,7 +323,7 @@ function startGame(table, poker, socket) {
   storePlayerChips(bigBlindPlayer);
 
   // Move the blinds players to the end
-  var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
+  var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
   if(table.handPlayers.length > 2) {
     idx += 2;
   }
@@ -388,7 +416,7 @@ function progressGameState(table, poker, socket) {
   }
 
   // Reorder players
-  var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
+  var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
   
@@ -449,18 +477,14 @@ function resetGame(table, poker) {
   }
 }
 
-function playerLeave(table, poker, socket) {
-  var seat;
-  for (seat = 0; seat < table.players.length; seat++) {
-    if (table.players[seat] && table.players[seat].socketID === socket.id) {
-      break;
-    }
-  }
+function playerLeave(table, poker, socket, type) {
+  var seat = findBySocketID(socket.id, table.players);
 
-  if(seat < table.players.length) {
+  // If the player leaving is currently a player
+  if(seat != -1) {
     socket.broadcast.to(table.id).emit('player leave', seat, false);
     socket.emit('player leave', seat, true);
-    player = table.players[seat];
+    var player = table.players[seat];
     table.numPlayers--;
     if(player.inHand) {
       if(table.handFirstPlayer == player) {
@@ -473,7 +497,7 @@ function playerLeave(table, poker, socket) {
       }
 
       player.inHand = false;
-      handPlayerIdx = getHandPlayerBySocket(player.socketID, table);
+      handPlayerIdx = findBySocketID(player.socketID, table.handPlayers);
       table.handPlayers.splice(handPlayerIdx, 1);
 
       if(table.turn > handPlayerIdx) {
@@ -484,7 +508,23 @@ function playerLeave(table, poker, socket) {
         progressGameState(table, poker, socket);
       }
     }
+
+    if(type == 'spectate') {
+      table.spectators.push(player);
+      player.seat = -1;
+    }
+
     table.players.splice(seat, 1, null);
+  }
+  // If the player leaving is a spectator
+  else {
+    if(type == 'disconnect') {
+      var idx = findBySocketID(socket.id, table.spectators);
+
+      if(idx != -1) {
+        table.spectators.splice(idx, 1);
+      }
+    }
   }
 }
 
@@ -581,9 +621,19 @@ function evalWinner(table) {
   });
 }
 
-function getHandPlayerBySocket(socketID, table) {
-  for (var i = 0; i < table.handPlayers.length; i++) {
-    if (table.handPlayers[i] && table.handPlayers[i].socketID == socketID) {
+function findBySocketID(socketID, array) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] && array[i].socketID == socketID) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+function findByPlayerID(playerID, array) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] && array[i].id == playerID) {
       return i;
     }
   }

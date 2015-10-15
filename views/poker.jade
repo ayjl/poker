@@ -57,6 +57,12 @@ block content
       h3 Your Cards
       p#Player_cards None
 
+  div#Error_modal.reveal-modal.small(data-reveal)
+    div.row
+      div.small-12.column
+        div#Error_message
+    a.close-reveal-modal &#215;
+
   script(type='text/javascript').
     var socket = io('/poker', { query: 'table=!{tableID}' });
     var playerID;
@@ -66,8 +72,14 @@ block content
     var chips = 0;
 
     socket.on('error', function(err){
-      console.log('The table does not exist.');
       window.location.href = '/tables';
+    });
+
+    socket.on('customError', function(err){
+      console.log(err.message);
+      $('#Error_message').text(err.message);
+      $('#Error_modal').foundation('reveal', 'open');
+      //- console.log(err.redirect);
     });
 
     socket.on('player join', function(player, isYou) {
@@ -342,7 +354,7 @@ block content
         }
         $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
 
-        if(winners.length > 1) {
+        if(handPlayers.length > 1) {
           var $cards = $('#Players').children().eq(player.seat).children('.poker__card');
           $cards.removeClass('poker__card--back');
           $cards.eq(0).addClass('poker__card--' + player.cards[0]);
