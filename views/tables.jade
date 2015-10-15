@@ -8,9 +8,7 @@ block content
     div.small-12.column
       ul
         - each table in tables
-          li #{table.id}
-
-
+          li: a(href='/poker/'+table.id) #{table.id} | #{table.blind}
 
   div#Create_modal.reveal-modal.small(data-reveal)
     div.row
@@ -21,10 +19,6 @@ block content
         div.small-12.column
           label Blinds
             input(name='blinds' type='number' required min=50 max=1000 step=50 value=50)
-            //- select
-              //- option(value='10') 5/10
-              //- option(value='50') 25/50
-              //- option(value='100') 50/100
       div.row
         div.small-12.column
           button.button.small Create
@@ -39,13 +33,14 @@ block content
 
         $.ajax( {
           type: 'POST',
-          url: '/poker/tables',
+          url: '/tables',
           data: {
             data: data
           },
         })
         .done(function(data) {
           if(data.errors.length == 0) {
+            window.location.href = '/poker/' + data.tableID;
           }
           else{
             showErrors($('#Create'), data.errors);

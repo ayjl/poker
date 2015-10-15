@@ -1,23 +1,30 @@
-
 function Tables() {
-  // this.tables = new Map();
   this.tables = [];
 }
 
 Tables.prototype.find = function(tableID) {
-  // return this.tables.get(tableID);
-  return this.tables[binarySearch(tableID)];
+  var idx = this.binarySearch(tableID);
+  if(idx >= 0) {
+    return this.tables[idx];
+  }
+  else {
+    return null;
+  }
 }
 
 Tables.prototype.all = function(tableID) {
   return this.tables;
 }
 
-Tables.prototype.create = function(blinds) {
+Tables.prototype.create = function(blinds, id) {
   var uuid = require('node-uuid');
+  if(!id) {
+    id = uuid.v4();
+  }
   var table = {
-      id: uuid.v4()
+      id: id
     , players: [null, null, null, null, null, null]
+    , spectators: []
     , winners: []
     , cards: []
     , numPlayers: 0
@@ -29,17 +36,20 @@ Tables.prototype.create = function(blinds) {
     , pot: 0
     , bet: 0
     , roundBet: 0
-    , blind: 10
+    , blind: parseInt(blinds)
     , minRaise: 0  // This gets set to the blind before each round of betting
-    , dealer: 0
+    , dealerSeat: 0
+    , bigBlindSeat: -1
+    , smallBlindSeat: -1
     , gameTimer: null
   };
 
   // this.tables.set(table.id, table);
-  var idx = binarySearch(table.id);
+  var idx = this.binarySearch(table.id);
   // Table not found
   if(idx < 0) {
-    idx = 1 - idx;
+    idx = -(idx + 1);
+    console.log('inserting into', idx);
     this.tables.splice(idx, 0, table);
   }
   else{
@@ -49,7 +59,7 @@ Tables.prototype.create = function(blinds) {
   return table;
 }
 
-function binarySearch(id) {
+Tables.prototype.binarySearch = function(key) {
   var lo = 0;
   var hi = this.tables.length - 1;
 
@@ -57,10 +67,10 @@ function binarySearch(id) {
     var mid = (lo + hi) >>> 1;
     var midID = this.tables[mid].id;
 
-    if(midID < id) {
+    if(midID < key) {
       lo = mid + 1;
     }
-    else if(midID > id) {
+    else if(midID > key) {
       hi = mid - 1;
     }
     else {

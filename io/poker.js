@@ -1,59 +1,133 @@
 module.exports = function(io) {
   var poker = io.of('/poker');
 
-  var table = tables.create(50);
+  poker.use(function(socket, next) {
+    var handshakeData = socket.request;
+    var tableID = handshakeData._query['table'];
+
+    if(!tables.find(tableID)) {
+      next(new Error('Invalid table'));
+    }
+    else {
+      socket.join(tableID);
+      socket.tableID = tableID;
+      next();
+    }
+  });
 
   poker.on('connection', function(socket) {
-    var req = socket.handshake;
+    var table = tables.find(socket.tableID);
 
-    var seat;
-
-    for (seat = 0; seat < table.players.length; seat++) {
-      if (!table.players[seat]) {
-        break;
+    if(table.playing && table.gameState <= 3) {
+      var cards = [];
+      switch(table.gameState) {
+        case 1:
+          cards = table.cards.slice(0, 3);
+          break;
+        case 2:
+          cards = table.cards.slice(0, 4);
+          break;
+        case 3:
+          cards = table.cards;
+          break;
       }
+      socket.emit('players', {
+          players: table.players
+        , playing: table.playing
+        , pot: table.pot
+        , cards: cards
+        , dealerSeat: table.dealerSeat
+        , smallBlindSeat: table.smallBlindSeat
+        , bigBlindSeat: table.bigBlindSeat
+      });
     }
+    else {
+      socket.emit('players', {
+          players: table.players
+        , playing: table.playing
+      });
+    }
+    
+    var req = socket.handshake;
+    var playerID = req.sessionID;
 
     var player = {
-        id: req.sessionID
+        id: playerID
       , name: req.session.user
       , guest: true
       , cards: []
       , hand: null
       , socketID: socket.id
-      , seat: seat
+      , seat: -1
       , inHand: false
       , bet: 0
       , chips: req.session.chips
       , allIn: false
     };
+    table.spectators.push(player);
 
-    // Should try to avoid exposing this to all clients
-    // and also a player's cards
-    table.players.splice(seat, 1, player);
-    table.numPlayers++;
-
-    socket.broadcast.emit('player join', player);
-    socket.emit('players', table.players);
     socket.emit('player id', player);
 
-    if (table.numPlayers > 1 && !table.playing) {
-      table.playing = true;
-      table.gameTimer = setTimeout(function() {
-        startGame(table, poker, socket);
-      }, 3000);
-    }
+    socket.on('sit', function(seat) {
+      var req = socket.handshake;
+      var playerID = req.sessionID;
+
+      var specIdx = findBySocketID(socket.id, table.spectators);
+
+      // If player is not in the spectator list
+      if(specIdx == -1) {
+        socket.emit('customError', {
+          message: 'Something\'s gone wrong, try refreshing the page.'
+        });
+        return;
+      }
+
+      var player = table.spectators[specIdx];
+
+      // If player is already playing
+      var playerIdx = findByPlayerID(playerID, table.players);
+      if(playerIdx != -1) {
+        socket.emit('customError', {
+          message: 'You\'re already playing on this table in another tab.'
+        });
+        return;
+      }
+
+      // If seat is occupied
+      if(table.players[seat] != null) {
+        socket.emit('customError', {
+          message: 'The seat you selected is already occupied.'
+        });
+        return;
+      }
+
+      table.spectators.splice(specIdx, 1);
+      table.players.splice(seat, 1, player);
+      player.seat = seat;
+      table.numPlayers++;
+
+      socket.broadcast.to(table.id).emit('player join', player, false);
+      socket.emit('player join', player, true);
+
+      if (table.numPlayers > 1 && !table.playing) {
+        table.playing = true;
+        table.gameTimer = setTimeout(function() {
+          startGame(table, poker, socket);
+        }, 3000);
+      }
+    });
 
     // This is inside the poker namespace, so emitting 'action' from the client outside
     // the poker namespace will not trigger this
     socket.on('action', function(action) {
-      var idx = getHandPlayerBySocket(socket.id, table);
+      var table = tables.find(socket.tableID);
+      var idx = findBySocketID(socket.id, table.handPlayers);
       var player = table.handPlayers[idx];
 
       if (idx != -1 && table.turn == idx) {
 
         if (action.action == 'fold') {
-          poker.emit('fold', table.handPlayers[table.turn]);
+          poker.to(table.id).emit('fold', table.handPlayers[table.turn]);
           
           if(table.handFirstPlayer == player) {
             if(table.turn + 1 == table.handPlayers.length) {
@@ -106,7 +180,7 @@ module.exports = function(io) {
               player.allIn = true;
             }
 
-            poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
+            poker.to(table.id).emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
             socket.emit('confirm bet', table.bet, table.roundBet, player);
 
             var moveToEnd = table.handPlayers.splice(0, idx);
@@ -127,7 +201,7 @@ module.exports = function(io) {
             player.chips -= extraPot;
             storePlayerChips(player);
 
-            poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
+            poker.to(table.id).emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
             socket.emit('confirm bet', table.bet, table.roundBet, player);
           }
 
@@ -147,47 +221,19 @@ module.exports = function(io) {
           progressGameState(table, poker, socket);
         }
         else {
-          poker.emit('turn', table.handPlayers[table.turn]);
+          poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
         }
       }
     });
 
+    socket.on('spectate', function() {
+      var table = tables.find(socket.tableID);
+      playerLeave(table, poker, socket, 'spectate');
+    });
+
     socket.on('disconnect', function() {
-      var seat;
-      for (seat = 0; seat < table.players.length; seat++) {
-        if (table.players[seat] && table.players[seat].id === req.sessionID) {
-          break;
-        }
-      }
-
-      if (seat < table.players.length) {
-        socket.broadcast.emit('player leave', seat);
-        player = table.players[seat];
-        table.numPlayers--;
-        if (player.inHand) {
-          if(table.handFirstPlayer == player) {
-            if(table.turn + 1 == table.handPlayers.length) {
-              table.handFirstPlayer = table.handPlayers[0];
-            }
-            else{
-              table.handFirstPlayer = table.handPlayers[table.turn+1];
-            }
-          }
-
-          player.inHand = false;
-          handPlayerIdx = getHandPlayerBySocket(player.socketID, table);
-          table.handPlayers.splice(handPlayerIdx, 1);
-
-          if (table.turn > handPlayerIdx) {
-            table.turn--;
-          }
-
-          if (table.handPlayers.length <= 1) {
-            progressGameState(table, poker, socket);
-          }
-        }
-        table.players.splice(seat, 1, null);
-      }
+      var table = tables.find(socket.tableID);
+      playerLeave(table, poker, socket, 'disconnect');
     });
   });
 
@@ -200,6 +246,11 @@ function startGame(table, poker, socket) {
   }
   
   resetGame(table, poker);
+
+  if(table.numPlayers < 2) {
+    table.playing = false;
+    return;
+  }
 
   if(!table.playing) {
     return;
@@ -214,21 +265,25 @@ function startGame(table, poker, socket) {
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
     player.inHand = true;
-  }
-
-  // Assign dealer
-  table.dealer++;
-  if(table.dealer >= table.players.length) {
-    table.dealer -= table.players.length;
-  }
-  while (!table.players[table.dealer] || !table.players[table.dealer].inHand) {
-    table.dealer++;
-    if(table.dealer >= table.players.length) {
-      table.dealer -= table.players.length;
+    if(player.chips <= table.blind) {
+      player.chips = 1000;
+      storePlayerChips(player);
     }
   }
 
-  var dealerPlayer = table.players[table.dealer];
+  // Assign dealer
+  table.dealerSeat++;
+  if(table.dealerSeat >= table.players.length) {
+    table.dealerSeat -= table.players.length;
+  }
+  while (!table.players[table.dealerSeat] || !table.players[table.dealerSeat].inHand) {
+    table.dealerSeat++;
+    if(table.dealerSeat >= table.players.length) {
+      table.dealerSeat -= table.players.length;
+    }
+  }
+
+  var dealerPlayer = table.players[table.dealerSeat];
   var dealerInHand = table.handPlayers.indexOf(dealerPlayer);
 
   // Assign blinds
@@ -242,12 +297,14 @@ function startGame(table, poker, socket) {
     }
   }
   var smallBlindPlayer = table.handPlayers[smallBlind];
+  table.smallBlindSeat = smallBlindPlayer.seat;
 
   var bigBlind = smallBlind + 1;
   if(bigBlind >= table.handPlayers.length) {
     bigBlind -= table.handPlayers.length;
   }
   var bigBlindPlayer = table.handPlayers[bigBlind];
+  table.bigBlindSeat = bigBlindPlayer.seat;
 
   // Store the first hand player (the person going to be starting betting each round)
   if(table.handPlayers.length > 2) {
@@ -266,7 +323,7 @@ function startGame(table, poker, socket) {
   storePlayerChips(bigBlindPlayer);
 
   // Move the blinds players to the end
-  var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
+  var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
   if(table.handPlayers.length > 2) {
     idx += 2;
   }
@@ -279,7 +336,7 @@ function startGame(table, poker, socket) {
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
 
-  poker.emit('players in hand', {
+  poker.to(table.id).emit('players in hand', {
       players: table.handPlayers
     , dealerID: dealerPlayer.id
     , smallBlindID: smallBlindPlayer.id
@@ -319,7 +376,7 @@ function startGame(table, poker, socket) {
 
   table.gameState = 0;
   table.turn = 0;
-  poker.emit('turn', table.handPlayers[table.turn]);
+  poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
 }
 
 function progressGameState(table, poker, socket) {
@@ -328,11 +385,11 @@ function progressGameState(table, poker, socket) {
   table.minRaise = table.blind;
 
   if (table.handPlayers.length <= 1) {
-    if(table.handPlayers[0]) {
+    if(table.handPlayers[0] && table.gameState <= 3) {
       table.winners = [table.handPlayers[0].id];
-      table.winners[0].chips += table.pot;
-      poker.emit('winner', table.handPlayers, table.winners);
-      storePlayerChips(table.winners[0]);
+      table.handPlayers[0].chips += table.pot;
+      poker.to(table.id).emit('winner', table.handPlayers, table.winners);
+      storePlayerChips(table.handPlayers[0]);
     }
 
     if (table.numPlayers <= 1) {
@@ -353,29 +410,29 @@ function progressGameState(table, poker, socket) {
 
   if(notAllInPlayers.length <= 1) {
     if(table.gameState < 2) {
-      poker.emit('community cards', table.cards);
+      poker.to(table.id).emit('community cards', table.cards);
     }
     table.gameState = 3;
   }
 
   // Reorder players
-  var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
+  var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
   
   switch (table.gameState) {
     case 0:
-      poker.emit('community cards', table.cards.slice(0, 3));
+      poker.to(table.id).emit('community cards', table.cards.slice(0, 3));
       break;
     case 1:
-      poker.emit('community cards', table.cards.slice(0, 4));
+      poker.to(table.id).emit('community cards', table.cards.slice(0, 4));
       break;
     case 2:
-      poker.emit('community cards', table.cards);
+      poker.to(table.id).emit('community cards', table.cards);
       break;
     case 3:
       evalWinner(table);
-      poker.emit('winner', table.handPlayers, table.winners);
+      poker.to(table.id).emit('winner', table.handPlayers, table.winners);
 
       table.gameTimer = setTimeout(function() {
         startGame(table, poker, socket);
@@ -385,16 +442,17 @@ function progressGameState(table, poker, socket) {
       console.log("default switch. should not be here. gameState: "+table.gameState);
   }
 
-  if(table.gameState >= 0 && table.gameState <= 2) {
-    poker.emit('turn', table.handPlayers[table.turn]);
-    poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, null);
+  if(table.gameState <= 3) {
+    table.gameState++;
   }
-
-  table.gameState++;
+  if(table.gameState >= 0 && table.gameState <= 3) {
+    poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
+    poker.to(table.id).emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, null);
+  }
 }
 
 function resetGame(table, poker) {
-  poker.emit('reset');
+  poker.to(table.id).emit('reset');
   table.cards = [];
   table.winners = [];
   table.turn = -1;
@@ -404,6 +462,8 @@ function resetGame(table, poker) {
   table.minRaise = table.blind;
   table.pot = 0;
   table.handFirstPlayer = null;
+  table.smallBlindSeat = -1;
+  table.bigBlindSeat = -1;
 
   for (var i = 0; i < table.players.length; i++) {
     if (table.players[i]) {
@@ -413,10 +473,56 @@ function resetGame(table, poker) {
       player.inHand = false;
       player.bet = 0;
       player.allIn = false;
+    }
+  }
+}
 
-      if(player.chips <= 0) {
-        player.chips = 1000;
-        storePlayerChips(player);
+function playerLeave(table, poker, socket, type) {
+  var seat = findBySocketID(socket.id, table.players);
+
+  // If the player leaving is currently a player
+  if(seat != -1) {
+    socket.broadcast.to(table.id).emit('player leave', seat, false);
+    socket.emit('player leave', seat, true);
+    var player = table.players[seat];
+    table.numPlayers--;
+    if(player.inHand) {
+      if(table.handFirstPlayer == player) {
+        if(table.turn + 1 == table.handPlayers.length) {
+          table.handFirstPlayer = table.handPlayers[0];
+        }
+        else{
+          table.handFirstPlayer = table.handPlayers[table.turn+1];
+        }
+      }
+
+      player.inHand = false;
+      handPlayerIdx = findBySocketID(player.socketID, table.handPlayers);
+      table.handPlayers.splice(handPlayerIdx, 1);
+
+      if(table.turn > handPlayerIdx) {
+        table.turn--;
+      }
+
+      if(table.handPlayers.length <= 1) {
+        progressGameState(table, poker, socket);
+      }
+    }
+
+    if(type == 'spectate') {
+      table.spectators.push(player);
+      player.seat = -1;
+    }
+
+    table.players.splice(seat, 1, null);
+  }
+  // If the player leaving is a spectator
+  else {
+    if(type == 'disconnect') {
+      var idx = findBySocketID(socket.id, table.spectators);
+
+      if(idx != -1) {
+        table.spectators.splice(idx, 1);
       }
     }
   }
@@ -515,9 +621,19 @@ function evalWinner(table) {
   });
 }
 
-function getHandPlayerBySocket(socketID, table) {
-  for (var i = 0; i < table.handPlayers.length; i++) {
-    if (table.handPlayers[i] && table.handPlayers[i].socketID == socketID) {
+function findBySocketID(socketID, array) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] && array[i].socketID == socketID) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+function findByPlayerID(playerID, array) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] && array[i].id == playerID) {
       return i;
     }
   }
