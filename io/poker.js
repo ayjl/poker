@@ -1,22 +1,7 @@
 module.exports = function(io) {
   var poker = io.of('/poker');
 
-  var table = {
-      players: [null, null, null, null, null, null, null, null, null]
-    , cards: []
-    , numPlayers: 0
-    , playing: false
-    , turn: -1
-    , handPlayers: []
-    , handFirstPlayer: null
-    , gameState: -1
-    , pot: 0
-    , bet: 0
-    , roundBet: 0
-    , blind: 10
-    , minRaise: 0  // This gets set to the blind before each round of betting
-    , dealer: 0
-  };
+  var table = tables.create(50);
 
   poker.on('connection', function(socket) {
     var req = socket.handshake;
@@ -40,7 +25,10 @@ module.exports = function(io) {
       , inHand: false
       , bet: 0
       , chips: req.session.chips
+      , allIn: false
     };
+
+    var foldTimer = {};
 
     // Should try to avoid exposing this to all clients
     // and also a player's cards
@@ -51,105 +39,17 @@ module.exports = function(io) {
     socket.emit('players', table.players);
     socket.emit('player id', player);
 
-    var gameTimer = {};
     if (table.numPlayers > 1 && !table.playing) {
       table.playing = true;
-      startGame(table, poker, socket, gameTimer);
+      table.gameTimer = setTimeout(function() {
+        startGame(table, poker, socket);
+      }, 3000);
     }
 
     // This is inside the poker namespace, so emitting 'action' from the client outside
     // the poker namespace will not trigger this
     socket.on('action', function(action) {
-      var idx = getHandPlayerBySocket(socket.id, table);
-      var player = table.handPlayers[idx];
-
-      if (idx != -1 && table.turn == idx) {
-
-        if (action.action == 'fold') {
-          poker.emit('fold', table.handPlayers[table.turn]);
-          
-          if(table.handFirstPlayer == player) {
-            if(table.turn + 1 == table.handPlayers.length) {
-              table.handFirstPlayer = table.handPlayers[0];
-            }
-            else{
-              table.handFirstPlayer = table.handPlayers[table.turn+1];
-            }
-          }
-          
-          table.handPlayers[table.turn].inHand = false;
-          table.handPlayers.splice(idx, 1);
-          if (table.handPlayers.length <= 1) {
-            progressGameState(table, poker, socket, gameTimer);
-          }
-        }
-        else{
-          if (action.action == 'raise') {
-            if(!action.amount) {  // In case action.amount is null
-              action.amount = 0;
-            }
-            if(action.amount > player.chips + player.bet) {  // if betting more than they have
-              action.amount = player.chips + player.bet;
-            }
-            var extraRaise = action.amount - table.roundBet;
-            if (extraRaise < table.minRaise) {
-              extraRaise = table.minRaise;
-              action.amount = extraRaise + table.roundBet;
-            }
-            else if(extraRaise > table.minRaise) {
-              table.minRaise = extraRaise;
-            }
-            // var extraPot = action.amount - player.bet;
-            var extraPot = (action.amount - table.roundBet) + (table.bet - player.bet);
-            table.bet += action.amount - table.roundBet;
-            table.roundBet = action.amount;
-            player.bet = table.bet;
-            table.pot += extraPot;
-            player.chips -= extraPot;
-            storePlayerChips(player);
-            /*table.bet += action.amount;
-            var extra = table.bet - player.bet;
-            table.pot += extra;
-            player.bet = table.bet;
-            player.chips -= extra;
-            storePlayerChips(player);*/
-
-            poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise);
-            socket.emit('confirm bet', table.bet, player.chips);
-            // socket.broadcast.emit('raise', action.amount);
-
-            var moveToEnd = table.handPlayers.splice(0, idx);
-            table.handPlayers = table.handPlayers.concat(moveToEnd);
-
-            table.turn = 0;  // Will be incremented to 1 at the end of the function
-          }
-          // Call
-          else if (action.action == 'check' && player.bet < table.bet) {
-            var extraPot = table.bet - player.bet;
-            player.bet = table.bet;
-            table.pot += extraPot;
-            player.chips -= extraPot;
-            storePlayerChips(player);
-
-            poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise);
-            socket.emit('confirm bet', table.bet, player.chips);
-          }
-
-          table.turn++;
-        }
-
-        // Check if all players have had a turn
-        if (table.turn == table.handPlayers.length) {
-          progressGameState(table, poker, socket, gameTimer);
-        }
-        else {
-          poker.emit('turn', table.handPlayers[table.turn]);
-        }
-        
-        console.log('thank you');
-      } else {
-        console.log('not your turn');
-      }
+      handleAction(action, poker, socket, table, foldTimer);
     });
 
     socket.on('disconnect', function() {
@@ -163,6 +63,7 @@ module.exports = function(io) {
       if (seat < table.players.length) {
         socket.broadcast.emit('player leave', seat);
         player = table.players[seat];
+        table.numPlayers--;
         if (player.inHand) {
           if(table.handFirstPlayer == player) {
             if(table.turn + 1 == table.handPlayers.length) {
@@ -182,11 +83,10 @@ module.exports = function(io) {
           }
 
           if (table.handPlayers.length <= 1) {
-            progressGameState(table, poker, socket, gameTimer);
+            progressGameState(table, poker, socket);
           }
         }
         table.players.splice(seat, 1, null);
-        table.numPlayers--;
       }
     });
   });
@@ -194,8 +94,20 @@ module.exports = function(io) {
   return io;
 };
 
-function startGame(table, poker, socket, gameTimer) {
+function startGame(table, poker, socket, foldTimer) {
+  clearInterval(foldTimer.countdown);
+  clearTimeout(foldTimer.timer);
+
+  if(table.gameTimer && !table.gameTimer._called) {
+    return;
+  }
+
   resetGame(table, poker);
+
+  if(!table.playing) {
+    return;
+  }
+
   var deck = require('../helpers/deck')();
   var seat = 0;
   table.handPlayers = table.players.filter(function(item) {
@@ -283,9 +195,6 @@ function startGame(table, poker, socket, gameTimer) {
   table.roundBet = table.blind;
   table.minRaise = table.blind;
 
-  socket.emit(smallBlindPlayer.socketID).emit('confirm chips', smallBlindPlayer.chips);
-  socket.emit(bigBlindPlayer.socketID).emit('confirm chips', bigBlindPlayer.chips);
-
   // Deal player cards
   var player;
   for (var i = 0; i < table.handPlayers.length; i++) {
@@ -296,9 +205,9 @@ function startGame(table, poker, socket, gameTimer) {
     var player = table.handPlayers[i];
     player.cards.push(deck.shift());
     if (socket.id == player.socketID) {
-      socket.emit(player.socketID).emit('player cards', player.cards);
+      socket.emit(player.socketID).emit('player cards', player.cards, player.seat);
     } else {
-      socket.broadcast.to(player.socketID).emit('player cards', player.cards);
+      socket.broadcast.to(player.socketID).emit('player cards', player.cards, player.seat);
     }
   }
 
@@ -314,40 +223,76 @@ function startGame(table, poker, socket, gameTimer) {
   table.gameState = 0;
   table.turn = 0;
   poker.emit('turn', table.handPlayers[table.turn]);
+
+  /*foldTimer['countdown'] = setInterval(function () {
+    poker.emit('updateFoldCount', table.handPlayers[table.turn]);
+    console.log('countdown');
+  }, 1000);*/
+
+  foldTimer['timer'] = setTimeout(function () {
+    poker.emit('fold', table.handPlayers[table.turn]);
+    console.log('folding');
+    if(table.handFirstPlayer == player) {
+      if(table.turn + 1 == table.handPlayers.length) {
+        table.handFirstPlayer = table.handPlayers[0];
+      }
+      else{
+        table.handFirstPlayer = table.handPlayers[table.turn+1];
+      }
+    }
+
+    table.handPlayers[table.turn].inHand = false;
+    table.handPlayers.splice(idx, 1);
+    if (table.handPlayers.length <= 1) {
+      progressGameState(table, poker, socket);
+    }
+  }, 30000);
 }
 
-function progressGameState(table, poker, socket, gameTimer) {
+function progressGameState(table, poker, socket) {
   table.turn = 0;
   table.roundBet = 0;
   table.minRaise = table.blind;
 
-  if (table.handPlayers.length <= 1) {
-    table.winner = table.handPlayers[0];
-    if(table.winner) {
-      poker.emit('winner', table.winner);
-      table.winner.chips += table.pot;
-      storePlayerChips(table.winner);
-      socket.broadcast.to(table.winner.socketID).emit('confirm chips', table.winner.chips);
-    }
+  clearTimeout(foldTimer.timer);
+  clearInterval(foldTimer.countdown);
 
-    gameTimer['timer'] = setTimeout(function() {
-      startGame(table, poker, socket, gameTimer);
-    }, 3000);
+  if (table.handPlayers.length <= 1) {
+    if(table.handPlayers[0]) {
+      table.winners = [table.handPlayers[0].id];
+      table.winners[0].chips += table.pot;
+      poker.emit('winner', table.handPlayers, table.winners);
+      storePlayerChips(table.winners[0]);
+    }
 
     if (table.numPlayers <= 1) {
-      resetGame(table, poker);
       table.playing = false;
-      clearTimeout(gameTimer.timer);
     }
 
+    table.gameTimer = setTimeout(function() {
+      startGame(table, poker, socket);
+    }, 3000);
+
     return;
+  }
+
+  // Check if there is more than one player that is not all in
+  var notAllInPlayers = table.handPlayers.filter(function(player) {
+    return !player.allIn;
+  });
+
+  if(notAllInPlayers.length <= 1) {
+    if(table.gameState < 2) {
+      poker.emit('community cards', table.cards);
+    }
+    table.gameState = 3;
   }
 
   // Reorder players
   var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
-  
+
   switch (table.gameState) {
     case 0:
       poker.emit('community cards', table.cards.slice(0, 3));
@@ -360,13 +305,10 @@ function progressGameState(table, poker, socket, gameTimer) {
       break;
     case 3:
       evalWinner(table);
-      poker.emit('winner', table.winner);
-      table.winner.chips += table.pot;
-      storePlayerChips(table.winner);
-      socket.broadcast.to(table.winner.socketID).emit('confirm chips', table.winner.chips);
+      poker.emit('winner', table.handPlayers, table.winners);
 
-      gameTimer['timer'] = setTimeout(function() {
-        startGame(table, poker, socket, gameTimer);
+      table.gameTimer = setTimeout(function() {
+        startGame(table, poker, socket);
       }, 3000);
       break;
     default:
@@ -375,16 +317,18 @@ function progressGameState(table, poker, socket, gameTimer) {
 
   if(table.gameState >= 0 && table.gameState <= 2) {
     poker.emit('turn', table.handPlayers[table.turn]);
-    poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise);
+    poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, null);
   }
 
   table.gameState++;
 }
 
 function resetGame(table, poker) {
+  clearTimeout(foldTimer.timer);
+  clearInterval(foldTimer.timer);
   poker.emit('reset');
   table.cards = [];
-  table.winner = null;
+  table.winners = [];
   table.turn = -1;
   table.handPlayers = [];
   table.gameState = -1;
@@ -400,16 +344,21 @@ function resetGame(table, poker) {
       player.hand = null
       player.inHand = false;
       player.bet = 0;
+      player.allIn = false;
+
+      if(player.chips <= 0) {
+        player.chips = 1000;
+        storePlayerChips(player);
+      }
     }
   }
 }
 
 function evalWinner(table) {
   var evaluator = require("poker-evaluator");
-
-  for (var i = 0; i < table.players.length; i++) {
-    if (table.players[i]) {
-      var player = table.players[i];
+  for (var i = 0; i < table.handPlayers.length; i++) {
+    if (table.handPlayers[i]) {
+      var player = table.handPlayers[i];
       var hand = table.cards.concat(player.cards);
       var eval = evaluator.evalHand(hand);
       player.hand =
@@ -420,16 +369,82 @@ function evalWinner(table) {
         , hand: hand
       }
 
-      if (!table.winner) {
-        table.winner = player;
+      var playerHand = player.hand;
+      var j;
+      for(j=0; j<table.winners.length; j++) {
+        var winner = table.winners[j];
+        var winnerHand = winner.hand
+        if(playerHand.handType > winnerHand.handType) {
+          break;
+        }
+        else if(playerHand.handType == winnerHand.handType) {
+          if(playerHand.handRank > winnerHand.handRank) {
+            break;
+          }
+          if(player.bet <= winner.bet) {
+            break;
+          }
+        }
       }
-      else if (player.hand.handType > table.winner.hand.handType ||
-               (player.hand.handType == table.winner.hand.handType &&
-                player.hand.handRank > table.winner.hand.handRank)) {
-        table.winner = player;
+
+      table.winners.splice(j, 0, player);
+    }
+  }
+
+  var start = 0;
+  var end = 0;
+  var toUpdate = new Set();
+  for(start=0; start<table.winners.length; start++) {
+    var numSharing = 1;
+    var winnings = table.winners[start].bet;
+    if(winnings == 0) {
+      continue;
+    }
+
+    for(end=start+1; end<table.winners.length; end++) {
+      if(table.winners[start].hand.handType == table.winners[end].hand.handType &&
+          table.winners[start].hand.handRank == table.winners[end].hand.handRank) {
+        numSharing++;
+      }
+
+      var deduct = Math.min(table.winners[start].bet, table.winners[end].bet);
+      winnings += deduct;
+      table.winners[end].bet -= deduct;
+    }
+
+    // If the player hasn't actually won any chips, then he is just getting back chips
+    // that no one matched
+    if(winnings == table.winners[start].bet) {
+      table.winners[start].chips = winnings;
+      storePlayerChips(table.winners[start]);
+      continue;
+    }
+
+    var winningsPerPlayer = winnings / numSharing;
+    var extra = winningsPerPlayer % 1;
+    winningsPerPlayer -= extra;
+    if(extra != 0) {
+      extra *= numSharing;
+      extra = Math.floor(extra);
+    }
+    table.winners[start].bet = 0;
+    for(var i=0; i<numSharing; i++) {
+      toUpdate.add(table.winners[start+i]);
+      table.winners[start+i].chips += winningsPerPlayer;
+      if(i < extra) {
+        table.winners[start+i].chips++;
       }
     }
   }
+
+  table.winners = Array.from(toUpdate);
+  for(var i=0; i<table.winners.length; i++) {
+    storePlayerChips(table.winners[i]);
+  }
+
+  table.winners = table.winners.map(function(player) {
+    return player.id;
+  });
 }
 
 function getHandPlayerBySocket(socketID, table) {
@@ -456,4 +471,111 @@ function storePlayerChips(player) {
   .catch(function(err) {
     console.log('error:', err);
   });
+}
+function handleAction(action, poker, socket, table, foldTimer){
+  var idx = getHandPlayerBySocket(socket.id, table);
+  var player = table.handPlayers[idx];
+
+  clearTimeout(foldTimer.timer);
+  clearTimeout(foldTimer.countdown);
+
+  if (idx != -1 && table.turn == idx) {
+    if (action.action == 'fold') {
+      poker.emit('fold', table.handPlayers[table.turn]);
+
+      if(table.handFirstPlayer == player) {
+        if(table.turn + 1 == table.handPlayers.length) {
+          table.handFirstPlayer = table.handPlayers[0];
+        }
+        else{
+          table.handFirstPlayer = table.handPlayers[table.turn+1];
+        }
+      }
+
+      table.handPlayers[table.turn].inHand = false;
+      table.handPlayers.splice(idx, 1);
+      if (table.handPlayers.length <= 1) {
+        progressGameState(table, poker, socket);
+      }
+    }
+    else{
+      if (action.action == 'raise') {
+        if(!action.amount) {  // In case action.amount is null
+          action.amount = 0;
+        }
+
+        var extraRaise = action.amount - table.roundBet;
+        if(extraRaise < table.minRaise) {
+          extraRaise = table.minRaise;
+          action.amount = extraRaise + table.roundBet;
+        }
+
+        var extraPot = (action.amount - table.roundBet) + (table.bet - player.bet);
+        if(extraPot > player.chips) {
+          var deduct = extraPot - player.chips;
+          extraPot -= deduct;
+          extraRaise -= deduct;
+          action.amount -= deduct;
+        }
+
+        // extra raise may be less if the player is going all in
+        if(extraRaise > table.minRaise) {
+          table.minRaise = extraRaise;
+        }
+
+        table.bet += action.amount - table.roundBet;
+        table.roundBet = action.amount;
+        player.bet = table.bet;
+        table.pot += extraPot;
+        player.chips -= extraPot;
+        storePlayerChips(player);
+
+        if(player.chips == 0) {
+          player.allIn = true;
+        }
+
+        poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
+        socket.emit('confirm bet', table.bet, table.roundBet, player);
+
+        var moveToEnd = table.handPlayers.splice(0, idx);
+        table.handPlayers = table.handPlayers.concat(moveToEnd);
+
+        table.turn = 0;  // Will be incremented to 1 at the end of the function
+      }
+      // Call
+      else if (action.action == 'check' && player.bet < table.bet) {
+        var extraPot = table.bet - player.bet;
+        if(extraPot >= player.chips) {
+          extraPot = player.chips;
+          player.allIn = true;
+        }
+
+        player.bet += extraPot;
+        table.pot += extraPot;
+        player.chips -= extraPot;
+        storePlayerChips(player);
+
+        poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
+        socket.emit('confirm bet', table.bet, table.roundBet, player);
+      }
+
+      table.turn++;
+
+      while(table.handPlayers[table.turn] && table.handPlayers[table.turn].allIn) {
+        table.turn++;
+        if(table.turn == table.handPlayers.length) {
+          progressGameState(table, poker, socket);
+          return;
+        }
+      }
+    }
+
+    // Check if all players have had a turn
+    if (table.turn == table.handPlayers.length) {
+      progressGameState(table, poker, socket);
+    }
+    else {
+      poker.emit('turn', table.handPlayers[table.turn]);
+    }
+  }
 }
