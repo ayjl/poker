@@ -28,6 +28,8 @@ module.exports = function(io) {
       , allIn: false
     };
 
+    var foldTimer = {};
+
     // Should try to avoid exposing this to all clients
     // and also a player's cards
     table.players.splice(seat, 1, player);
@@ -47,109 +49,7 @@ module.exports = function(io) {
     // This is inside the poker namespace, so emitting 'action' from the client outside
     // the poker namespace will not trigger this
     socket.on('action', function(action) {
-      var idx = getHandPlayerBySocket(socket.id, table);
-      var player = table.handPlayers[idx];
-
-      if (idx != -1 && table.turn == idx) {
-
-        if (action.action == 'fold') {
-          poker.emit('fold', table.handPlayers[table.turn]);
-          
-          if(table.handFirstPlayer == player) {
-            if(table.turn + 1 == table.handPlayers.length) {
-              table.handFirstPlayer = table.handPlayers[0];
-            }
-            else{
-              table.handFirstPlayer = table.handPlayers[table.turn+1];
-            }
-          }
-          
-          table.handPlayers[table.turn].inHand = false;
-          table.handPlayers.splice(idx, 1);
-          if (table.handPlayers.length <= 1) {
-            progressGameState(table, poker, socket);
-          }
-        }
-        else{
-          if (action.action == 'raise') {
-            if(!action.amount) {  // In case action.amount is null
-              action.amount = 0;
-            }
-
-            var extraRaise = action.amount - table.roundBet;
-            if(extraRaise < table.minRaise) {
-              extraRaise = table.minRaise;
-              action.amount = extraRaise + table.roundBet;
-            }
-            
-            var extraPot = (action.amount - table.roundBet) + (table.bet - player.bet);
-            if(extraPot > player.chips) {
-              var deduct = extraPot - player.chips;
-              extraPot -= deduct;
-              extraRaise -= deduct;
-              action.amount -= deduct;
-            }
-
-            // extra raise may be less if the player is going all in
-            if(extraRaise > table.minRaise) {
-              table.minRaise = extraRaise;
-            }
-
-            table.bet += action.amount - table.roundBet;
-            table.roundBet = action.amount;
-            player.bet = table.bet;
-            table.pot += extraPot;
-            player.chips -= extraPot;
-            storePlayerChips(player);
-
-            if(player.chips == 0) {
-              player.allIn = true;
-            }
-
-            poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
-            socket.emit('confirm bet', table.bet, table.roundBet, player);
-
-            var moveToEnd = table.handPlayers.splice(0, idx);
-            table.handPlayers = table.handPlayers.concat(moveToEnd);
-
-            table.turn = 0;  // Will be incremented to 1 at the end of the function
-          }
-          // Call
-          else if (action.action == 'check' && player.bet < table.bet) {
-            var extraPot = table.bet - player.bet;
-            if(extraPot >= player.chips) {
-              extraPot = player.chips;
-              player.allIn = true;
-            }
-            
-            player.bet += extraPot;
-            table.pot += extraPot;
-            player.chips -= extraPot;
-            storePlayerChips(player);
-
-            poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
-            socket.emit('confirm bet', table.bet, table.roundBet, player);
-          }
-
-          table.turn++;
-
-          while(table.handPlayers[table.turn] && table.handPlayers[table.turn].allIn) {
-            table.turn++;
-            if(table.turn == table.handPlayers.length) {
-              progressGameState(table, poker, socket);
-              return;
-            }
-          }
-        }
-
-        // Check if all players have had a turn
-        if (table.turn == table.handPlayers.length) {
-          progressGameState(table, poker, socket);
-        }
-        else {
-          poker.emit('turn', table.handPlayers[table.turn]);
-        }
-      }
+      handleAction(action, poker, socket, table, foldTimer);
     });
 
     socket.on('disconnect', function() {
@@ -194,11 +94,14 @@ module.exports = function(io) {
   return io;
 };
 
-function startGame(table, poker, socket) {
+function startGame(table, poker, socket, foldTimer) {
+  clearInterval(foldTimer.countdown);
+  clearTimeout(foldTimer.timer);
+
   if(table.gameTimer && !table.gameTimer._called) {
     return;
   }
-  
+
   resetGame(table, poker);
 
   if(!table.playing) {
@@ -320,12 +223,39 @@ function startGame(table, poker, socket) {
   table.gameState = 0;
   table.turn = 0;
   poker.emit('turn', table.handPlayers[table.turn]);
+
+  /*foldTimer['countdown'] = setInterval(function () {
+    poker.emit('updateFoldCount', table.handPlayers[table.turn]);
+    console.log('countdown');
+  }, 1000);*/
+
+  foldTimer['timer'] = setTimeout(function () {
+    poker.emit('fold', table.handPlayers[table.turn]);
+    console.log('folding');
+    if(table.handFirstPlayer == player) {
+      if(table.turn + 1 == table.handPlayers.length) {
+        table.handFirstPlayer = table.handPlayers[0];
+      }
+      else{
+        table.handFirstPlayer = table.handPlayers[table.turn+1];
+      }
+    }
+
+    table.handPlayers[table.turn].inHand = false;
+    table.handPlayers.splice(idx, 1);
+    if (table.handPlayers.length <= 1) {
+      progressGameState(table, poker, socket);
+    }
+  }, 30000);
 }
 
 function progressGameState(table, poker, socket) {
   table.turn = 0;
   table.roundBet = 0;
   table.minRaise = table.blind;
+
+  clearTimeout(foldTimer.timer);
+  clearInterval(foldTimer.countdown);
 
   if (table.handPlayers.length <= 1) {
     if(table.handPlayers[0]) {
@@ -362,7 +292,7 @@ function progressGameState(table, poker, socket) {
   var idx = getHandPlayerBySocket(table.handFirstPlayer.socketID, table);
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
-  
+
   switch (table.gameState) {
     case 0:
       poker.emit('community cards', table.cards.slice(0, 3));
@@ -394,6 +324,8 @@ function progressGameState(table, poker, socket) {
 }
 
 function resetGame(table, poker) {
+  clearTimeout(foldTimer.timer);
+  clearInterval(foldTimer.timer);
   poker.emit('reset');
   table.cards = [];
   table.winners = [];
@@ -539,4 +471,111 @@ function storePlayerChips(player) {
   .catch(function(err) {
     console.log('error:', err);
   });
+}
+function handleAction(action, poker, socket, table, foldTimer){
+  var idx = getHandPlayerBySocket(socket.id, table);
+  var player = table.handPlayers[idx];
+
+  clearTimeout(foldTimer.timer);
+  clearTimeout(foldTimer.countdown);
+
+  if (idx != -1 && table.turn == idx) {
+    if (action.action == 'fold') {
+      poker.emit('fold', table.handPlayers[table.turn]);
+
+      if(table.handFirstPlayer == player) {
+        if(table.turn + 1 == table.handPlayers.length) {
+          table.handFirstPlayer = table.handPlayers[0];
+        }
+        else{
+          table.handFirstPlayer = table.handPlayers[table.turn+1];
+        }
+      }
+
+      table.handPlayers[table.turn].inHand = false;
+      table.handPlayers.splice(idx, 1);
+      if (table.handPlayers.length <= 1) {
+        progressGameState(table, poker, socket);
+      }
+    }
+    else{
+      if (action.action == 'raise') {
+        if(!action.amount) {  // In case action.amount is null
+          action.amount = 0;
+        }
+
+        var extraRaise = action.amount - table.roundBet;
+        if(extraRaise < table.minRaise) {
+          extraRaise = table.minRaise;
+          action.amount = extraRaise + table.roundBet;
+        }
+
+        var extraPot = (action.amount - table.roundBet) + (table.bet - player.bet);
+        if(extraPot > player.chips) {
+          var deduct = extraPot - player.chips;
+          extraPot -= deduct;
+          extraRaise -= deduct;
+          action.amount -= deduct;
+        }
+
+        // extra raise may be less if the player is going all in
+        if(extraRaise > table.minRaise) {
+          table.minRaise = extraRaise;
+        }
+
+        table.bet += action.amount - table.roundBet;
+        table.roundBet = action.amount;
+        player.bet = table.bet;
+        table.pot += extraPot;
+        player.chips -= extraPot;
+        storePlayerChips(player);
+
+        if(player.chips == 0) {
+          player.allIn = true;
+        }
+
+        poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
+        socket.emit('confirm bet', table.bet, table.roundBet, player);
+
+        var moveToEnd = table.handPlayers.splice(0, idx);
+        table.handPlayers = table.handPlayers.concat(moveToEnd);
+
+        table.turn = 0;  // Will be incremented to 1 at the end of the function
+      }
+      // Call
+      else if (action.action == 'check' && player.bet < table.bet) {
+        var extraPot = table.bet - player.bet;
+        if(extraPot >= player.chips) {
+          extraPot = player.chips;
+          player.allIn = true;
+        }
+
+        player.bet += extraPot;
+        table.pot += extraPot;
+        player.chips -= extraPot;
+        storePlayerChips(player);
+
+        poker.emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
+        socket.emit('confirm bet', table.bet, table.roundBet, player);
+      }
+
+      table.turn++;
+
+      while(table.handPlayers[table.turn] && table.handPlayers[table.turn].allIn) {
+        table.turn++;
+        if(table.turn == table.handPlayers.length) {
+          progressGameState(table, poker, socket);
+          return;
+        }
+      }
+    }
+
+    // Check if all players have had a turn
+    if (table.turn == table.handPlayers.length) {
+      progressGameState(table, poker, socket);
+    }
+    else {
+      poker.emit('turn', table.handPlayers[table.turn]);
+    }
+  }
 }
