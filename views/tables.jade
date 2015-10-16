@@ -3,12 +3,28 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      a.button(href='' data-reveal-id='Create_modal') Create Table
+      h1 Tables
+  div.row
+    div.small-3.column
+      input#Name_filter(type='text' placeholder='Filter by Name')
+    div.small-3.column
+      select#Blinds_filter
+        option(value='' selected) Filter by Blinds
+        option(value='low') Low (5/10 - 50/100)
+        option(value='medium') Medium (100/200 - 1k/2k)
+        option(value='high') High (2k/4k - 20k/40k)
+        option(value='pro') Pro (50k/100k - 100k/200k)
+    div.small-3.column.tables__checkbox
+      input#Empty_filter(type='checkbox')
+      label(for='Empty_filter') Hide Empty
+      input#Full_filter(type='checkbox')
+      label(for='Full_filter') Hide Full
+    div.small-3.column
+      a.button.small.right(href='' data-reveal-id='Create_modal') Create Table
+
   div.row
     div.small-12.column
-      ul
-        - each table in tables
-          li: a(href='/poker/'+table.id) #{table.id} | #{table.blind}
+      table#Tables.table
 
   div#Create_modal.reveal-modal.small(data-reveal)
     div.row
@@ -18,7 +34,21 @@ block content
       div.row
         div.small-12.column
           label Blinds
-            input(name='blinds' type='number' required min=50 max=1000 step=50 value=50)
+            select(name='blinds')
+              option(value=10)     5/10
+              option(value=20)     10/20
+              option(value=50)     25/50
+              option(value=100)    50/100
+              option(value=200)    100/200
+              option(value=400)    200/400
+              option(value=1000)   500/1000
+              option(value=2000)   1k/2k
+              option(value=4000)   2k/4k
+              option(value=10000)  5k/10k
+              option(value=20000)  10k/20k
+              option(value=40000)  20k/40k
+              option(value=100000) 50k/100k
+              option(value=200000) 100k/200k
       div.row
         div.small-12.column
           button.button.small Create
@@ -26,6 +56,35 @@ block content
 
   script(type='text/javascript').
     $(document).ready(function() {
+      $('#Tables').footable({
+        columns: [
+          {   name: 'name'
+            , title: 'Name'
+            , type: 'text'
+            , formatter: nameFormat
+          }
+          , { name: 'players'
+            , title: 'Players'
+            , type: 'number'
+            , formatter: playersFormat
+          }
+          , { name: 'blinds'
+            , title: 'Blinds'
+            , type: 'number'
+            , formatter: blindsFormat
+            , sorted: true
+            , direction: 'ASC'
+          }
+        ],
+        rows: $.get('/tables/rows'),
+        sorting: {
+          enabled: true
+        },
+        filtering: {
+          enabled: true
+        }
+      });
+
       $('#Create').on('submit', function(event) {
         event.preventDefault();
 
@@ -48,4 +107,58 @@ block content
         });
 
       });
+
+      $('#Name_filter').on('keyup', function() {
+        var val = $(this).val();
+        filter('name', val, ['name'], val);
+      });
+
+      $('#Blinds_filter').on('change', function() {
+        var val = $(this).val();
+        filter('stakes', val, ['blinds'], val);
+      });
+
+      $('#Empty_filter').on('change', function() {
+        var val = $(this).prop('checked');
+        filter('empty', '-0', ['players'], val);
+      });
+
+      $('#Full_filter').on('change', function() {
+        var val = $(this).prop('checked');
+        filter('full', '-6', ['players'], val);
+      });
     });
+
+    function filter(name, query, columns, val) {
+      var filter = FooTable.get($('#Tables')).components.core[0];
+
+      if(val) {
+        filter.addFilter(name, query, columns);
+      }
+      else {
+        filter.removeFilter(name);
+      }
+
+      filter.filter();
+    }
+
+    function nameFormat(value) {
+      var data = value.split('|');
+      return '<a href=/poker/' + data[1] + '>' + data[0] + '</a>';
+    }
+
+    function playersFormat(value) {
+      return value + ' / 6';
+    }
+
+    function blindsFormat(value) {
+      var big = parseInt(value);
+      var small = big / 2;
+
+      if(small >= 1000) {
+        big = big/1000 + 'k';
+        small = small/1000 + 'k';
+      }
+
+      return small + '/' + big;
+    }

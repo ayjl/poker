@@ -16,7 +16,9 @@ block content
             div.poker__card.poker__card-1
             div.poker__card.poker__card-2
             p.poker__player-name Seat Available
-            p.poker__player-chips
+            p.poker__player-chips   
+    div.progress.poker__foldbar
+      span#FoldBar.meter(style="width:100%")
 
   div.poker__controls
     div.row
@@ -70,6 +72,8 @@ block content
     var roundBet = 0;
     var minBet = 10;
     var chips = 0;
+    var timeRemaining = 10;
+    var timer;
 
     socket.on('error', function(err){
       window.location.href = '/tables';
@@ -270,13 +274,41 @@ block content
     });
 
     socket.on('turn', function(player) {
+      clearInterval(timer);
+      
       $('.poker__players--active').removeClass('poker__players--active');
       $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
       if(player.id == playerID) {
         $('button:not(.no-disable)').prop('disabled', false);
+        
+        timeRemaining = 30;
+        
+        timer = setInterval(function() { 
+          timeRemaining--;
+          $('#FoldTimer').text(timeRemaining);
+          var percent = timeRemaining/30*100;
+          $('#FoldBar').css('width', percent+'%');
+          if (timeRemaining <= 0){
+            socket.emit('action', { action: 'fold' });
+            clearInterval(timer);
+          }
+        }, 1000);
       }
       else {
         $('button:not(.no-disable)').prop('disabled', true);
+        
+        timeRemaining = 30;
+        
+        timer = setInterval(function() { 
+          timeRemaining--;
+          $('#FoldTimer').text(timeRemaining);
+          var percent = timeRemaining/30*100;
+          $('#FoldBar').css('width', percent+'%');
+          if (timeRemaining <= 0){
+            socket.emit('action', { action: 'fold' });
+            clearInterval(timer);
+          }
+        }, 1000);
       }
     });
 
