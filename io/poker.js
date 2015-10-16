@@ -48,12 +48,11 @@ module.exports = function(io) {
       });
     }
     
-    var req = socket.handshake;
-    var playerID = req.sessionID;
+    var playerID = socket.handshake.sessionID;
 
     var player = {
         id: playerID
-      , name: req.session.user
+      , name: socket.handshake.session.user
       , guest: true
       , cards: []
       , hand: null
@@ -61,7 +60,7 @@ module.exports = function(io) {
       , seat: -1
       , inHand: false
       , bet: 0
-      , chips: req.session.chips
+      , chips: 0
       , allIn: false
     };
     table.spectators.push(player);
@@ -69,52 +68,65 @@ module.exports = function(io) {
     socket.emit('player id', player);
 
     socket.on('sit', function(seat) {
-      var req = socket.handshake;
-      var playerID = req.sessionID;
+      var playerID = socket.handshake.sessionID;
 
       var specIdx = findBySocketID(socket.id, table.spectators);
 
-      // If player is not in the spectator list
-      if(specIdx == -1) {
-        socket.emit('customError', {
-          message: 'Something\'s gone wrong, try refreshing the page.'
-        });
-        return;
-      }
+      getPlayerChips(playerID)
+      .then(function(chips) {
+        // var chips = getPlayerChips(playerID);
+        if(chips < table.blind * 40) {
+          socket.emit('customError', {
+            message: 'You don\'t have enough chips to buy-in for $' + table.blind*40 + '.'
+          });
+          return;
+        }
 
-      var player = table.spectators[specIdx];
+        // If player is not in the spectator list
+        if(specIdx == -1) {
+          socket.emit('customError', {
+            message: 'Something\'s gone wrong, try refreshing the page.'
+          });
+          return;
+        }
 
-      // If player is already playing
-      var playerIdx = findByPlayerID(playerID, table.players);
-      if(playerIdx != -1) {
-        socket.emit('customError', {
-          message: 'You\'re already playing on this table in another tab.'
-        });
-        return;
-      }
+        var player = table.spectators[specIdx];
 
-      // If seat is occupied
-      if(table.players[seat] != null) {
-        socket.emit('customError', {
-          message: 'The seat you selected is already occupied.'
-        });
-        return;
-      }
+        // If player is already playing
+        var playerIdx = findByPlayerID(playerID, table.players);
+        if(playerIdx != -1) {
+          socket.emit('customError', {
+            message: 'You\'re already playing on this table in another tab.'
+          });
+          return;
+        }
 
-      table.spectators.splice(specIdx, 1);
-      table.players.splice(seat, 1, player);
-      player.seat = seat;
-      table.numPlayers++;
+        // If seat is occupied
+        if(table.players[seat] != null) {
+          socket.emit('customError', {
+            message: 'The seat you selected is already occupied.'
+          });
+          return;
+        }
 
-      socket.broadcast.to(table.id).emit('player join', player, false);
-      socket.emit('player join', player, true);
+        player.chips = table.blind * 40;
+        storePlayerChips(player.id, -player.chips);
 
-      if (table.numPlayers > 1 && !table.playing) {
-        table.playing = true;
-        table.gameTimer = setTimeout(function() {
-          startGame(table, poker, socket);
-        }, 3000);
-      }
+        table.spectators.splice(specIdx, 1);
+        table.players.splice(seat, 1, player);
+        player.seat = seat;
+        table.numPlayers++;
+
+        socket.broadcast.to(table.id).emit('player join', player, false);
+        socket.emit('player join', player, true);
+
+        if (table.numPlayers > 1 && !table.playing) {
+          table.playing = true;
+          table.gameTimer = setTimeout(function() {
+            startGame(table, poker, socket);
+          }, 3000);
+        }
+      });
     });
 
     // This is inside the poker namespace, so emitting 'action' from the client outside
@@ -174,7 +186,7 @@ module.exports = function(io) {
             player.bet = table.bet;
             table.pot += extraPot;
             player.chips -= extraPot;
-            storePlayerChips(player);
+            // storePlayerChips(player);
 
             if(player.chips == 0) {
               player.allIn = true;
@@ -199,7 +211,7 @@ module.exports = function(io) {
             player.bet += extraPot;
             table.pot += extraPot;
             player.chips -= extraPot;
-            storePlayerChips(player);
+            // storePlayerChips(player);
 
             poker.to(table.id).emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
             socket.emit('confirm bet', table.bet, table.roundBet, player);
@@ -267,7 +279,7 @@ function startGame(table, poker, socket) {
     player.inHand = true;
     if(player.chips <= table.blind) {
       player.chips = 1000;
-      storePlayerChips(player);
+      // storePlayerChips(player);
     }
   }
 
@@ -316,11 +328,11 @@ function startGame(table, poker, socket) {
 
   smallBlindPlayer.bet = table.blind/2;
   smallBlindPlayer.chips -= table.blind/2;
-  storePlayerChips(smallBlindPlayer);
+  // storePlayerChips(smallBlindPlayer);
 
   bigBlindPlayer.bet = table.blind;
   bigBlindPlayer.chips -= table.blind;
-  storePlayerChips(bigBlindPlayer);
+  // storePlayerChips(bigBlindPlayer);
 
   // Move the blinds players to the end
   var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
@@ -389,7 +401,7 @@ function progressGameState(table, poker, socket) {
       table.winners = [table.handPlayers[0].id];
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
-      storePlayerChips(table.handPlayers[0]);
+      // storePlayerChips(table.handPlayers[0]);
     }
 
     if (table.numPlayers <= 1) {
@@ -514,6 +526,8 @@ function playerLeave(table, poker, socket, type) {
       player.seat = -1;
     }
 
+    storePlayerChips(player.id, player.chips);
+
     table.players.splice(seat, 1, null);
   }
   // If the player leaving is a spectator
@@ -590,7 +604,7 @@ function evalWinner(table) {
     // that no one matched
     if(winnings == table.winners[start].bet) {
       table.winners[start].chips = winnings;
-      storePlayerChips(table.winners[start]);
+      // storePlayerChips(table.winners[start]);
       continue;
     }
 
@@ -613,7 +627,7 @@ function evalWinner(table) {
 
   table.winners = Array.from(toUpdate);
   for(var i=0; i<table.winners.length; i++) {
-    storePlayerChips(table.winners[i]);
+    // storePlayerChips(table.winners[i]);
   }
 
   table.winners = table.winners.map(function(player) {
@@ -641,16 +655,29 @@ function findByPlayerID(playerID, array) {
   return -1;
 }
 
-function storePlayerChips(player) {
+function storePlayerChips(playerID, diff) {
   var Session = require('../models/session.js');
-  var id = player.id;
+  // var id = player.id;
 
-  Session.findById(id)
+  Session.findById(playerID)
   .then(function(ses) {
     var sessionData = JSON.parse(ses.session);
-    sessionData.chips = player.chips;
+    sessionData.chips += diff;
     ses.session = JSON.stringify(sessionData);
     ses.save();
+  })
+  .catch(function(err) {
+    console.log('error:', err);
+  });
+}
+
+function getPlayerChips(playerID) {
+  var Session = require('../models/session.js');
+
+  return Session.findById(playerID)
+  .then(function(ses) {
+    var sessionData = JSON.parse(ses.session);
+    return sessionData.chips;
   })
   .catch(function(err) {
     console.log('error:', err);

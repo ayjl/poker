@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var config = require('config');
 var mongoose = require('mongoose');
 mongoose.connect(config.get('db'));
+mongoose.Promise = require('bluebird');
 var session = require('express-session');
 var mongoStore = require('connect-mongo')(session);
 
