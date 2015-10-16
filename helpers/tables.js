@@ -1,5 +1,37 @@
 function Tables() {
   this.tables = [];
+  this.names = [
+      'Acropolis'
+    , 'Amazon Rainforest'
+    , 'Angkor Wat'
+    , 'Big Ben'
+    , 'Chichen Itza'
+    , 'Easter Island'
+    , 'Eiffel Tower'
+    , 'Giza'
+    , 'Golden Gate'
+    , 'Grand Canyon'
+    , 'Great Wall'
+    , 'Halong Bay'
+    , 'Hoover Dam'
+    , 'Iguazu Falls'
+    , 'Kilimanjaro'
+    , 'Komodo Island'
+    , 'Machu Picchu'
+    , 'Mount Everest'
+    , 'Mount Fuji'
+    , 'Niagara Falls'
+    , 'Opera House'
+    , 'Panama Canal'
+    , 'Stonehenge'
+    , 'Taj Mahal'
+    , 'The Colosseum'
+    , 'The Louvre'
+    , 'Uluru'
+    , 'Yosemite'
+  ];
+
+  this.names.sort(function() { return 0.5 - Math.random() });
 }
 
 Tables.prototype.find = function(tableID) {
@@ -21,8 +53,18 @@ Tables.prototype.create = function(blinds, id) {
   if(!id) {
     id = uuid.v4();
   }
+
+  var name = this.names.shift();
+  this.names.push(name);
+
+  var suffix = Math.floor(this.tables.length / this.names.length);
+  if(suffix > 0) {
+    name += ' ' + suffix;
+  }
+
   var table = {
       id: id
+    , name: name
     , players: [null, null, null, null, null, null]
     , spectators: []
     , winners: []
@@ -49,7 +91,6 @@ Tables.prototype.create = function(blinds, id) {
   // Table not found
   if(idx < 0) {
     idx = -(idx + 1);
-    console.log('inserting into', idx);
     this.tables.splice(idx, 0, table);
   }
   else{

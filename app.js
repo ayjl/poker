@@ -61,7 +61,11 @@ app.use('/tables', tablesRouter);
 
 var Tables = require('./helpers/tables');
 tables = new Tables();
-tables.create(50, 'p0k3r');
+tables.create(10,   'default-1');
+tables.create(50,   'default-2');
+tables.create(200,  'default-3');
+tables.create(1000, 'default-4');
+tables.create(4000, 'default-5');
 
 var io = require('socket.io')();
 var sharedsession = require("express-socket.io-session");
