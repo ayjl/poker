@@ -100,6 +100,13 @@ Tables.prototype.create = function(blinds, id) {
   return table;
 }
 
+Tables.prototype.delete = function(tableID) {
+  var idx = this.binarySearch(tableID);
+  if(idx >= 0) {
+    this.tables.splice(idx, 1);
+  }
+}
+
 Tables.prototype.binarySearch = function(key) {
   var lo = 0;
   var hi = this.tables.length - 1;

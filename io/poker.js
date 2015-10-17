@@ -546,6 +546,15 @@ function playerLeave(table, poker, socket, type) {
       }
     }
   }
+
+  if(type == 'disconnect') {
+    if(table.numPlayers + table.spectators.length == 0) {
+      var regex = /^default-\d+$/;
+      if(!regex.test(table.id)) {
+        tables.delete(table.id);
+      }
+    }
+  }
 }
 
 function evalWinner(table) {
