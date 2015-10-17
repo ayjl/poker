@@ -52,6 +52,9 @@ app.use(cookieParser(secret));
 app.use(sessionMiddleware);
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(require('./helpers/auth'));
+
+
 app.use('/', routes);
 app.use('/users', users);
 app.use('/db', dbTest);
@@ -70,6 +73,7 @@ tables.create(4000, 'default-5');
 
 var io = require('socket.io')();
 var sharedsession = require("express-socket.io-session");
+io.use(sharedsession(sessionMiddleware, { autosave: true }));
 io.of('/poker').use(sharedsession(sessionMiddleware, { autosave: true }));
 require('./io')(io);
 app.io = io;

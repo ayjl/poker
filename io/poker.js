@@ -111,6 +111,7 @@ module.exports = function(io) {
 
         player.chips = table.blind * 40;
         storePlayerChips(player.id, -player.chips);
+        socket.emit('chips', chips - player.chips);
 
         table.spectators.splice(specIdx, 1);
         table.players.splice(seat, 1, player);
@@ -527,6 +528,10 @@ function playerLeave(table, poker, socket, type) {
     }
 
     storePlayerChips(player.id, player.chips);
+    getPlayerChips(player.id, player.chips)
+    .then(function(chips) {
+      socket.emit('chips', chips + player.chips);
+    });
 
     table.players.splice(seat, 1, null);
   }
