@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var config = require('config');
 var mongoose = require('mongoose');
 mongoose.connect(config.get('db'));
+mongoose.Promise = require('bluebird');
 var session = require('express-session');
 var mongoStore = require('connect-mongo')(session);
 
@@ -17,6 +18,7 @@ var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
 var account = require('./routes/account');
 var signup = require('./routes/signup');
+var tablesRouter = require('./routes/tables');
 var socketTest = require('./routes/socket-test');
 
 var app = express();
@@ -51,6 +53,9 @@ app.use(cookieParser(secret));
 app.use(sessionMiddleware);
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(require('./helpers/auth'));
+
+
 app.use('/', routes);
 app.use('/users', users);
 app.use('/db', dbTest);
@@ -58,15 +63,22 @@ app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
 app.use('/signup', signup);
+app.use('/tables', tablesRouter);
+
+var Tables = require('./helpers/tables');
+tables = new Tables();
+tables.create(10,   'default-1');
+tables.create(50,   'default-2');
+tables.create(200,  'default-3');
+tables.create(1000, 'default-4');
+tables.create(4000, 'default-5');
 
 var io = require('socket.io')();
 var sharedsession = require("express-socket.io-session");
+io.use(sharedsession(sessionMiddleware, { autosave: true }));
 io.of('/poker').use(sharedsession(sessionMiddleware, { autosave: true }));
 require('./io')(io);
 app.io = io;
-
-
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -2,47 +2,47 @@ var express = require('express');
 var router = express.Router();
 
 router.get('/', function(req, res, next) {
-  if(!req.session.user) {
-    var num = Math.floor((Math.random() * 100000) + 1).toString();
-    var pad = '000000';
-    var padded = pad.substring(0, pad.length - num.length) + num;
-    req.session.user = 'Guest' + padded;
-    req.session.chips = 1000;
-  }
-  
-  // req.session.chips = 1000;
-
   res.render('poker');
 });
 
-router.get('/test-eval', function(req, res, next) {
+router.get('/:table_id', function(req, res, next) {
+  var table = tables.find(req.params.table_id);
+  if(table) {
+    res.render('poker', { table: table });
+  }
+  else {
+    res.redirect('/tables');
+  }
+});
+
+router.get('/test/eval', function(req, res, next) {
   var evaluator = require("poker-evaluator");
 
   var table = {};
-  table.pot = 101;
+  table.pot = 120;
   table.cards = ['4c', '5c', '6c', '8d', '9d'];
   table.handPlayers = [];
   table.winners = [];
   table.handPlayers.push({
-    bet: 21,
-    cards: ['As', '4c'],
-    chips: 0
-  });
-  table.handPlayers.push({
-    bet: 21,
-    cards: ['As', '4c'],
-    chips: 0
-  });
-  table.handPlayers.push({
     bet: 100,
-    cards: ['Ah', '4d'],
+    cards: ['As', '4c'],
     chips: 0
   });
   table.handPlayers.push({
     bet: 20,
-    cards: ['Ac', '2d'],
+    cards: ['As', '4c'],
     chips: 0
   });
+  // table.handPlayers.push({
+  //   bet: 100,
+  //   cards: ['Ah', '4d'],
+  //   chips: 0
+  // });
+  // table.handPlayers.push({
+  //   bet: 20,
+  //   cards: ['Ac', '2d'],
+  //   chips: 0
+  // });
 
   for (var i = 0; i < table.handPlayers.length; i++) {
     if (table.handPlayers[i]) {
@@ -137,6 +137,11 @@ router.get('/test-eval', function(req, res, next) {
 
   console.log(toUpdate.size);
   table.winners = Array.from(toUpdate);
+  console.log(table.winners);
+
+  table.winners = table.winners.map(function(player) {
+    return player.chips;
+  });
   console.log(table.winners);
 
   res.send(table.winners);
