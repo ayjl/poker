@@ -14,7 +14,7 @@ block content
       h2 User List
       ul
       - each user in users
-        li #{user.name}&nbsp;
+        li #{user.username} #{user.password}&nbsp;
           a(href='/db/'+user._id, class='delete-btn') Delete
 
   script(type='text/javascript').

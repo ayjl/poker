@@ -8,13 +8,19 @@ var bodyParser = require('body-parser');
 var config = require('config');
 var mongoose = require('mongoose');
 mongoose.connect(config.get('db'));
+mongoose.Promise = require('bluebird');
 var session = require('express-session');
 var mongoStore = require('connect-mongo')(session);
+var passport = require('passport');
+var flash = require('connect-flash');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
+var account = require('./routes/account');
+var signup = require('./routes/signup');
+var tablesRouter = require('./routes/tables');
 var socketTest = require('./routes/socket-test');
 
 var app = express();
@@ -47,22 +53,38 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser(secret));
 app.use(sessionMiddleware);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(require('./middleware/auth'));
+
 
 app.use('/', routes);
 app.use('/users', users);
 app.use('/db', dbTest);
 app.use('/socket', socketTest);
 app.use('/poker', poker);
+app.use('/account', account);
+app.use('/signup', signup);
+app.use('/', require('./routes/login'));
+app.use('/tables', tablesRouter);
+
+var Tables = require('./helpers/tables');
+tables = new Tables();
+tables.create(10,   'default-1');
+tables.create(50,   'default-2');
+tables.create(200,  'default-3');
+tables.create(1000, 'default-4');
+tables.create(4000, 'default-5');
 
 var io = require('socket.io')();
-var sharedsession = require("express-socket.io-session");
-io.of('/poker').use(sharedsession(sessionMiddleware, { autosave: true }));
+io.of('/poker').use(function(socket, next) {
+  sessionMiddleware(socket.request, socket.request.res, next);
+});
 require('./io')(io);
 app.io = io;
-
-
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
