@@ -4,7 +4,7 @@ var userSchema = new mongoose.Schema( {
     username: String
   , email: String
   , password: String
-  , chipCount: Number
+  , chips: Number
   // , created_at    : { type: Date }
 });
 
@@ -12,6 +12,10 @@ var userSchema = new mongoose.Schema( {
 //   this.created_at = new Date();
 //   next();
 // });
+
+userSchema.methods.validPassword = function(password) {
+  return this.password == password;
+}
 
 var user = mongoose.model('User', userSchema);
 

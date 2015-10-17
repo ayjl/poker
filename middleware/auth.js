@@ -6,7 +6,7 @@ module.exports = function(req, res, next) {
 
     req.session.user = {};
     req.session.user.username = 'Guest' + padded;
-    req.session.chips = 2000;
+    req.session.user.chips = 2000;
   }
 
   res.locals.session = req.session;

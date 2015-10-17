@@ -1,28 +1,58 @@
-extends ./welcome
+extends ./layout
 
 block content
-  div.row
-    div(class="medium-4 columns")
-      | &nbsp;
-    div(class="medium-4 columns text-center")
+  div.home-bg
+    div.row
+      div.small-6.small-centered.column.home__box
         h1 Poker Pros
-    div(class="medium-4 columns")
-      | &nbsp;
-  div.row
-    div(class="medium-4 columns")
-      | &nbsp; 
-    div(class="medium-4 columns" align="center")
-      label
-      | username: 
-      input(type="text", name="user")
-      
-      | password: 
-      input(type="text", name="password")
-      br
-      a(href="/poker", class="button round") Login
-      br
-      a(href="/signup", class="button round") Sign Up
-      br
-      a(href="/tables", class="button round") Play as a Guest
-    div(class="medium-4 columns")
-        | &nbsp;
+        form#Log_in
+          div.row
+            div.small-12.column
+              label Username
+                input(name='username' type='text' required placeholder='Username')
+          div.row
+            div.small-12.column
+              label Password
+                input(name='password' type='password' required placeholder='Password')
+          div.row
+            div.small-12.column
+              button.button.small Log in
+        hr
+        div.row
+          div.small-12.column
+            ul.button-group
+              li: a.button(href="/signup") Sign Up
+              li: a.button(href="/tables") Play as a Guest
+
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('#Log_in').find('input').on('change', function(event) {
+        $(this).closest('.error').removeClass('error');
+        $(this).parent().siblings('.error').remove();
+      });
+
+      $('#Log_in').on('submit', function(event) {
+        event.preventDefault();
+
+        var username = $(this).find('[name="username"]').val();
+        var password = $(this).find('[name="password"]').val();
+
+        $.ajax({
+          type: 'POST',
+          url: '/login',
+          data: {
+              username: username
+            , password: password
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            window.location.href = '/tables';
+          }
+          else{
+            showErrors($('#Log_in'), data.errors);
+          }
+        });
+
+      });
+    });

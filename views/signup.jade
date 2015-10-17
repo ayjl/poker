@@ -4,21 +4,21 @@ block content
   div.row
     div.small-12.column
       h1 Sign Up
-      form#Sign_up(action='/signup')
+      form#Sign_up
         div.row
           div.small-12.column
-            input#Username(name='username' type='text' required placeholder='Enter a username')
+            input#Username(name='username' type='text' required placeholder='Username')
         div.row
           div.small-12.column
-            input#Email(name='email' type='email' required placeholder='Enter your email')
+            input#Password(name='password' type='password' required placeholder='Password')
         div.row
           div.small-12.column
-            input#Password(name='password' type='password' required placeholder='Enter your password')
+            input#Email(name='email' type='email' required placeholder='Email')
         div.row
           div.small-12.column
-            button.button Submit
+            button.button.small Submit
 
-  script(type='text/javascript'). 
+  script(type='text/javascript').
     $(document).ready(function() {
       $('#Sign_up').find('input').blur(function() {
         var name = $(this).attr('name');

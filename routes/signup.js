@@ -38,7 +38,7 @@ router.post('/', function(req, res, next) {
       username: data.username, 
       email: data.email, 
       password: data.password, 
-      chipCount: req.session.chips
+      chips: 2000
     });
 
     newUser.save().then(function() {
@@ -72,9 +72,6 @@ router.get('/check-username', function(req, res, next) {
     }
     res.json({ errors: errors });
   })
-  .catch(function(error) {
-    console.log("Error:", error);
-  });
 });
 
 router.get('/check-email', function(req, res, next) {
@@ -98,9 +95,6 @@ router.get('/check-email', function(req, res, next) {
     }
     res.json({ errors: errors });
   })
-  .catch(function(error) {
-    console.log("Error:", error);
-  });
 });
 
 router.get('/check-password', function(req, res, next) {
