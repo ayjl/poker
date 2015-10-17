@@ -75,6 +75,11 @@ block content
             , sorted: true
             , direction: 'ASC'
           }
+          , { name: 'buyIn'
+            , title: 'Buy-in'
+            , type: 'number'
+            , formatter: buyInFormat
+          }
         ],
         rows: $.get('/tables/rows'),
         sorting: {
@@ -161,4 +166,11 @@ block content
       }
 
       return small + '/' + big;
+    }
+
+    function buyInFormat(value) {
+      if(value >= 1000) {
+        value = value/1000 + 'k';
+      }
+      return value;
     }

@@ -51,13 +51,12 @@ router.get('/rows', function(req, res, next) {
 
     rows.push({
         name: name + '|' + t[i].id
-        // id: `<a href="/poker/${t[i].id}">${t[i].name}</a>`
       , players: t[i].numPlayers
       , blinds: {
           options: { filterValue: blindsRank },
           value: t[i].blind
-          // value: `${t[i].blind/2} / ${t[i].blind}`
         }
+      , buyIn: t[i].blind * 40
     });
   }
 

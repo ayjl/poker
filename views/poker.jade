@@ -53,7 +53,7 @@ block content
     div.small-6.column
       h1#Player
       h3 Chips
-        p#Chips
+        p#Table_chips
       h3 Community Cards
         p#Community_cards_tmp None
       h3 Your Cards
@@ -74,6 +74,10 @@ block content
     var chips = 0;
     var timeRemaining = 10;
     var timer;
+
+    socket.on('chips', function(chips) {
+      $('#Chips').text('$'+chips);
+    });
 
     socket.on('error', function(err){
       window.location.href = '/tables';
@@ -166,7 +170,7 @@ block content
         $player.children('.poker__player-chips').text(player.chips);
         if(player.id == playerID) {
           chips = player.chips;
-          $('#Chips').text(player.chips);
+          $('#Table_chips').text(player.chips);
         }
       });
 
@@ -320,7 +324,7 @@ block content
 
         if(player.id == playerID) {
           chips = player.chips;
-          $('#Chips').text(player.chips);
+          $('#Table_chips').text(player.chips);
         }
       }
       
@@ -349,7 +353,7 @@ block content
 
     socket.on('confirm bet', function(tableBet, tableRoundBet, player) {
       $('#Check').text('Check');
-      $('#Chips').text(player.chips);
+      $('#Table_chips').text(player.chips);
       $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
       $('#Bet_amount').prop('max', player.chips);
       chips = player.chips;
@@ -370,7 +374,7 @@ block content
           bestHand = player.hand;
           if (playerID == player.id) {
             textArray.unshift('You');
-            $('#Chips').text(player.chips);
+            $('#Table_chips').text(player.chips);
             chips = player.chips;
           }
           else {
@@ -381,7 +385,7 @@ block content
         }
 
         if (playerID == player.id) {
-          $('#Chips').text(player.chips);
+          $('#Table_chips').text(player.chips);
           chips = player.chips;
         }
         $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
@@ -414,7 +418,7 @@ block content
     socket.on('player id', function(player) {
       playerID = player.id;
       $('#Player').text(player.name);
-      $('#Chips').text(player.chips);
+      $('#Table_chips').text(player.chips);
       $('#Bet_amount').prop('max', player.chips);
       chips = player.chips;
     });

@@ -9,6 +9,8 @@ div.fixed
           span Menu
     section.top-bar-section
       ul.right
+        li
+          a(href='/account') #{session.user}: 
+            span#Chips $#{session.chips}
         li: a(href='/tables') Tables
         li: a(href='/') Settings
-        li: a(href='/account') Account

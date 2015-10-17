@@ -7,8 +7,11 @@
     "smac": "PORT=80 DEBUG=poker:server nodemon ./bin/www",
     "swin": "SET PORT=80 & SET DEBUG=poker:server & nodemon ./bin/www"
   },
-  "engines": {"node": "4.2.1"},
+  "engines": {
+    "node": "4.2.1"
+  },
   "dependencies": {
+    "bluebird": "^2.10.2",
     "body-parser": "~1.13.2",
     "collections": "^1.2.4",
     "config": "^1.16.0",
