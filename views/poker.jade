@@ -40,7 +40,8 @@ block content
 
   div.row
     div.small-6.column
-      h1 Table
+      h1 #{table.name}
+      h2 #{table.blind/2} / #{table.blind}
       h3 Pot
       p#Pot_tmp 0
       h3 Players
@@ -66,7 +67,7 @@ block content
     a.close-reveal-modal &#215;
 
   script(type='text/javascript').
-    var socket = io('/poker', { query: 'table=!{tableID}' });
+    var socket = io('/poker', { query: 'table=#{table.id}' });
     var playerID;
     var bet = 0;
     var roundBet = 0;
@@ -84,10 +85,8 @@ block content
     });
 
     socket.on('customError', function(err){
-      console.log(err.message);
       $('#Error_message').text(err.message);
       $('#Error_modal').foundation('reveal', 'open');
-      //- console.log(err.redirect);
     });
 
     socket.on('player join', function(player, isYou) {
@@ -424,6 +423,11 @@ block content
     });
 
     $(document).ready(function() {
+      var quick = '#{query.quick}';
+      if(quick) {
+        var seat = $('.poker__player.poker__player--empty').eq(0).index();
+          socket.emit('sit', seat);
+      }
       $('button:not(.no-disable)').prop('disabled', true);
       $('#Check').on('click', function() {
         socket.emit('action', { action: 'check' });
