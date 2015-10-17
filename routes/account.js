@@ -14,7 +14,7 @@ router.post('/topup-chips', function(req, res, next) {
   if (req.session.chips < 500) {
     req.session.chips = 2000;
   }
-  res.send({chips: req.session.chips});
+  res.json({chips: req.session.chips});
 });
 
 module.exports = router;

@@ -4,7 +4,7 @@ var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
-router.get('/', function(req, res) {
+router.get('/', function(req, res, next) {
   res.render('signup');
 });
 
@@ -42,11 +42,11 @@ router.post('/', function(req, res, next) {
     });
 
     newUser.save().then(function() {
-      res.send({ errors: errors });
+      res.json({ errors: errors });
     });
   }
   else {
-    res.send({ errors: errors });
+    res.json({ errors: errors });
   }
   
 });
@@ -59,8 +59,7 @@ router.get('/check-username', function(req, res, next) {
         name: 'username'
       , message: 'A username of at least 3 characters is required'
     });
-    res.send({ errors: errors });
-    return;
+    return res.json({ errors: errors });
   }
 
   User.count({username: req.query.value})
@@ -71,7 +70,7 @@ router.get('/check-username', function(req, res, next) {
         , message: 'That username has been taken'
       });
     }
-    res.send({ errors: errors });
+    res.json({ errors: errors });
   })
   .catch(function(error) {
     console.log("Error:", error);
@@ -86,8 +85,7 @@ router.get('/check-email', function(req, res, next) {
         name: 'email'
       , message: 'A valid email is required'
     });
-    res.send({ errors: errors });
-    return;
+    return res.json({ errors: errors });
   }
 
   User.find({email: req.query.value})
@@ -98,7 +96,7 @@ router.get('/check-email', function(req, res, next) {
         , message: 'That email is in use'
       });
     }
-    res.send({ errors: errors });
+    res.json({ errors: errors });
   })
   .catch(function(error) {
     console.log("Error:", error);
@@ -108,14 +106,14 @@ router.get('/check-email', function(req, res, next) {
 router.get('/check-password', function(req, res, next) {
   var errors = [];
 
-  if(req.query.value.length < 3) {
+  if(req.query.value.length < 6) {
     errors.push({
         name: 'password'
       , message: 'A password of at least 6 characters is required'
     });
   }
 
-  res.send({ errors: errors });
+  res.json({ errors: errors });
 });
 
 function isEmail(email) {
