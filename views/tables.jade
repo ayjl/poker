@@ -5,7 +5,7 @@ block content
     div.small-12.column
       h1 Tables
   div.row
-    div.small-3.column
+    div.small-2.column
       input#Name_filter(type='text' placeholder='Filter by Name')
     div.small-3.column
       select#Blinds_filter
@@ -19,8 +19,10 @@ block content
       label(for='Empty_filter') Hide Empty
       input#Full_filter(type='checkbox')
       label(for='Full_filter') Hide Full
-    div.small-3.column
-      a.button.small.right(href='' data-reveal-id='Create_modal') Create Table
+    div.small-2.column
+      a.button.small.right(href='/tables/quick') Quick Play
+    div.small-2.column
+      button.button.small.right(data-reveal-id='Create_modal') Create Table
 
   div.row
     div.small-12.column

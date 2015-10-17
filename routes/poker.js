@@ -6,8 +6,9 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/:table_id', function(req, res, next) {
-  if(tables.find(req.params.table_id)) {
-    res.render('poker', { tableID: req.params.table_id });
+  var table = tables.find(req.params.table_id);
+  if(table) {
+    res.render('poker', { table: table });
   }
   else {
     res.redirect('/tables');

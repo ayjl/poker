@@ -1,5 +1,6 @@
 module.exports = function(io) {
   var poker = io.of('/poker');
+  var config = require('config');
 
   poker.use(function(socket, next) {
     var handshakeData = socket.request;
@@ -75,9 +76,9 @@ module.exports = function(io) {
       getPlayerChips(playerID)
       .then(function(chips) {
         // var chips = getPlayerChips(playerID);
-        if(chips < table.blind * 40) {
+        if(chips < table.blind * config.get('buyInMult')) {
           socket.emit('customError', {
-            message: 'You don\'t have enough chips to buy-in for $' + table.blind*40 + '.'
+            message: 'You don\'t have enough chips to buy-in for $' + table.blind*config.get('buyInMult') + '.'
           });
           return;
         }
@@ -109,7 +110,7 @@ module.exports = function(io) {
           return;
         }
 
-        player.chips = table.blind * 40;
+        player.chips = table.blind * config.get('buyInMult');
         storePlayerChips(player.id, -player.chips);
         socket.emit('chips', chips - player.chips);
 

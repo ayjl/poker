@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var config = require('config');
 
 router.get('/', function(req, res, next) {
   res.render('tables', {tables: tables.all()});
@@ -8,9 +9,7 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
   var errors = [];
   var data = JSON.parse(req.body.data);
-  var allowedBlinds = [
-    10, 20, 50, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 40000, 100000, 200000
-  ];
+  var allowedBlinds = config.get('allowedBlinds');
 
   if(allowedBlinds.indexOf(parseInt(data.blinds)) != -1) {
     var table = tables.create(data.blinds);
@@ -23,7 +22,6 @@ router.post('/', function(req, res, next) {
     });
     res.send({ tableID: null, errors: errors });
   }
-
 });
 
 router.get('/rows', function(req, res, next) {
@@ -56,11 +54,65 @@ router.get('/rows', function(req, res, next) {
           options: { filterValue: blindsRank },
           value: t[i].blind
         }
-      , buyIn: t[i].blind * 40
+      , buyIn: t[i].blind * config.get('buyInMult')
     });
   }
 
   res.json(rows);
+});
+
+router.get('/quick', function(req, res, next) {
+  // Minimum blind amount
+  if(req.session.chips < 10 * config.get('buyInMult')) {
+    res.redirect('/account');
+    return;
+  }
+
+  var t = tables.all();
+  var best = null;
+
+  for(var i=0; i<t.length; i++) {
+    var table = t[i];
+
+    // Check if player can afford buy-in
+    if(req.session.chips < table.blind * config.get('buyInMult')) {
+      continue;
+    }
+
+    // Check if table is full
+    if(table.numPlayers == 6) {
+      continue;
+    }
+
+    // Favour tables with the highest number of players and the highest number of blinds
+    if(!best || (table.numPlayers > best.numPlayers ||
+                 (table.numPlayers == best.numPlayers && table.blind > best.blind))) {
+      best = table;
+    }
+  }
+
+  // If no tables exist with free slots
+  if(best == null) {
+    var allowedBlinds = config.get('allowedBlinds');
+    var i;
+    for(i=0; i<allowedBlinds.length; i++) {
+      if(req.session.chips < allowedBlinds[i] * config.get('buyInMult')) {
+        break;
+      }
+    }
+
+    if(i > 0) {
+      var table = tables.create(allowedBlinds[i-1]);
+      res.redirect('/poker/' + table.id);
+    }
+    else{
+      res.redirect('/account');
+    }
+
+    return;
+  }
+
+  res.redirect('/poker/' + best.id + '?quick=true');
 });
 
 module.exports = router;
