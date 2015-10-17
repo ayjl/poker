@@ -1,96 +1,68 @@
 extends ./layout
 
-//- block head
-//-   script(src="gen_validatorv4.js")
-
 block content
   div.row
     div.small-12.column
-      h1 Signup
-      form#Submit(action='/signup')
+      h1 Sign Up
+      form#Sign_up(action='/signup')
         div.row
           div.small-12.column
-            input#Username(type='text' name='username' required placeholder='Enter a username')
-            div#UserAvailability
+            input#Username(name='username' type='text' required placeholder='Enter a username')
         div.row
           div.small-12.column
-            input#Email(type='email' name='email' required placeholder='Enter your email')
-            div#EmailAvailability
+            input#Email(name='email' type='email' required placeholder='Enter your email')
         div.row
           div.small-12.column
-            input#Password(type='password' name='password' required placeholder='Enter your password')
+            input#Password(name='password' type='password' required placeholder='Enter your password')
         div.row
           div.small-12.column
-            button.btn(id='Submit') Submit
+            button.button Submit
 
   script(type='text/javascript'). 
     $(document).ready(function() {
-      $('#Username').blur(function() {
-        var username = $(this).val();
-        if (username == '') {
-          $("UserAvailability").html("");
-        } else {
-          $.ajax({
-            type: 'GET',
-            url: '/signup/userchecker',
-            data: {
-              username: username
-            },
-            success: function(data) {
-              // TODO if data returns true green tick else red cross
-              $('#UserAvailability').text(data);
-            },
-            error: function(e) {
-              console.log(e.message);
-            }
-          });
-        }
-        return false;
-      });
-      $('#Email').blur(function() {
-        var email = $(this).val();
-        if (email == '') {
-          $("EmailAvailability").html("");
-        } else {
-          $.ajax({
-            type: 'GET',
-            url: '/signup/emailchecker',
-            data: {
-              email: email
-            },
-            success: function(data) {
-              // TODO if data returns true green tick else red cross
-              $('#EmailAvailability').text(data);
-            },
-            error: function(e) {
-              console.log(e.message);
-            }
-          });
-        }
-        return false;
-      });
-      $('form').on('submit', function(event) {
-        event.preventDefault();
-        var formdata = $(this).serializeArray();
-        var data = {};
-        $(formdata ).each(function(index, obj){
-          data[obj.name] = obj.value;
+      $('#Sign_up').find('input').blur(function() {
+        var name = $(this).attr('name');
+        var value = $(this).val();
+        var $el = $(this);
+
+        $.ajax({
+          type: 'GET',
+          url: '/signup/check-' + name,
+          data: {
+            value: value
+          },
+        })
+        .done(function(data) {
+          if(data.errors.length > 0) {
+            showErrors($('#Sign_up'), data.errors);
+          }
+          else {
+            $el.closest('.error').removeClass('error');
+            $el.siblings('.error').remove();
+          }
         });
-        console.log(formdata);
-        console.log(data);
-        return false;
+      });
+
+      $('#Sign_up').on('submit', function(event) {
+        event.preventDefault();
+
+        data = formToJSON($(this));
+
         $.ajax({
           type: 'POST',
           url: '/signup',
           data: {
             data: data
-          },
-          success: function(data) {
-            // TODO display error message
-          },
-          error: function(e) {
-
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            window.location.href = '/account';
+          }
+          else{
+            showErrors($('#Sign_up'), data.errors);
           }
         });
+
       });
     });

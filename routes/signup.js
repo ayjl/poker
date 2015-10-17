@@ -3,89 +3,125 @@ var router = express.Router();
 var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
-var validator = require('validator');
-
 
 router.get('/', function(req, res) {
   res.render('signup');
 });
 
 router.post('/', function(req, res, next) {
-  var handle = req.body.data;
   var errors = [];
-  if(validator.isNull(handle.username)) {
-    errors.push('Username required');
+  var data = JSON.parse(req.body.data);
+
+  if(data.username.length < 3) {
+    errors.push({
+        name: 'username'
+      , message: 'A username of at least 3 characters is required'
+    });
   }
-  if(!validator.isAlphanumeric(handle.username)) {
-    errors.push('Username must be Alphanumeric');
+
+  if(!isEmail(data.email)) {
+    errors.push({
+        name: 'email'
+      , message: 'A valid email is required'
+    });
   }
-  if(validator.isNull(handle.email)) {
-    errors.push('Email required');
+
+  if(data.password.length < 6) {
+    errors.push({
+        name: 'password'
+      , message: 'A password of at least 6 characters is required'
+    });
   }
-  if(validator.isEmail(handle.email)) {
-    errors.push('Invalid email');
-  }
-  if(validator.isNull(handle.password)) {
-    errors.push('Password required');
-  }
-  if(!validator.isLength(handle.password, 6)) {
-    errors.push('Password required');
-  }
+
   if (errors.length == 0) {
     var newUser = new User({ 
-      username: handle.username, 
-      email: handle.email, 
-      password: handle.password, 
-      chipCount: 2000
+      username: data.username, 
+      email: data.email, 
+      password: data.password, 
+      chipCount: req.session.chips
     });
+
     newUser.save().then(function() {
-      res.sendStatus(200);
-      res.redirect('/account');
+      res.send({ errors: errors });
     });
-  } else {
-    res.send(error);
+  }
+  else {
+    res.send({ errors: errors });
   }
   
 });
 
-router.get('/userchecker', function(req, res, next) {
-  
-  // open database and check if username already exists
-  // Returns boolean if found or not
-  console.log(req.query.username);
-  User.count({username: req.query.username})
+router.get('/check-username', function(req, res, next) {
+  var errors = [];
+
+  if(req.query.value.length < 3) {
+    errors.push({
+        name: 'username'
+      , message: 'A username of at least 3 characters is required'
+    });
+    res.send({ errors: errors });
+    return;
+  }
+
+  User.count({username: req.query.value})
   .then(function(userCount) {
-    console.log(userCount);
     if (userCount > 0) {
-      res.send(false);
-    } else {
-      res.send(true);
+      errors.push({
+          name: 'username'
+        , message: 'That username has been taken'
+      });
     }
+    res.send({ errors: errors });
   })
   .catch(function(error) {
-    console.log("Failed!", error);
+    console.log("Error:", error);
   });
-  
-  
 });
 
-router.get('/emailchecker', function(req, res, next) {
-  
-  // open database and check if email is already in use
-  // Returns boolean if found or not
-  console.log(req.query.email);
-  User.find({email: req.query.email})
+router.get('/check-email', function(req, res, next) {
+  var errors = [];
+
+  if(!isEmail(req.query.value)) {
+    errors.push({
+        name: 'email'
+      , message: 'A valid email is required'
+    });
+    res.send({ errors: errors });
+    return;
+  }
+
+  User.find({email: req.query.value})
   .then(function(emailCount) {
-    console.log(emailCount);
     if (emailCount > 0) {
-      res.send(false);
-    } else {
-      res.send(true);
+      errors.push({
+          name: 'email'
+        , message: 'That email is in use'
+      });
     }
+    res.send({ errors: errors });
   })
   .catch(function(error) {
-    console.log("Failed!", error);
+    console.log("Error:", error);
   });
 });
+
+router.get('/check-password', function(req, res, next) {
+  var errors = [];
+
+  if(req.query.value.length < 3) {
+    errors.push({
+        name: 'password'
+      , message: 'A password of at least 6 characters is required'
+    });
+  }
+
+  res.send({ errors: errors });
+});
+
+function isEmail(email) {
+  var regex = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i;
+
+  return regex.test(email);
+}
 
 module.exports = router;
