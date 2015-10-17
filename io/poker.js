@@ -1,6 +1,9 @@
+var User = require('../models/user.js');
+var Session = require('../models/session.js');
+var config = require('config');
+
 module.exports = function(io) {
   var poker = io.of('/poker');
-  var config = require('config');
 
   poker.use(function(socket, next) {
     var handshakeData = socket.request;
@@ -49,33 +52,47 @@ module.exports = function(io) {
       });
     }
     
-    var playerID = socket.handshake.sessionID;
+    var playerID;
+    if(socket.request.session.passport) {
+      playerID = socket.request.session.passport.user;
+    }
+    else{
+      playerID = socket.request.sessionID;
+    }
 
-    var player = {
-        id: playerID
-      , name: socket.handshake.session.user
-      , guest: true
-      , cards: []
-      , hand: null
-      , socketID: socket.id
-      , seat: -1
-      , inHand: false
-      , bet: 0
-      , chips: 0
-      , allIn: false
-    };
-    table.spectators.push(player);
+    getPlayerName(playerID, socket.request.session.passport)
+    .then(function(name) {
+      var player = {
+          id: playerID
+        , name: name
+        , guest: true
+        , cards: []
+        , hand: null
+        , socketID: socket.id
+        , seat: -1
+        , inHand: false
+        , bet: 0
+        , chips: 0
+        , allIn: false
+      };
+      table.spectators.push(player);
 
-    socket.emit('player id', player);
+      socket.emit('player id', player);
+    });
 
     socket.on('sit', function(seat) {
-      var playerID = socket.handshake.sessionID;
+      var playerID;
+      if(socket.request.session.passport) {
+        playerID = socket.request.session.passport.user;
+      }
+      else{
+        playerID = socket.request.sessionID;
+      }
 
       var specIdx = findBySocketID(socket.id, table.spectators);
 
-      getPlayerChips(playerID)
+      getPlayerChips(playerID, socket.request.session.passport)
       .then(function(chips) {
-        // var chips = getPlayerChips(playerID);
         if(chips < table.blind * config.get('buyInMult')) {
           socket.emit('customError', {
             message: 'You don\'t have enough chips to buy-in for $' + table.blind*config.get('buyInMult') + '.'
@@ -111,7 +128,7 @@ module.exports = function(io) {
         }
 
         player.chips = table.blind * config.get('buyInMult');
-        storePlayerChips(player.id, -player.chips);
+        storePlayerChips(player.id, -player.chips, socket.request.session.passport);
         socket.emit('chips', chips - player.chips);
 
         table.spectators.splice(specIdx, 1);
@@ -528,10 +545,9 @@ function playerLeave(table, poker, socket, type) {
       player.seat = -1;
     }
 
-    storePlayerChips(player.id, player.chips);
-    getPlayerChips(player.id, player.chips)
+    storePlayerChips(player.id, player.chips, socket.request.session.passport)
     .then(function(chips) {
-      socket.emit('chips', chips + player.chips);
+      socket.emit('chips', chips);
     });
 
     table.players.splice(seat, 1, null);
@@ -670,31 +686,55 @@ function findByPlayerID(playerID, array) {
   return -1;
 }
 
-function storePlayerChips(playerID, diff) {
-  var Session = require('../models/session.js');
-  // var id = player.id;
-
-  Session.findById(playerID)
-  .then(function(ses) {
-    var sessionData = JSON.parse(ses.session);
-    sessionData.chips += diff;
-    ses.session = JSON.stringify(sessionData);
-    ses.save();
-  })
-  .catch(function(err) {
-    console.log('error:', err);
-  });
+function storePlayerChips(playerID, diff, passport) {
+  if(passport) {
+    return User.findByIdAndUpdate(playerID, { $inc: { chips: diff } }, { new: true })
+    .then(function(user) {
+      return user.chips;
+    });
+  }
+  else {
+    return Session.findById(playerID)
+    .then(function(ses) {
+      var sessionData = JSON.parse(ses.session);
+      sessionData.user.chips += diff;
+      ses.session = JSON.stringify(sessionData);
+      return ses.save();
+    })
+    .then(function(ses) {
+      return JSON.parse(ses.session).user.chips;
+    });
+  }
 }
 
-function getPlayerChips(playerID) {
-  var Session = require('../models/session.js');
+function getPlayerChips(playerID, passport) {
+  if(passport) {
+    return User.findById(playerID)
+    .then(function(user) {
+      return user.chips;
+    });
+  }
+  else {
+    return Session.findById(playerID)
+    .then(function(ses) {
+      var sessionData = JSON.parse(ses.session);
+      return sessionData.user.chips;
+    });
+  }
+}
 
-  return Session.findById(playerID)
-  .then(function(ses) {
-    var sessionData = JSON.parse(ses.session);
-    return sessionData.chips;
-  })
-  .catch(function(err) {
-    console.log('error:', err);
-  });
+function getPlayerName(playerID, passport) {
+  if(passport) {
+    return User.findById(playerID)
+    .then(function(user) {
+      return user.username;
+    });
+  }
+  else {
+    return Session.findById(playerID)
+    .then(function(ses) {
+      var sessionData = JSON.parse(ses.session);
+      return sessionData.user.username;
+    });
+  }
 }

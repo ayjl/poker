@@ -1,14 +1,21 @@
 var mongoose = require("mongoose");
 
 var userSchema = new mongoose.Schema( {
-    name: String
-  , created_at    : { type: Date }
+    username: String
+  , email: String
+  , password: String
+  , chips: Number
+  // , created_at    : { type: Date }
 });
 
-userSchema.pre('save', function(next) {
-  this.created_at = new Date();
-  next();
-});
+// userSchema.pre('save', function(next) {
+//   this.created_at = new Date();
+//   next();
+// });
+
+userSchema.methods.validPassword = function(password) {
+  return this.password == password;
+}
 
 var user = mongoose.model('User', userSchema);
 
