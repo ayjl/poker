@@ -6,15 +6,15 @@ var Session = require('../models/session.js');
 
 
 router.get('/', function(req, res) {
-  res.render('account', {chips: req.session.chips});
+  res.render('account', {chips: req.session.user.chips});
 });
 
 router.post('/topup-chips', function(req, res, next) {
   
-  if (req.session.chips < 500) {
-    req.session.chips = 2000;
+  if (req.session.user.chips < 2000) {
+    req.session.user.chips = 2000;
   }
-  res.send({chips: req.session.chips});
+  res.json({chips: req.session.user.chips});
 });
 
 module.exports = router;

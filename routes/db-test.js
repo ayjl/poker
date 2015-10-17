@@ -11,7 +11,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) {
-  var newUser = new User({ name: req.body.name });
+  var newUser = new User({ username: req.body.name });
   // Using promises example
   newUser.save().then(function() {
     res.sendStatus(200);
