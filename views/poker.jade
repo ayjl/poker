@@ -282,6 +282,7 @@ block content
 
     socket.on('turn', function(player) {
       clearInterval(timer);
+      $('#ProgressBar').show();
       
       $('.poker__players--active').removeClass('poker__players--active');
       $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
@@ -361,12 +362,14 @@ block content
     });
 
     socket.on('winner', function(handPlayers, winners) {
+      clearInterval(timer);
       var textArray = [];
       var bestHand = null;
       $.each(handPlayers, function(idx, player) {
         if(!player) {
           return true;  // This is the equivalent of continue
         }
+        $('#ProgressBar').hide();
 
         if(winners.indexOf(player.id) != -1) {
           bestHand = player.hand;
