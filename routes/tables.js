@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var config = require('config');
+var flash = require('connect-flash');
 
 router.get('/', function(req, res, next) {
   res.render('tables', {tables: tables.all()});
@@ -72,6 +73,7 @@ router.get('/quick', function(req, res, next) {
 
   // Minimum blind amount
   if(chips < 10 * config.get('buyInMult')) {
+    req.flash('error', 'You don\'t have enough chips to play at any tables. Top up below.');
     res.redirect('/account');
     return;
   }
@@ -114,6 +116,7 @@ router.get('/quick', function(req, res, next) {
       res.redirect('/poker/' + table.id);
     }
     else{
+      req.flash('error', 'You don\'t have enough chips to play at any tables. Top up below.');
       res.redirect('/account');
     }
 

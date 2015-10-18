@@ -4,6 +4,8 @@ block content
   div.row
     div.small-12.column
       h1 Account Placeholder
+      if errorFlash.length
+        div.alert-box.alert #{errorFlash}
       p Current Balance is: <span id='Balance'>#{chips}</span>
       button(class='btn', id='Topup') Top Up Balance (2000)
   
