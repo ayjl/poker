@@ -550,6 +550,11 @@ function playerLeave(table, poker, socket, type) {
       socket.emit('chips', chips);
     });
 
+    storePlayerChipTracker(player.id, player.chipTracker, socket.request.session.passport)
+    .then(function(chipTracker) {
+      socket.emit('chipTracker', chips);
+    });
+
     table.players.splice(seat, 1, null);
   }
   // If the player leaving is a spectator
@@ -703,6 +708,15 @@ function storePlayerChips(playerID, diff, passport) {
     })
     .then(function(ses) {
       return JSON.parse(ses.session).user.chips;
+    });
+  }
+}
+
+function storePlayerChipTracker(playerID, diff, passport) {
+  if(passport) {
+    return User.findByIdAndUpdate(playerID, { $push: { chipTracker: diff } }, {safe: true, upsert: true, new : true})
+    .then(function(user) {
+      return user.chipTracker;
     });
   }
 }
