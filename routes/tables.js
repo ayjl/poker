@@ -13,14 +13,14 @@ router.post('/', function(req, res, next) {
 
   if(allowedBlinds.indexOf(parseInt(data.blinds)) != -1) {
     var table = tables.create(data.blinds);
-    res.send({ tableID: table.id, errors: errors });
+    res.json({ tableID: table.id, errors: errors });
   }
   else{
     errors.push({
         name: 'blinds'
       , message: 'Please choose from one of the available blinds'
     });
-    res.send({ tableID: null, errors: errors });
+    res.json({ tableID: null, errors: errors });
   }
 });
 
