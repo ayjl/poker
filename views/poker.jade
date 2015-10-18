@@ -282,6 +282,8 @@ block content
 
     socket.on('turn', function(player) {
       clearInterval(timer);
+      var percent = timeRemaining/30*100;
+      $('#FoldBar').css('width', '100%');
       
       $('.poker__players--active').removeClass('poker__players--active');
       $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
@@ -367,6 +369,9 @@ block content
         if(!player) {
           return true;  // This is the equivalent of continue
         }
+        
+        $player = $('#Players').children().eq(player.seat);
+        $('#ProgressBar').detach();
 
         if(winners.indexOf(player.id) != -1) {
           bestHand = player.hand;
