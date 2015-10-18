@@ -12,18 +12,16 @@ block content
   script(type='text/javascript').  
     $(document).ready(function() {
       $('#Topup').on('click', function() {
-        $.ajax( {
+        $.ajax({
           type: 'POST',
           url: '/account/topup-chips',
           data: {
             element: document.getElementById('sessionID')
-          },
-          success: function(data) {
-            $('#Balance').text(data.chips);
-          },
-          error: function(e) {
-            console.log(e.message);
           }
+        })
+        .done(function(data) {
+          $('#Balance').text(data.chips);
+          $('#Chips').text(data.chips);
         });
         return false;
       });
