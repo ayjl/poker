@@ -424,10 +424,9 @@ block content
     });
 
     $(document).ready(function() {
-      var quick = '#{query.quick}';
-      if(quick) {
-        var seat = $('.poker__player.poker__player--empty').eq(0).index();
-          socket.emit('sit', seat);
+      var quick = parseInt('#{query.quick}');
+      if(!isNaN(quick)) {
+        socket.emit('sit', quick);
       }
       $('button:not(.no-disable)').prop('disabled', true);
       $('#Check').on('click', function() {

@@ -123,7 +123,14 @@ router.get('/quick', function(req, res, next) {
     return;
   }
 
-  res.redirect('/poker/' + best.id + '?quick=true');
+  var seat;
+  for(seat=0; seat<best.players.length; seat++) {
+    if(!best.players[seat]) {
+      break;
+    }
+  }
+
+  res.redirect('/poker/' + best.id + '?quick='+seat);
 });
 
 module.exports = router;
