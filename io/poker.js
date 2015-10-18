@@ -251,7 +251,7 @@ module.exports = function(io) {
         if (table.turn == table.handPlayers.length) {
           progressGameState(table, poker, socket);
         }
-        else {
+        else if(table.handPlayers.length >= 2) {
           poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
         }
       }
