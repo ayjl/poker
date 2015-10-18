@@ -69,6 +69,7 @@ app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
 app.use('/signup', signup);
+app.use('/user', require('./routes/user'));
 app.use('/', require('./routes/login'));
 app.use('/tables', tablesRouter);
 

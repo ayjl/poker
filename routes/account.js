@@ -1,20 +1,25 @@
 var express = require('express');
 var router = express.Router();
 var config = require('config');
+var Promise = require('bluebird');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
-
 router.get('/', function(req, res) {
-  var chips;
-  if(req.user) {
-    chips = req.user.chips;
-  }
-  else {
-    chips = req.session.user.chips;
-  }
-
-  res.render('account', { chips: chips });
+  new Promise(function(resolve, reject) {
+    if(req.user) {
+      User.findById(req.user.id)
+      .then(function(user) {
+        resolve(user);
+      });
+    }
+    else {
+      resolve(req.session.user);
+    }
+  })
+  .then(function(user) {
+    res.render('account', { isYou: true, user: user });
+  });
 });
 
 router.post('/topup-chips', function(req, res, next) {
