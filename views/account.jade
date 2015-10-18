@@ -8,32 +8,36 @@ block content
       button(class='btn', id='Topup') Top Up Balance (2000)
   div.row
     div.small-12.column
-      div.account__graph#Graph
+      div#Graph
 
   
   script(type='text/javascript').  
-    $(document).ready(function() {
-      /*$('#Graph').highcharts({
+    $(function() {
+      $('#Graph').highcharts({
+        credits: {
+          enabled: false
+        },
         title: {
           text: 'Overall lifetime profitability',
           x: -20
         },
-        xAxis: {
-          title: {
-            text: 'Sessions'
-          }
-          categories: //need sessions here
-        },
         yAxis: {
           title: {
-            text: 'Profitability (not including topups)'
+            text: 'Profitability'
+          }
+        }
+        xAxis: {
+          title: {
+            text: 'Time Played'
           }
         },
         series: [{
-          name: 'Profitability',
-          data: 
+            name: 'Profitability',
+            data: []
         }]
-        })*/
+      });
+    });
+    $(document).ready(function() {
       $('#Topup').on('click', function() {
         $.ajax( {
           type: 'POST',

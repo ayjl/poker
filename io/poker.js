@@ -713,21 +713,16 @@ function storePlayerChips(playerID, diff, passport) {
 
 function storePlayerChipTracker(playerID, balChange, passport) {
   if(passport) {
-    // console.log("Updating player: ", playerID);
-    // console.log("New Balance: ", balChange);
-    // console.log("Date: ", Date());
-    var previous = User.findById(playerID, { chipTracker: {$slice: -1} }).then(function(lastTrack) {
-      // lastTrack is the object of date and number
-      return lastTrack.change;
+    return User.findById(playerID, { chipTracker: {$slice: -1} }).then(function(user) {
+      return user.chipTracker[0].change;
+    })
+    .then(function(previous) {
+      User.update(
+        { _id: playerID }
+        ,{$push: {chipTracker: {change: previous + balChange, date: Date()}}}
+      )
+      .exec();
     });
-    console.log(previous);
-    console.log(lastTrack);
-    console.log(lastTrack.change);
-    return User.findByIdAndUpdate(
-      playerID 
-      ,{$push: {"chipTracker": {change: previous+balChange, date: Date()}}}
-      ,{safe: true, new : true}
-    );
   } else {
     console.log("Guest user does not keep track of historical chips");
     return;
