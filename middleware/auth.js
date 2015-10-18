@@ -9,9 +9,15 @@ module.exports = function(req, res, next) {
     req.session.user.chips = 2000;
   }
 
-  res.locals.session = req.session;
-  res.locals.user = req.user;
   res.locals.query = req.query;
+
+  if(req.isAuthenticated()) {
+    res.locals.user = req.user;
+  }
+  else {
+    res.locals.user = req.session.user;
+  }
+  res.locals.loggedIn = req.isAuthenticated();
 
   next();
 };
