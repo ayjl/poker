@@ -59,6 +59,7 @@ app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(require('./middleware/auth'));
+app.use(require('./middleware/flash'));
 
 
 app.use('/', routes);

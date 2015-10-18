@@ -6,6 +6,7 @@ block content
       div.poker__table-inner
       div.poker__table-middle
         div#Pot 0
+        
         ul#Community_cards
           - for(var i=0; i<5; i++)
             li.poker__card.poker__card-community
@@ -16,9 +17,7 @@ block content
             div.poker__card.poker__card-1
             div.poker__card.poker__card-2
             p.poker__player-name Seat Available
-            p.poker__player-chips   
-    div.progress.poker__foldbar
-      span#FoldBar.meter(style="width:100%")
+            p.poker__player-chips
 
   div.poker__controls
     div.row
@@ -65,6 +64,11 @@ block content
       div.small-12.column
         div#Error_message
     a.close-reveal-modal &#215;
+    
+  div#ProgressBar
+    div.progress
+      span#FoldBar.meter(style="width:100%")
+    
 
   script(type='text/javascript').
     var socket = io('/poker', { query: 'table=#{table.id}' });
@@ -278,41 +282,36 @@ block content
 
     socket.on('turn', function(player) {
       clearInterval(timer);
-      
+      $('#ProgressBar').show();
       $('.poker__players--active').removeClass('poker__players--active');
       $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
       if(player.id == playerID) {
         $('button:not(.no-disable)').prop('disabled', false);
         
-        timeRemaining = 30;
-        
-        timer = setInterval(function() { 
-          timeRemaining--;
-          $('#FoldTimer').text(timeRemaining);
-          var percent = timeRemaining/30*100;
-          $('#FoldBar').css('width', percent+'%');
-          if (timeRemaining <= 0){
-            socket.emit('action', { action: 'fold' });
-            clearInterval(timer);
-          }
-        }, 1000);
       }
       else {
         $('button:not(.no-disable)').prop('disabled', true);
-        
-        timeRemaining = 30;
-        
-        timer = setInterval(function() { 
-          timeRemaining--;
-          $('#FoldTimer').text(timeRemaining);
-          var percent = timeRemaining/30*100;
-          $('#FoldBar').css('width', percent+'%');
-          if (timeRemaining <= 0){
+      }
+      $player = $('#Players').children().eq(player.seat);
+      $('#ProgressBar').detach().appendTo($player);
+      
+      
+      timeRemaining = 30;
+      
+      timer = setInterval(function() { 
+        timeRemaining--;
+        console.log("time: " + timeRemaining);
+        $('#FoldTimer').text(timeRemaining);
+        var percent = timeRemaining/30*100;
+        $('#FoldBar').css('width', percent+'%');
+        if (timeRemaining <= 0){
+          if(player.id == playerID) {
             socket.emit('action', { action: 'fold' });
+            socket.emit('spectate');
             clearInterval(timer);
           }
-        }, 1000);
-      }
+        }
+      }, 1000);
     });
 
     socket.on('pot', function(pot, tableBet, tableRoundBet, minRaise, player) {
@@ -362,12 +361,14 @@ block content
     });
 
     socket.on('winner', function(handPlayers, winners) {
+      clearInterval(timer);
       var textArray = [];
       var bestHand = null;
       $.each(handPlayers, function(idx, player) {
         if(!player) {
           return true;  // This is the equivalent of continue
         }
+        $('#ProgressBar').hide();
 
         if(winners.indexOf(player.id) != -1) {
           bestHand = player.hand;
