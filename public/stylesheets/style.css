@@ -62,6 +62,10 @@ a {
   display: block;
 }
 
+.progress {
+  margin-top: 120px;
+}
+
 #Community_cards {
   margin: 0;
 }
