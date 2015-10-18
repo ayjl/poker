@@ -3,11 +3,16 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      h1 Account Placeholder
+      h1 #{user.username}
       if errorFlash.length
         div.alert-box.alert #{errorFlash}
-      p Current Balance is: <span id='Balance'>#{chips}</span>
-      button(class='btn', id='Topup') Top Up Balance (2000)
+      p Current Balance is: <span id='Balance'>#{user.chips}</span>
+
+      if loggedIn
+        p #{user.email}
+
+      if isYou
+        button(class='btn', id='Topup') Top Up Balance (2000)
   
   script(type='text/javascript').  
     $(document).ready(function() {

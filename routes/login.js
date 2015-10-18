@@ -23,7 +23,7 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
+  User.findById(id, { username: 1, chips: 1 }, function(err, user) {
     done(err, user);
   });
 });
