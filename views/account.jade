@@ -6,9 +6,34 @@ block content
       h1 Account Placeholder
       p Current Balance is: <span id='Balance'>#{chips}</span>
       button(class='btn', id='Topup') Top Up Balance (2000)
+  div.row
+    div.small-12.column
+      div.account__graph#Graph
+
   
   script(type='text/javascript').  
     $(document).ready(function() {
+      /*$('#Graph').highcharts({
+        title: {
+          text: 'Overall lifetime profitability',
+          x: -20
+        },
+        xAxis: {
+          title: {
+            text: 'Sessions'
+          }
+          categories: //need sessions here
+        },
+        yAxis: {
+          title: {
+            text: 'Profitability (not including topups)'
+          }
+        },
+        series: [{
+          name: 'Profitability',
+          data: 
+        }]
+        })*/
       $('#Topup').on('click', function() {
         $.ajax( {
           type: 'POST',

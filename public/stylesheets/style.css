@@ -21,6 +21,12 @@ a {
   margin-top: 5em;
 }
 
+.account__graph {
+  width: 300px;
+  height: 400px;
+  margin: 0 auto;
+}
+
 .poker__container {
   margin-bottom: 100px;
   height: 610px;
