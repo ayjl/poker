@@ -283,7 +283,6 @@ block content
     socket.on('turn', function(player) {
       clearInterval(timer);
       $('#ProgressBar').show();
-      
       $('.poker__players--active').removeClass('poker__players--active');
       $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
       if(player.id == playerID) {
