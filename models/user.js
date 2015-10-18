@@ -5,7 +5,7 @@ var userSchema = new mongoose.Schema( {
   , email: String
   , password: String
   , chips: Number
-  , chipTracker: [Number]
+  , chipTracker: [{change: Number, date: Date}]
   // , created_at    : { type: Date }
 });
 

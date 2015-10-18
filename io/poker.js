@@ -550,10 +550,9 @@ function playerLeave(table, poker, socket, type) {
       socket.emit('chips', chips);
     });
 
-    storePlayerChipTracker(player.id, player.chipTracker, socket.request.session.passport)
-    .then(function(chipTracker) {
-      socket.emit('chipTracker', chips);
-    });
+    var chipTrackerUpdate = player.chips - table.blind*config.get('buyInMult');
+
+    storePlayerChipTracker(player.id, chipTrackerUpdate, socket.request.session.passport);
 
     table.players.splice(seat, 1, null);
   }
@@ -712,12 +711,22 @@ function storePlayerChips(playerID, diff, passport) {
   }
 }
 
-function storePlayerChipTracker(playerID, diff, passport) {
+function storePlayerChipTracker(playerID, balChange, passport) {
   if(passport) {
-    return User.findByIdAndUpdate(playerID, { $push: { chipTracker: diff } }, {safe: true, upsert: true, new : true})
-    .then(function(user) {
-      return user.chipTracker;
-    });
+    // console.log("Updating player: ", playerID);
+    // console.log("New Balance: ", balChange);
+    // console.log("Date: ", Date());
+    return User.findByIdAndUpdate(
+      playerID 
+      ,{$push: {"chipTracker": {change: balChange, date: Date()}}}
+      , {safe: true, new : true}
+      , function(err, model){
+          // console.log(err);
+      }
+    );
+  } else {
+    console.log("Guest user does not keep track of historical chips");
+    return;
   }
 }
 
