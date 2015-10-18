@@ -6,7 +6,7 @@ var Session = require('../models/session.js');
 
 
 router.get('/', function(req, res) {
-  res.render('account', {chips: req.session.user.chips});
+  res.render('account', {chips: req.session.user.chips, chipTracker: req.session.user.chipTracker});
 });
 
 router.post('/topup-chips', function(req, res, next) {
