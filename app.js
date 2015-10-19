@@ -15,7 +15,6 @@ var passport = require('passport');
 var flash = require('connect-flash');
 
 var routes = require('./routes/index');
-var users = require('./routes/users');
 var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
 var account = require('./routes/account');
@@ -59,15 +58,16 @@ app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(require('./middleware/auth'));
+app.use(require('./middleware/flash'));
 
 
 app.use('/', routes);
-app.use('/users', users);
 app.use('/db', dbTest);
 app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
 app.use('/signup', signup);
+app.use('/profile', require('./routes/profile'));
 app.use('/', require('./routes/login'));
 app.use('/tables', tablesRouter);
 

@@ -3,81 +3,84 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      h1 Account Placeholder
-      p Current Balance is: <span id='Balance'>#{chips}</span>
-      button(class='btn', id='Topup') Top Up Balance (2000)
-  div.row
-    div.small-12.column
-      div#Graph
+      if !profile
+        h1 This profile couldn't be found
+      else
+        h1 #{profile.username}
+        if errorFlash.length
+          div.alert-box.alert #{errorFlash}
+        p Current Balance is: <span id='Balance'>#{profile.chips}</span>
+        container#Graph
+        if loggedIn
+          if isYou
+            p #{profile.email}
+            button(class='btn', id='Topup') Top Up Balance (2000)
+          else
+            if relationship
+              p #{relationship}
+            else
+              button.button.small#Add_friend Add Friend
   
-  script(type='text/javascript').  
-    $(document).ready(function() {
-      chart = new Highcharts.Chart({
-        chart: {
-          renderTo: 'container',
-          defaultSeriesType: 'spline',
-          events: {
-            load: requestData
-          }
-        },
-        credits: {
-          enabled: false
-        },
-        exporting: {
-          enabled: false
-        },
-        title: {
-          text: 'Overall lifetime profitability',
-          x: -20
-        },
-        yAxis: {
-          title: {
-            text: 'Profitability'
-          }
-        },
-        xAxis: {
-          title: {
-            text: 'Time Played'
-          },
-          dateTimeLabelFormats: {
-            month: '%e. %b',
-            year: '%b'
-          }
-        },
-        series: [{
-            name: 'Profitability',
-            data: []
-        }]
-      });
-      $('#Topup').on('click', function() {
-        $.ajax( {
-          type: 'POST',
-          url: '/account/topup-chips',
-          data: {
-            element: document.getElementById('sessionID')
-          },
-          success: function(data) {
+  if profile
+    script(type='text/javascript').
+      var chipTracker = JSON.parse('#{chipTracker}');  
+      $(document).ready(function() {
+        $('#Topup').on('click', function() {
+          $.ajax({
+            type: 'POST',
+            url: '/account/topup-chips',
+            data: {
+              element: document.getElementById('sessionID')
+            }
+          })
+          .done(function(data) {
             $('#Balance').text(data.chips);
-          },
-          error: function(e) {
-            console.log(e.message);
-          }
+            $('#Chips').text(data.chips);
+          });
         });
-        return false;
+
+        $('#Add_friend').on('click', function() {
+          $.ajax({
+            type: 'POST',
+            url: '/account/add-friend',
+            data: {
+              friendID: '#{profile.id}'
+            }
+          })
+          .done(function() {
+            $('#Add_friend').text('Friend request sent');
+            $('#Add_friend').off('click');
+          })
+        });
+
+        $('#Graph').highcharts({
+          chart: {},
+          credits: {
+            enabled: false
+          },
+          exporting: {
+            enabled: false
+          },
+          title: {
+            text: 'Overall lifetime profitability',
+            x: -20
+          },
+          yAxis: {
+            title: {
+              text: 'Profitability'
+            }
+          },
+          xAxis: {
+            title: {
+              text: 'Time Played'
+            },
+            dateTimeLabelFormats: {
+              month: '%e. %b',
+              year: '%b'
+            }
+          },
+          series: [{
+            data: []
+          }]
+        });
       });
-    });
-    function requestData() {
-      $.ajax({
-        url: '/account/profitability',
-        success: function(data) {
-          var mySeries = [];
-          for (var i = 0; i < data.length; i++) {
-            mySeries.push([data[i], data[i + 1]]);
-            i++
-          }
-          var chart = $('#container').highcharts();
-          chart.series[0].setData(mySeries);   
-        },
-        cache: false
-    });
-}
