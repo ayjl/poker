@@ -42,7 +42,12 @@ router.post('/', function(req, res, next) {
     });
 
     newUser.save().then(function() {
-      res.json({ errors: errors });
+      req.login(newUser, function(err) {
+        if(err) {
+          return next(err);
+        }
+        res.json({ errors: errors });
+      });
     });
   }
   else {
