@@ -100,7 +100,18 @@ block content
 
       var $player = $('#Players').children().eq(player.seat);
       $player.removeClass('poker__player--empty');
-      $player.children('.poker__player-name').text(player.name);
+
+      if(player.id.length == 24) {
+        var $playerLink = $("<a></a>");
+        $playerLink.attr('href', '/user/' + player.id);
+        $playerLink.attr('target', '_blank');
+        $playerLink.text(player.name);
+        $player.children('.poker__player-name').html($playerLink);
+      }
+      else {
+        $player.children('.poker__player-name').text(player.name);
+      }
+
       $player.children('.poker__player-chips').text(player.chips);
 
       if(isYou) {
@@ -116,7 +127,18 @@ block content
 
         if(player) {
           $player.removeClass('poker__player--empty');
-          $player.children('.poker__player-name').text(player.name);
+
+          if(player.id.length == 24) {
+            var $playerLink = $("<a></a>");
+            $playerLink.attr('href', '/user/' + player.id);
+            $playerLink.attr('target', '_blank');
+            $playerLink.text(player.name);
+            $player.children('.poker__player-name').html($playerLink);
+          }
+          else {
+            $player.children('.poker__player-name').text(player.name);
+          }
+
           $player.children('.poker__player-chips').text(player.chips);
           if(player.inHand) {
             $player.children('.poker__card-1').addClass('poker__card--back');
