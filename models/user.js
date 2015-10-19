@@ -6,12 +6,7 @@ var userSchema = new mongoose.Schema( {
   , email: String
   , password: String
   , chips: Number
-  , friends: {
-      accepted: [Schema.Types.ObjectId]
-    , outgoing: [Schema.Types.ObjectId]
-    , incoming: [Schema.Types.ObjectId]
-  }
-  // , created_at    : { type: Date }
+  , friends: [{ _id: { type: Schema.Types.ObjectId, ref: '' }, status: String }]
 });
 
 // userSchema.pre('save', function(next) {
