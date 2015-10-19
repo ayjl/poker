@@ -1,10 +1,16 @@
 var mongoose = require("mongoose");
+var Schema = mongoose.Schema;
 
 var userSchema = new mongoose.Schema( {
     username: String
   , email: String
   , password: String
   , chips: Number
+  , friends: {
+      accepted: [Schema.Types.ObjectId]
+    , outgoing: [Schema.Types.ObjectId]
+    , incoming: [Schema.Types.ObjectId]
+  }
   // , created_at    : { type: Date }
 });
 

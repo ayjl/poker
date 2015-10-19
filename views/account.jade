@@ -3,31 +3,52 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      h1 #{user.username}
-      if errorFlash.length
-        div.alert-box.alert #{errorFlash}
-      p Current Balance is: <span id='Balance'>#{user.chips}</span>
+      if !profile
+        h1 This profile couldn't be found
+      else
+        h1 #{profile.username}
+        if errorFlash.length
+          div.alert-box.alert #{errorFlash}
+        p Current Balance is: <span id='Balance'>#{profile.chips}</span>
 
-      if loggedIn
-        p #{user.email}
-
-      if isYou
-        button(class='btn', id='Topup') Top Up Balance (2000)
+        if loggedIn
+          if isYou
+            p #{profile.email}
+            button(class='btn', id='Topup') Top Up Balance (2000)
+          else
+            if relationship
+              p #{relationship}
+            else
+              button.button.small#Add_friend Add Friend
   
-  script(type='text/javascript').  
-    $(document).ready(function() {
-      $('#Topup').on('click', function() {
-        $.ajax({
-          type: 'POST',
-          url: '/account/topup-chips',
-          data: {
-            element: document.getElementById('sessionID')
-          }
-        })
-        .done(function(data) {
-          $('#Balance').text(data.chips);
-          $('#Chips').text(data.chips);
+  if profile
+    script(type='text/javascript').  
+      $(document).ready(function() {
+        $('#Topup').on('click', function() {
+          $.ajax({
+            type: 'POST',
+            url: '/account/topup-chips',
+            data: {
+              element: document.getElementById('sessionID')
+            }
+          })
+          .done(function(data) {
+            $('#Balance').text(data.chips);
+            $('#Chips').text(data.chips);
+          });
         });
-        return false;
+
+        $('#Add_friend').on('click', function() {
+          $.ajax({
+            type: 'POST',
+            url: '/account/add-friend',
+            data: {
+              friendID: '#{profile.id}'
+            }
+          })
+          .done(function() {
+            $('#Add_friend').text('Friend request sent');
+            $('#Add_friend').off('click');
+          })
+        });
       });
-    });
