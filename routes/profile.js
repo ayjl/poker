@@ -23,7 +23,7 @@ router.get('/:user_id', function(req, res) {
       relationship = 'Added you';
     }
 
-    res.render('account', { isYou: false, profile: user, relationship: relationship });
+    res.render('account', { isYou: false, profile: user, relationship: relationship, chipTracker: JSON.stringify(user.chipTracker) });
   });
 });
 
