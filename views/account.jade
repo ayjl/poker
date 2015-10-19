@@ -15,6 +15,7 @@ block content
           if isYou
             p #{profile.email}
             button(class='btn', id='Topup') Top Up Balance (2000)
+            a.button(href="/account/settings") Update Details
           else
             if relationship
               p #{relationship}
