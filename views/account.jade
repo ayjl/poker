@@ -71,26 +71,27 @@ block content
           },
           xAxis: {
             type: 'datetime',
+            dateTimeLabelFormats: {
+                month: '%e. %b',
+                year: '%b'
+            },
             title: {
               text: 'Time Played'
             }
           },
           series: [{
             name: 'Profitability',
-            data: [chipTracker]
+            data: []
           }]
         });
         var chipTracker = JSON.parse('!{chipTracker}'); 
         var mySeries = [];
-        // offset in seconds
-        var offset = new Date().getTimezoneOffset() * 60;
+        // offset in minutes converted to milliseconds
+        var offset = new Date().getTimezoneOffset() * 60000;
         for (var i = 0; i < chipTracker.length; i++) {
-            //- console.log(chipTracker[i].date);
-            //- chipTracker[i].date += offset; // offset calculated
-            console.log(chipTracker[i].date);
-            //- chipTracker[i].date *= 1000; // JS time
-            mySeries.push([chipTracker[i].date, chipTracker[i].change]);
-            //- console.log(chipTracker[i].date);
+            var epochDate = Date.parse(chipTracker[i].date);
+            epochDate -= offset;
+            mySeries.push([epochDate, chipTracker[i].change]);
         }
         var chart = $('#Graph').highcharts();
         chart.series[0].setData(mySeries); 
