@@ -10,7 +10,7 @@ block content
         if errorFlash.length
           div.alert-box.alert #{errorFlash}
         p Current Balance is: <span id='Balance'>#{profile.chips}</span>
-
+        container#Graph
         if loggedIn
           if isYou
             p #{profile.email}
@@ -31,7 +31,7 @@ block content
             include ./account/friends.jade
   
   if profile
-    script(type='text/javascript').  
+    script(type='text/javascript').
       $(document).ready(function() {
         $('#Topup').on('click', function() {
           $.ajax({
@@ -76,4 +76,48 @@ block content
             }
           })
         });
+
+        $('#Graph').highcharts({
+          chart: {},
+          credits: {
+            enabled: false
+          },
+          exporting: {
+            enabled: false
+          },
+          title: {
+            text: 'Overall lifetime profitability',
+            x: -20
+          },
+          yAxis: {
+            title: {
+              text: 'Profitability'
+            }
+          },
+          xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                month: '%e. %b',
+                year: '%b'
+            },
+            title: {
+              text: 'Time Played'
+            }
+          },
+          series: [{
+            name: 'Profitability',
+            data: []
+          }]
+        });
+        var chipTracker = JSON.parse('!{chipTracker}'); 
+        var mySeries = [];
+        // offset in minutes converted to milliseconds
+        var offset = new Date().getTimezoneOffset() * 60000;
+        for (var i = 0; i < chipTracker.length; i++) {
+            var epochDate = Date.parse(chipTracker[i].date);
+            epochDate -= offset;
+            mySeries.push([epochDate, chipTracker[i].change]);
+        }
+        var chart = $('#Graph').highcharts();
+        chart.series[0].setData(mySeries); 
       });

@@ -34,7 +34,7 @@ router.get('/', function(req, res) {
         }
       }
     }
-    res.render('account', { isYou: true, profile: user });
+    res.render('account', { isYou: true, profile: user , chipTracker: JSON.stringify(user.chipTracker)});
   });
 });
 

@@ -6,6 +6,7 @@ var userSchema = new mongoose.Schema( {
   , email: String
   , password: String
   , chips: Number
+  , chipTracker: [{change: Number, date: Date}]
   , friends: [{ _id: { type: Schema.Types.ObjectId, ref: '' }, status: String }]
 });
 

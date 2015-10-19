@@ -550,6 +550,10 @@ function playerLeave(table, poker, socket, type) {
       socket.emit('chips', chips);
     });
 
+    var chipTrackerUpdate = player.chips - table.blind*config.get('buyInMult');
+
+    storePlayerChipTracker(player.id, chipTrackerUpdate, socket.request.session.passport);
+
     table.players.splice(seat, 1, null);
   }
   // If the player leaving is a spectator
@@ -704,6 +708,24 @@ function storePlayerChips(playerID, diff, passport) {
     .then(function(ses) {
       return JSON.parse(ses.session).user.chips;
     });
+  }
+}
+
+function storePlayerChipTracker(playerID, balChange, passport) {
+  if(passport) {
+    return User.findById(playerID, { chipTracker: {$slice: -1} }).then(function(user) {
+      return user.chipTracker[0].change;
+    })
+    .then(function(previous) {
+      User.update(
+        { _id: playerID }
+        ,{$push: {chipTracker: {change: previous + balChange, date: Date.now()}}}
+      )
+      .exec();
+    });
+  } else {
+    console.log("Guest user does not keep track of historical chips");
+    return;
   }
 }
 
