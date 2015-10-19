@@ -9,11 +9,17 @@ block content
   div.row
     div.small-12.column
       div#Graph
-
   
   script(type='text/javascript').  
-    $(function() {
-      $('#Graph').highcharts({
+    $(document).ready(function() {
+      chart = new Highcharts.Chart({
+        chart: {
+          renderTo: 'container',
+          defaultSeriesType: 'spline',
+          events: {
+            load: requestData
+          }
+        },
         credits: {
           enabled: false
         },
@@ -40,15 +46,9 @@ block content
         },
         series: [{
             name: 'Profitability',
-            data: [
-              [0,0],
-              [1,3],
-              [2,2]
-            ] // need to grab the data and display it
+            data: []
         }]
       });
-    });
-    $(document).ready(function() {
       $('#Topup').on('click', function() {
         $.ajax( {
           type: 'POST',
@@ -66,3 +66,18 @@ block content
         return false;
       });
     });
+    function requestData() {
+      $.ajax({
+        url: '/account/profitability',
+        success: function(data) {
+          var mySeries = [];
+          for (var i = 0; i < data.length; i++) {
+            mySeries.push([data[i], data[i + 1]]);
+            i++
+          }
+          var chart = $('#container').highcharts();
+          chart.series[0].setData(mySeries);   
+        },
+        cache: false
+    });
+}
