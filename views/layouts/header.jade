@@ -14,4 +14,7 @@ div.fixed
             span#Chips $#{user.chips}
         li: a(href='/tables') Tables
         li: a(href='/') Settings
-        li: a(href='/logout') Log out
+        if loggedIn
+          li: a(href='/logout') Log out
+        else
+          li: a(href='/') Log in
