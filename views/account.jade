@@ -70,12 +70,9 @@ block content
             }
           },
           xAxis: {
+            type: 'datetime',
             title: {
               text: 'Time Played'
-            },
-            dateTimeLabelFormats: {
-              month: '%e. %b',
-              year: '%b'
             }
           },
           series: [{
@@ -84,10 +81,16 @@ block content
           }]
         });
         var chipTracker = JSON.parse('!{chipTracker}'); 
-        console.log(chipTracker);
         var mySeries = [];
+        // offset in seconds
+        var offset = new Date().getTimezoneOffset() * 60;
         for (var i = 0; i < chipTracker.length; i++) {
+            //- console.log(chipTracker[i].date);
+            //- chipTracker[i].date += offset; // offset calculated
+            console.log(chipTracker[i].date);
+            //- chipTracker[i].date *= 1000; // JS time
             mySeries.push([chipTracker[i].date, chipTracker[i].change]);
+            //- console.log(chipTracker[i].date);
         }
         var chart = $('#Graph').highcharts();
         chart.series[0].setData(mySeries); 

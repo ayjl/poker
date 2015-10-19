@@ -719,7 +719,7 @@ function storePlayerChipTracker(playerID, balChange, passport) {
     .then(function(previous) {
       User.update(
         { _id: playerID }
-        ,{$push: {chipTracker: {change: previous + balChange, date: Date()}}}
+        ,{$push: {chipTracker: {change: previous + balChange, date: Date.now()}}}
       )
       .exec();
     });
