@@ -251,6 +251,9 @@ a {
 .poker__player-name {
   margin: 0;
 }
+.poker__player-name a{
+  color: #fff !important;
+}
 .poker__player-chips {
   margin: 0;
 }
