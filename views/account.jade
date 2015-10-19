@@ -3,25 +3,30 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      h1 Account Placeholder
-      p Current Balance is: <span id='Balance'>#{chips}</span>
-      button(class='btn', id='Topup') Top Up Balance (2000)
+      h1 #{user.username}
+      if errorFlash.length
+        div.alert-box.alert #{errorFlash}
+      p Current Balance is: <span id='Balance'>#{user.chips}</span>
+
+      if loggedIn
+        p #{user.email}
+
+      if isYou
+        button(class='btn', id='Topup') Top Up Balance (2000)
   
   script(type='text/javascript').  
     $(document).ready(function() {
       $('#Topup').on('click', function() {
-        $.ajax( {
+        $.ajax({
           type: 'POST',
           url: '/account/topup-chips',
           data: {
             element: document.getElementById('sessionID')
-          },
-          success: function(data) {
-            $('#Balance').text(data.chips);
-          },
-          error: function(e) {
-            console.log(e.message);
           }
+        })
+        .done(function(data) {
+          $('#Balance').text(data.chips);
+          $('#Chips').text(data.chips);
         });
         return false;
       });

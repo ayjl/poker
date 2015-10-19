@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var config = require('config');
+var flash = require('connect-flash');
 
 router.get('/', function(req, res, next) {
   res.render('tables', {tables: tables.all()});
@@ -62,8 +63,17 @@ router.get('/rows', function(req, res, next) {
 });
 
 router.get('/quick', function(req, res, next) {
+  var chips;
+  if(req.user) {
+    chips = req.user.chips;
+  }
+  else {
+    chips = req.session.user.chips;
+  }
+
   // Minimum blind amount
-  if(req.session.chips < 10 * config.get('buyInMult')) {
+  if(chips < 10 * config.get('buyInMult')) {
+    req.flash('error', 'You don\'t have enough chips to play at any tables. Top up below.');
     res.redirect('/account');
     return;
   }
@@ -75,7 +85,7 @@ router.get('/quick', function(req, res, next) {
     var table = t[i];
 
     // Check if player can afford buy-in
-    if(req.session.chips < table.blind * config.get('buyInMult')) {
+    if(chips < table.blind * config.get('buyInMult')) {
       continue;
     }
 
@@ -96,7 +106,7 @@ router.get('/quick', function(req, res, next) {
     var allowedBlinds = config.get('allowedBlinds');
     var i;
     for(i=0; i<allowedBlinds.length; i++) {
-      if(req.session.chips < allowedBlinds[i] * config.get('buyInMult')) {
+      if(chips < allowedBlinds[i] * config.get('buyInMult')) {
         break;
       }
     }
@@ -106,13 +116,21 @@ router.get('/quick', function(req, res, next) {
       res.redirect('/poker/' + table.id);
     }
     else{
+      req.flash('error', 'You don\'t have enough chips to play at any tables. Top up below.');
       res.redirect('/account');
     }
 
     return;
   }
 
-  res.redirect('/poker/' + best.id + '?quick=true');
+  var seat;
+  for(seat=0; seat<best.players.length; seat++) {
+    if(!best.players[seat]) {
+      break;
+    }
+  }
+
+  res.redirect('/poker/' + best.id + '?quick='+seat);
 });
 
 module.exports = router;

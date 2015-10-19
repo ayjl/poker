@@ -59,6 +59,7 @@ app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(require('./middleware/auth'));
+app.use(require('./middleware/flash'));
 
 
 app.use('/', routes);
@@ -68,6 +69,7 @@ app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
 app.use('/signup', signup);
+app.use('/user', require('./routes/user'));
 app.use('/', require('./routes/login'));
 app.use('/tables', tablesRouter);
 
