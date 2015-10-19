@@ -23,7 +23,6 @@ block content
   
   if profile
     script(type='text/javascript').
-      var chipTracker = JSON.parse('#{chipTracker}');  
       $(document).ready(function() {
         $('#Topup').on('click', function() {
           $.ajax({
@@ -80,7 +79,16 @@ block content
             }
           },
           series: [{
-            data: []
+            name: 'Profitability'
+            data: [chipTracker]
           }]
         });
+        var chipTracker = JSON.parse('!{chipTracker}'); 
+        console.log(chipTracker);
+        var mySeries = [];
+        for (var i = 0; i < chipTracker.length; i++) {
+            mySeries.push([chipTracker[i].date, chipTracker[i].change]);
+        }
+        var chart = $('#Graph').highcharts();
+        chart.series[0].setData(mySeries); 
       });

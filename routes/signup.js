@@ -39,7 +39,7 @@ router.post('/', function(req, res, next) {
       email: data.email, 
       password: data.password, 
       chips: 2000
-      ,chipTracker: [{change: 0, date: Date()}]
+      ,chipTracker: [{change: 2000, date: Date()}]
     });
 
     newUser.save().then(function() {
