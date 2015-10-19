@@ -10,17 +10,22 @@ router.get('/:user_id', function(req, res) {
     return res.redirect('/account');
   }
 
-  User.findById(userID)
-  .then(function(user) {
-    var relationship;
-    if(user.friends.accepted.indexOf(req.user.id) != -1) {
-      relationship = 'Friends';
+  User.findById(userID).then(function(user) {
+    var relationship = user.friends.filter(function(friend) {
+      return friend._id == req.user.id;
+    });
+
+    if(relationship.length == 1) {
+      relationship = relationship[0].status;
+      if(relationship == 'outgoing') {
+        relationship = 'incoming';
+      }
+      else if(relationship == 'incoming') {
+        relationship = 'outgoing';
+      }
     }
-    else if(user.friends.outgoing.indexOf(req.user.id) != -1) {
-      relationship = 'Pending approval';
-    }
-    else if(user.friends.incoming.indexOf(req.user.id) != -1) {
-      relationship = 'Added you';
+    else {
+      relationship = 'add';
     }
 
     res.render('account', { isYou: false, profile: user, relationship: relationship });

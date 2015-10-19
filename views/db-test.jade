@@ -12,10 +12,17 @@ block content
         button Add User
 
       h2 User List
-      ul
-      - each user in users
-        li #{user.username} #{user.password}&nbsp;
-          a(href='/db/'+user._id, class='delete-btn') Delete
+      table
+        thead
+          th Username
+          th Password
+          th Delete
+        tbody
+          - each user in users
+            tr
+              td: a(href='/profile/'+user._id) #{user.username}
+              td #{user.password}
+              td: a(href='/db/'+user._id, class='delete-btn') Delete
 
   script(type='text/javascript').
     $('form').submit(function(){

@@ -15,11 +15,20 @@ block content
           if isYou
             p #{profile.email}
             button(class='btn', id='Topup') Top Up Balance (2000)
+            h2 Friends
+            ul#Friends
+              each friend in friends
+                li: a(href='/profile/'+friend._id._id) #{friend._id.username}
+            h2 Friend Requests
+            ul
+              each friend in incomingFriends
+                li
+                  a(href='/profile/'+friend._id._id) #{friend._id.username}
+                  span.account__friend-action(data-action='accept' data-friend-id='#{friend._id._id}') Accept
+                  span.account__friend-action(data-action='ignore' data-friend-id='#{friend._id._id}') Ignore
+                  span.account__friend-action(data-action='block' data-friend-id='#{friend._id._id}') Block
           else
-            if relationship
-              p #{relationship}
-            else
-              button.button.small#Add_friend Add Friend
+            include ./account/friends.jade
   
   if profile
     script(type='text/javascript').
@@ -38,17 +47,33 @@ block content
           });
         });
 
-        $('#Add_friend').on('click', function() {
+        $('.account__friend-action').on('click', function() {
+          var action = $(this).data('action');
+          var friendID = $(this).data('friend-id');
+          var $el = $(this);
+
           $.ajax({
             type: 'POST',
-            url: '/account/add-friend',
+            url: '/account/friend',
             data: {
-              friendID: '#{profile.id}'
+                friendID: friendID
+              , action: action
             }
           })
           .done(function() {
-            $('#Add_friend').text('Friend request sent');
-            $('#Add_friend').off('click');
+            switch(action) {
+              case 'accept':
+                $el.closest('li').detach().appendTo('#Friends');
+                $el.siblings('span').remove();
+                $el.remove();
+                break;
+              case 'ignore':
+                $el.closest('li').remove();
+                break;
+              case 'block':
+                $el.closest('li').remove();
+                break;
+            }
           })
         });
 
