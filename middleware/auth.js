@@ -11,11 +11,13 @@ module.exports = function(req, res, next) {
     req.session.user = {};
     req.session.user.username = 'Guest' + padded;
     req.session.user.chips = 2000;
+    req.session.loggedIn = false;
   }
 
   res.locals.query = req.query;
 
   if(req.isAuthenticated()) {
+    req.session.loggedIn = true;
     res.locals.user = req.user;
     res.locals.openChats = [];
     var openChats = onlineUsers.getOpenChats(req.user.id);
