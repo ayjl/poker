@@ -24,6 +24,7 @@ a {
 #Chat_container {
   position: fixed;
   bottom: 0; right: 10px;
+  z-index: 10;
   width: auto; height: 300px;
 }
 #Chat_container > *{
@@ -48,6 +49,7 @@ a {
   padding: 5px 8px;
 }
 .chat__list__friend {
+  font-size: 0.8rem;
   cursor: pointer;
   padding: 5px;
 }
@@ -83,10 +85,13 @@ a {
   background-color: #fff;
   box-shadow: rgba(0, 0, 0, 0.14902) 0px 1px 2px 0px;
   font-size: 0.8rem;
-  margin: 0.5em 0;
+  margin: 0.5em 0 0;
   padding: 1px 4px;
   position: relative;
   width: 85%;
+}
+.chat__msg:last-child {
+  margin-bottom: 5px !important;
 }
 .chat__msg:after {
   border: 5px solid #fff;
@@ -96,19 +101,36 @@ a {
 .chat__msg--you {
   margin-left: 10%;
 }
+.chat__msg--you + .chat__msg--you {
+  margin-top: 0; margin-bottom: 0;
+}
 .chat__msg--you:after {
   border-right-color: transparent;
   border-top-color: transparent;
   box-shadow: rgba(0, 0, 0, 0.14902) 1px 1px 2px 0px;
   right: -10px; bottom: 0;
 }
+.chat__msg--you + .chat__msg--you:after {
+  border-color: transparent;
+  box-shadow: none;
+}
 .chat__msg--other {
   margin-left: 5%;
+}
+.chat__msg--other {
+  margin-left: 10%;
+}
+.chat__msg--other + .chat__msg--other {
+  margin-top: 0; margin-bottom: 0;
 }
 .chat__msg--other:after {
   border-left-color: transparent;
   border-bottom-color: transparent;
   left: -10px; top: 0;
+}
+.chat__msg--other + .chat__msg--other:after {
+  border-color: transparent;
+  box-shadow: none;
 }
 .chat__compose {
   background: #fff;
