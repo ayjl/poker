@@ -65,9 +65,8 @@ block content
         div#Error_message
     a.close-reveal-modal &#215;
     
-  div#ProgressBar
-    div.progress
-      span#FoldBar.meter(style="width:100%")
+  div#ProgressBar.hide.progress
+    span#FoldBar.meter
     
 
   script(type='text/javascript').
@@ -77,7 +76,6 @@ block content
     var roundBet = 0;
     var minBet = 10;
     var chips = 0;
-    var timeRemaining = 10;
     var timer;
 
     socket.on('chips', function(chips) {
@@ -303,37 +301,27 @@ block content
     });
 
     socket.on('turn', function(player) {
-      clearInterval(timer);
-      $('#ProgressBar').show();
       $('.poker__players--active').removeClass('poker__players--active');
       $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
       if(player.id == playerID) {
         $('button:not(.no-disable)').prop('disabled', false);
-        
       }
       else {
         $('button:not(.no-disable)').prop('disabled', true);
       }
       $player = $('#Players').children().eq(player.seat);
       $('#ProgressBar').detach().appendTo($player);
+      clearTimeout(timer);
+      $('#ProgressBar').show();
+      $('#FoldBar').removeClass('animate');  // Restart the animation
+      $('#FoldBar').addClass('animate');
       
-      
-      timeRemaining = 30;
-      
-      timer = setInterval(function() { 
-        timeRemaining--;
-        console.log("time: " + timeRemaining);
-        $('#FoldTimer').text(timeRemaining);
-        var percent = timeRemaining/30*100;
-        $('#FoldBar').css('width', percent+'%');
-        if (timeRemaining <= 0){
-          if(player.id == playerID) {
-            socket.emit('action', { action: 'fold' });
-            socket.emit('spectate');
-            clearInterval(timer);
-          }
+      timer = setTimeout(function() { 
+        if(player.id == playerID) {
+          socket.emit('action', { action: 'fold' });
+          socket.emit('spectate');
         }
-      }, 1000);
+      }, 30000);
     });
 
     socket.on('pot', function(pot, tableBet, tableRoundBet, minRaise, player) {
@@ -383,14 +371,14 @@ block content
     });
 
     socket.on('winner', function(handPlayers, winners) {
-      clearInterval(timer);
+      clearTimeout(timer);
+      $('#ProgressBar').hide();
       var textArray = [];
       var bestHand = null;
       $.each(handPlayers, function(idx, player) {
         if(!player) {
           return true;  // This is the equivalent of continue
         }
-        $('#ProgressBar').hide();
 
         if(winners.indexOf(player.id) != -1) {
           bestHand = player.hand;
@@ -422,7 +410,7 @@ block content
 
       var text = textArray.join(', ');
       if(bestHand) {
-        text += ' - ' + bestHand.handName;
+        text += ' - ' + bestHand.handName.charAt(0).toUpperCase() + bestHand.handName.slice(1);
       }
       $('#Winner_tmp').text(text);
 
