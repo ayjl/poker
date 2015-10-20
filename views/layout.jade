@@ -13,11 +13,26 @@ html
     script(src='//code.jquery.com/jquery-2.1.4.min.js')
     script(src='https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation.min.js')
     script(src='https://cdn.socket.io/socket.io-1.3.7.js')
+    script(src='https://code.highcharts.com/highcharts.js')
     script(src='/js/footable.min.js')
     script(src='/js/script.js')
 
   body
     include ./layouts/header
     block content
+
+    if loggedIn
+      include ./layouts/chat
+
     script.
       $(document).foundation();
+      window.onload = function() {
+        setTimeout(function() {
+          new Image().src = "/img/black-felt.png";
+          new Image().src = "/img/clubs-l.png";
+          new Image().src = "/img/diamonds-l.png";
+          new Image().src = "/img/hearts-l.png";
+          new Image().src = "/img/spades-l.png";
+          new Image().src = "/img/back.png";
+        }, 1000);
+      };

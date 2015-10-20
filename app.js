@@ -15,10 +15,10 @@ var passport = require('passport');
 var flash = require('connect-flash');
 
 var routes = require('./routes/index');
-var users = require('./routes/users');
 var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
 var account = require('./routes/account');
+var settings = require('./routes/settings');
 var signup = require('./routes/signup');
 var tablesRouter = require('./routes/tables');
 var socketTest = require('./routes/socket-test');
@@ -63,13 +63,14 @@ app.use(require('./middleware/flash'));
 
 
 app.use('/', routes);
-app.use('/users', users);
 app.use('/db', dbTest);
 app.use('/socket', socketTest);
 app.use('/poker', poker);
 app.use('/account', account);
+app.use('/account/settings', settings);
 app.use('/signup', signup);
-app.use('/user', require('./routes/user'));
+app.use('/profile', require('./routes/profile'));
+app.use('/chat', require('./routes/chat'));
 app.use('/', require('./routes/login'));
 app.use('/tables', tablesRouter);
 
@@ -81,7 +82,13 @@ tables.create(200,  'default-3');
 tables.create(1000, 'default-4');
 tables.create(4000, 'default-5');
 
+var OnlineUsers = require('./helpers/onlineUsers');
+onlineUsers = new OnlineUsers();
+
 var io = require('socket.io')();
+io.of('/').use(function(socket, next) {
+  sessionMiddleware(socket.request, socket.request.res, next);
+});
 io.of('/poker').use(function(socket, next) {
   sessionMiddleware(socket.request, socket.request.res, next);
 });

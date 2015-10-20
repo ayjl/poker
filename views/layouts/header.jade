@@ -9,9 +9,11 @@ div.fixed
           span Menu
     section.top-bar-section
       ul.right
+        li: a(href='/tables') Tables
         li
           a(href='/account') #{user.username}: 
             span#Chips $#{user.chips}
-        li: a(href='/tables') Tables
-        li: a(href='/') Settings
-        li: a(href='/logout') Log out
+        if loggedIn
+          li: a(href='/logout') Log out
+        else
+          li: a(href='/') Log in
