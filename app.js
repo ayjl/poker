@@ -68,6 +68,7 @@ app.use('/poker', poker);
 app.use('/account', account);
 app.use('/signup', signup);
 app.use('/profile', require('./routes/profile'));
+app.use('/chat', require('./routes/chat'));
 app.use('/', require('./routes/login'));
 app.use('/tables', tablesRouter);
 
@@ -79,7 +80,13 @@ tables.create(200,  'default-3');
 tables.create(1000, 'default-4');
 tables.create(4000, 'default-5');
 
+var OnlineUsers = require('./helpers/onlineUsers');
+onlineUsers = new OnlineUsers();
+
 var io = require('socket.io')();
+io.of('/').use(function(socket, next) {
+  sessionMiddleware(socket.request, socket.request.res, next);
+});
 io.of('/poker').use(function(socket, next) {
   sessionMiddleware(socket.request, socket.request.res, next);
 });
