@@ -358,16 +358,16 @@ a {
           transform: rotate(315deg) translate(20em) rotate(-315deg);
 }
 .poker__player--0.poker__player--dealer:before {
-  bottom: -1.2em;
-  left: -1.2em;
+  bottom: -2em;
+  left: -2em;
 }
 .poker__player--0.poker__player--small-blind:after {
-  bottom: -1.2em;
-  left: 0.8em;
+  bottom: -2em;
+  left: 0;
 }
 .poker__player--0.poker__player--big-blind:after {
-  bottom: -1.2em;
-  left: 0.8em;
+  bottom: -2em;
+  left: 0em;
 }
 
 .poker__player--1 {
@@ -443,16 +443,16 @@ a {
           transform: rotate(225deg) translate(20em) rotate(-225deg);
 }
 .poker__player--5.poker__player--dealer:before {
-  bottom: -1.2em;
-  right: -1.2em;
+  bottom: -2em;
+  right: -2em;
 }
 .poker__player--5.poker__player--small-blind:after {
-  bottom: -1.2em;
-  right: 0.8em;
+  bottom: -2em;
+  right: 0em;
 }
 .poker__player--5.poker__player--big-blind:after {
-  bottom: -1.2em;
-  right: 0.8em;
+  bottom: -2em;
+  right: 0em;
 }
 
 .poker__player-name {
