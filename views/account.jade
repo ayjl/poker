@@ -47,8 +47,8 @@ block content
                   each friend in incomingFriends
                     li.account__friend__handle
                       a.button.split.tiny(href='/profile/'+friend._id._id) #{friend._id.username}
-                        span(data-dropdown='drop_#{friend._id._id}')
-                      ul.f-dropdown(id='drop_#{friend._id._id}')
+                        span(data-dropdown='Drop_#{friend._id._id}')
+                      ul.f-dropdown(id='Drop_#{friend._id._id}')
                         li: a.account__friend-action(data-action='accept' data-friend-id='#{friend._id._id}') Accept
                         li: a.account__friend-action(data-action='ignore' data-friend-id='#{friend._id._id}') Ignore
                         li: a.account__friend-action(data-action='block' data-friend-id='#{friend._id._id}') Block
