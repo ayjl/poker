@@ -128,6 +128,16 @@ a {
   margin: 0 auto;
 }
 
+.poker__table__name {
+  margin: 0;
+}
+.poker__table__info {
+  line-height: 1.7rem;
+  margin: -10px 0;
+}
+.poker__table__info > small{
+  margin-right: 10px;
+}
 .poker__container {
   margin-bottom: 100px;
   height: 610px;
