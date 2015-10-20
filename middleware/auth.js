@@ -16,33 +16,44 @@ module.exports = function(req, res, next) {
 
   res.locals.query = req.query;
 
+  res.locals.loggedIn = req.isAuthenticated();
   if(req.isAuthenticated()) {
     req.session.loggedIn = true;
     res.locals.user = req.user;
     res.locals.openChats = [];
     var openChats = onlineUsers.getOpenChats(req.user.id);
+    res.locals.chatState = openChats.chatState;
+    openChats = openChats.openChats;
 
     var userID = req.user;
+    var promises = [];
     for(var i=0; i<openChats.length; i++) {
-      var friendID = openChats[i];
-      Promise.all([
-        User.findById(friendID, {username: 1}),
-        Chat.find({
-              from: { $in: [userID, friendID] }
-            , to: { $in: [userID, friendID] }
-          })
-          .limit(20)
-          .sort({ _id: -1 })
-      ])
-      .then(function(results) {
-        res.locals.openChats.push({ friend: results[0], messages: results[1] });
-      });
+      var friendID = openChats[i].friendID;
+      var state = openChats[i].state;
+
+      promises.push(User.findById(friendID, {username: 1}));
+      promises.push(Chat.find({
+          from: { $in: [userID, friendID] }
+        , to: { $in: [userID, friendID] }
+      })
+      .limit(20)
+      .sort({ _id: -1 }));
     }
+      
+    Promise.all(promises)
+    .then(function(results) {
+      for(var i=0; i<results.length; i+=2) {
+        res.locals.openChats.push({
+            friend: results[i]
+          , state: state
+          , messages: results[i+1]
+        });
+      }
+      next();
+    });
   }
   else {
     res.locals.user = req.session.user;
+    next();
   }
-  res.locals.loggedIn = req.isAuthenticated();
-
-  next();
 };

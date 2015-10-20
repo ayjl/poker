@@ -21,13 +21,44 @@ a {
   margin-top: 5em;
 }
 
+.profile__balance {
+  margin: 0 5px;
+  vertical-align: middle;
+}
+.account__friends{
+  list-style: none;
+  margin: 0;
+}
+.account__friends:empty:before {
+  content: 'Poker is more fun with friends!';
+  display: block;
+}
+.account__friends .button, .account__friend-request .button {
+  margin-bottom: 1px;
+  width: 170px;
+}
+.account__friend-request{
+  list-style: none;
+  margin: 0;
+}
+.account__friend-request:empty:before {
+  content: 'No pending requests';
+  display: block;
+}
+
 #Chat_container {
   position: fixed;
   bottom: 0; right: 10px;
   z-index: 10;
   width: auto; height: 300px;
 }
-#Chat_container > *{
+#Chat_container:after {
+  content: '';
+  display: inline-block;
+  vertical-align: top;
+  width: 0; height: 300px;
+}
+.chat__box, .chat__list{
   box-shadow: rgba(0, 0, 0, 0.14902) 1px -1px 3px 1px;
   display: inline-block;
   vertical-align: top;
@@ -38,15 +69,9 @@ a {
   background-color: #fff;
   list-style: none;
   margin-left: 0;
-}
-#Chat_list:before {
-  /*background-image: url(/img/texture.red.png);*/
-  background-color: #008CBA;
-  color: #fff;
-  content: 'Online Friends';
-  display: block;
-  line-height: 20px;
-  padding: 5px 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 274px;
 }
 .chat__list__friend {
   font-size: 0.8rem;
@@ -59,10 +84,21 @@ a {
 .chat__box {
   position: relative;
 }
+.chat__box--min {
+  height: 26px;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: 160px;
+}
+.chat__box--min .chat__compose {
+  display: none !important;
+}
 .chat__box__title {
   background-color: #008CBA;
   color: #fff;
-  font-size: 1rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
   margin: 0;
   padding: 5px;
   position: relative;
@@ -134,12 +170,15 @@ a {
 }
 .chat__compose {
   background: #fff;
-  padding: 2px 4px;
+  cursor: text;
   font-size: 0.8rem;
+  outline: 0;
+  padding: 2px 4px;
   position: absolute;
   bottom: 0; left: 0; right: 0;
 }
 [contenteditable=true]:empty:before{
+  color: #aaa;
   content: attr(placeholder);
   display: block; /* For Firefox */
 }
@@ -528,6 +567,10 @@ button,.button,.top-bar-section ul li>a,.pricing-table .title,.pricing-table .pr
 
 .button-group > li {
   margin: 0;
+}
+
+button.tiny, .button.tiny {
+  font-size: 0.7875rem;
 }
 
 @font-face {

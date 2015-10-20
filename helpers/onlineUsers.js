@@ -31,19 +31,22 @@ OnlineUsers.prototype.getSocketIDs = function(userID) {
 OnlineUsers.prototype.getOpenChats = function(userID) {
   var idx = this.binarySearch(userID);
   if(idx >= 0) {
-    return this.users[idx].openChats;
+    return { chatState: this.users[idx].chatState, openChats: this.users[idx].openChats };
   }
   else {
-    return [];
+    return { chatState: 'max', openChats: [] };
   }
 }
 
 OnlineUsers.prototype.addOpenChats = function(userID, friendID) {
   var idx = this.binarySearch(userID);
   if(idx >= 0) {
-    var chatIdx = this.users[idx].openChats.indexOf(friendID);
+    var chatIdx = this.users[idx].openChats.findIndex(function(chat) {
+      return chat.friendID == friendID;
+    });
+
     if(chatIdx == -1) {
-      this.users[idx].openChats.unshift(friendID);
+      this.users[idx].openChats.unshift({ friendID: friendID, state: 'max' });
     }
   }
   else {
@@ -54,10 +57,33 @@ OnlineUsers.prototype.addOpenChats = function(userID, friendID) {
 OnlineUsers.prototype.removeOpenChats = function(userID, friendID) {
   var idx = this.binarySearch(userID);
   if(idx >= 0) {
-    var chatIdx = this.users[idx].openChats.indexOf(friendID);
+    var chatIdx = this.users[idx].openChats.findIndex(function(chat) {
+      return chat.friendID == friendID;
+    });
+
     if(chatIdx >= 0) {
       this.users[idx].openChats.splice(chatIdx, 1);
     }
+  }
+}
+
+OnlineUsers.prototype.toggleOpenChats = function(userID, friendID, state) {
+  var idx = this.binarySearch(userID);
+  if(idx >= 0) {
+    var openChat = this.users[idx].openChats.find(function(chat) {
+      return chat.friendID == friendID;
+    });
+
+    if(openChat) {
+      openChat.state = state;
+    }
+  }
+}
+
+OnlineUsers.prototype.toggleChatState = function(userID, state) {
+  var idx = this.binarySearch(userID);
+  if(idx >= 0) {
+    this.users[idx].chatState = state;
   }
 }
 
@@ -68,6 +94,7 @@ OnlineUsers.prototype.add = function(userID, socketID) {
         id: userID
       , socketIDs: [socketID]
       , openChats: []
+      , chatState: 'max'
       , dcTimer: null
     };
 

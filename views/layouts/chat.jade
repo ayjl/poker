@@ -2,9 +2,21 @@ div#Chat_container
   for openChat in openChats
     - var friend = openChat.friend
     - var messages = openChat.messages
-    div.chat__box(id='Chat_box_#{friend._id}' data-user='#{friend._id}')
-      include ./chatbox
-  ul#Chat_list
+    if openChat.state == 'min'
+      div.chat__box.chat__box--min(id='Chat_box_#{friend._id}' data-user='#{friend._id}')
+        include ./chatbox
+    else
+      div.chat__box(id='Chat_box_#{friend._id}' data-user='#{friend._id}')
+        include ./chatbox
+
+  if chatState == 'min'
+    div.chat__list.chat__box--min
+      div.chat__box__title Online Friends
+      ul#Chat_list
+  else
+    div.chat__list
+      div.chat__box__title Online Friends
+      ul#Chat_list
 
 script.
   var friendSocket = io('/');
@@ -61,6 +73,7 @@ script.
     $('.chat__messages').each(function(idx, el) {
       scrollBtm($(el));
     });
+    $('.chat__box__title').on('click', toggleChat);
   });
 
   function addChatFriend(friendID) {
@@ -107,6 +120,7 @@ script.
           $chat.find('.chat__compose').on('keypress', sendMessage);
           $chat.find('.chat__compose').get(0).focus();
           $chat.find('.chat__close').on('click', closeChat);
+          $chat.children('.chat__box__title').on('click', toggleChat);
           $('#Chat_container').prepend($chat);
 
           scrollBtm($chat.children('.chat__messages').first());
@@ -121,9 +135,22 @@ script.
   }
 
   function closeChat() {
-    $chat = $(this).closest('.chat__box');
+    var $chat = $(this).closest('.chat__box');
     friendSocket.emit('close chat', $chat.data('user'));
     $chat.remove();
+  }
+
+  function toggleChat() {
+    var $el = $(this).parent();
+    $el.toggleClass('chat__box--min');
+    var friendID = $el.hasClass('chat__list')? 'chat list' : $el.data('user');
+
+    if($el.hasClass('chat__box--min')) {
+      friendSocket.emit('toggle chat', friendID, false);
+    }
+    else {
+      friendSocket.emit('toggle chat', friendID, true);
+    }
   }
 
   function sendMessage(event) {

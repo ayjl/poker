@@ -41,7 +41,7 @@ router.post('/', function(req, res, next) {
       chips: 2000,
       largestWin: 0,
       handsPlayed: 0
-      ,chipTracker: [{change: 2000, date: Date.now()}]
+      ,chipTracker: [{change: 0, date: Date.now()}]
     });
 
     newUser.save().then(function() {
