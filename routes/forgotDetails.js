@@ -29,6 +29,8 @@ router.post('/', function(req, res, next) {
     } else {
       User.find({email: data.email})
       .then(function(user) {
+        console.log(user);
+        console.log(user.username);
         var smtpTransport = nodemailer.createTransport("SMTP",{
           service: "Gmail",
           auth: {
