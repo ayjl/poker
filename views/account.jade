@@ -10,6 +10,9 @@ block content
         if errorFlash.length
           div.alert-box.alert #{errorFlash}
         p Current Balance is: <span id='Balance'>#{profile.chips}</span>
+        p Largest Win: <span id='Balance'>#{profile.largestWin}
+        p Hands Played: <span id='Balance'>#{profile.handsPlayed}
+        p Ranking: #{ranking}
         container#Graph
         if loggedIn
           if isYou

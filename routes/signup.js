@@ -34,11 +34,13 @@ router.post('/', function(req, res, next) {
   }
 
   if (errors.length == 0) {
-    var newUser = new User({ 
-      username: data.username, 
-      email: data.email, 
-      password: data.password, 
-      chips: 2000
+    var newUser = new User({
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      chips: 2000,
+      largestWin: 0,
+      handsPlayed: 0
       ,chipTracker: [{change: 2000, date: Date.now()}]
     });
 
@@ -54,7 +56,7 @@ router.post('/', function(req, res, next) {
   else {
     res.json({ errors: errors });
   }
-  
+
 });
 
 router.get('/check-username', function(req, res, next) {

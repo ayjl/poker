@@ -34,8 +34,12 @@ router.get('/', function(req, res) {
         }
       }
     }
-    res.render('account', { isYou: true, profile: user , chipTracker: JSON.stringify(user.chipTracker)});
+    User.count({ chips: { $gt: user.chips}
+  })
+  .then(function(ranking) {
+    res.render('account', { isYou: true, profile: user , ranking: ranking+1, chipTracker: JSON.stringify(user.chipTracker)});
   });
+});
 });
 
 router.post('/topup-chips', function(req, res, next) {
