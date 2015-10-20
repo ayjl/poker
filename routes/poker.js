@@ -20,17 +20,17 @@ router.get('/test/eval', function(req, res, next) {
 
   var table = {};
   table.pot = 120;
-  table.cards = ['4c', '5c', '6c', '8d', '9d'];
+  table.cards = ['Ah', '6c', '5s', 'Kc', '3c'];
   table.handPlayers = [];
   table.winners = [];
   table.handPlayers.push({
-    bet: 100,
-    cards: ['As', '4c'],
+    bet: 10,
+    cards: ['2s', '8h'],
     chips: 0
   });
   table.handPlayers.push({
-    bet: 20,
-    cards: ['As', '4c'],
+    bet: 10,
+    cards: ['Jc', '4d'],
     chips: 0
   });
   // table.handPlayers.push({
@@ -48,7 +48,9 @@ router.get('/test/eval', function(req, res, next) {
     if (table.handPlayers[i]) {
       var player = table.handPlayers[i];
       var hand = table.cards.concat(player.cards);
+      console.log('hand ' , hand);
       var eval = evaluator.evalHand(hand);
+      player.allCards = hand;
       player.hand =
       {
           handType: eval.handType
@@ -69,7 +71,7 @@ router.get('/test/eval', function(req, res, next) {
           if(playerHand.handRank > winnerHand.handRank) {
             break;
           }
-          if(player.bet <= winner.bet) {
+          if(player.bet < winner.bet) {
             break;
           }
         }
@@ -77,14 +79,14 @@ router.get('/test/eval', function(req, res, next) {
 
       table.winners.splice(j, 0, player);
 
-      if (!table.winner) {
-        table.winner = player;
-      }
-      else if (player.hand.handType > table.winner.hand.handType ||
-               (player.hand.handType == table.winner.hand.handType &&
-                player.hand.handRank > table.winner.hand.handRank)) {
-        table.winner = player;
-      }
+      // if (!table.winner) {
+      //   table.winner = player;
+      // }
+      // else if (player.hand.handType > table.winner.hand.handType ||
+      //          (player.hand.handType == table.winner.hand.handType &&
+      //           player.hand.handRank > table.winner.hand.handRank)) {
+      //   table.winner = player;
+      // }
     }
   }
 
@@ -113,8 +115,8 @@ router.get('/test/eval', function(req, res, next) {
     }
 
     console.log('start:', start);
-    console.log(numSharing);
-    console.log(winnings);
+    console.log('numSharing ' , numSharing);
+    console.log('winnings ' , winnings);
 
     var winningsPerPlayer = winnings / numSharing;
     var extra = winningsPerPlayer % 1;
@@ -135,14 +137,14 @@ router.get('/test/eval', function(req, res, next) {
     }
   }
 
-  console.log(toUpdate.size);
+  console.log('toUpdate.size ' , toUpdate.size);
   table.winners = Array.from(toUpdate);
-  console.log(table.winners);
+  console.log('table.winners ' , table.winners);
 
   table.winners = table.winners.map(function(player) {
     return player.chips;
   });
-  console.log(table.winners);
+  console.log('table.winners ' , table.winners);
 
   res.json(table.winners);
 });

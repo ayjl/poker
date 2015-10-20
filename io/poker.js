@@ -397,6 +397,7 @@ function startGame(table, poker, socket) {
   }
 
   // Deal community cards
+  deck.shift();
   table.cards.push(deck.shift());
   table.cards.push(deck.shift());
   table.cards.push(deck.shift());
@@ -608,7 +609,7 @@ function evalWinner(table) {
           if(playerHand.handRank > winnerHand.handRank) {
             break;
           }
-          if(player.bet <= winner.bet) {
+          if(player.bet < winner.bet) {
             break;
           }
         }
