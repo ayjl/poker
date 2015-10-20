@@ -57,6 +57,7 @@ block content
         })
         .done(function(data) {
           if(data.errors.length == 0) {
+            location.reload();
           }
           else{
             showErrors($('#Email_Update'), data.errors);

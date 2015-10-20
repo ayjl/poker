@@ -35,7 +35,7 @@ router.post('/', function(req, res, next) {
     if (errors.length == 0) {
       User.findByIdAndUpdate(req.user.id, { $set: { email: data.email } }, { new: true })
         .then(function(user) {
-          return res.json({ email: email });
+          return res.json({ errors: errors, email: user.email });
         });
     }
     else {
@@ -52,7 +52,7 @@ router.post('/', function(req, res, next) {
     if (errors.length == 0) {
       User.findByIdAndUpdate(req.user.id, { $set: { password: data.password } }, { new: true })
         .then(function(user) {
-          return;
+          return res.json({ errors: errors });
         });
     }
     else {

@@ -86,7 +86,7 @@ router.get('/check-email', function(req, res, next) {
     return res.json({ errors: errors });
   }
 
-  User.find({email: req.query.value})
+  User.count({email: req.query.value})
   .then(function(emailCount) {
     if (emailCount > 0) {
       errors.push({
