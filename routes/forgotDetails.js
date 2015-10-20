@@ -18,7 +18,6 @@ router.post('/', function(req, res, next) {
       , message: 'A valid email is required'
     });
   }
-
   User.count({email: data.email})
   .then(function(emailCount) {
     if (emailCount == 0) {
@@ -29,18 +28,27 @@ router.post('/', function(req, res, next) {
     } else {
       User.findOne({email: data.email})
       .then(function(user) {
+        var token = randomString(10);
+        user.resetPasswordToken = token;
+        console.log("Token: " + token);
+        user.resetPasswordExpires = Date.now() + 360000;
         var smtpTransport = nodemailer.createTransport("SMTP",{
           service: "Gmail",
           auth: {
             user: "poker.cs4920@gmail.com",
-            pass: "weaxviorgglomlnk" // or: tgdHN6kNj9SaD['Bs_kc
+            pass: "weaxviorgglomlnk"
           }
         });
         var mailOptions={
           from: "PokerPros Support <poker.cs4920@gmail.com>",
           to: data.email,
           subject: "Account Recovery",
-          text: "Hello!\nYour username for PokerPros is: " + user.username + "\nYour password is: " + user.password + "\nWe recommend you change your password immediately once you log in under the Update Details section in your account.\nKind regards,\nPokerPros Support\n"
+          text: 'Hello!\n\n' +
+            'You are receiving this because you (or someone else) have requested the reset of the password or your username for your account.\n\n' +
+            'Your username is: ' + user.username + '\n\n' +
+            'Please click on the following link, or paste this into your browser to reset your password:\n\n' +
+            'http://' + req.headers.host + '/reset/' + token + '\n\n' +
+            'If you did not request this, please ignore this email and your password will remain unchanged.\n'
         }
         console.log(mailOptions);
         smtpTransport.sendMail(mailOptions, function(error, response){
@@ -64,6 +72,10 @@ function isEmail(email) {
   var regex = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i;
 
   return regex.test(email);
+}
+
+function randomString(length) {
+    return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 }
 
 module.exports = router;

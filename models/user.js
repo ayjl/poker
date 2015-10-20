@@ -12,6 +12,8 @@ var userSchema = new mongoose.Schema( {
     , outgoing: [Schema.Types.ObjectId]
     , incoming: [Schema.Types.ObjectId]
   }
+  , resetPasswordToken: String
+  , resetPasswordExpires: Date
   // , created_at    : { type: Date }
 });
 
