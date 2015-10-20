@@ -287,16 +287,32 @@ function startGame(table, poker, socket) {
 
   var deck = require('../helpers/deck')();
   var seat = 0;
-  table.handPlayers = table.players.filter(function(item) {
-    return item;
+  table.handPlayers = table.players.filter(function(player) {
+    return player;
   });
+
+  var kick = table.handPlayers.filter(function(player) {
+    return player.chips < table.blind;
+  });
+
+  for(var i=0; i<kick.length; i++) {
+    var idx = table.handPlayers.indexOf(kick[i]);
+    table.handPlayers.splice(idx, 1);
+    var kickSocket = poker.connected[kick[i].socketID];
+    kickSocket.emit('customError', {
+      message: 'You\'ve run out of chips. Choose a seat to buy-in again.'
+    });
+    playerLeave(table, poker, kickSocket, 'spectate');
+  }
+
+  if(table.handPlayers.length < 2) {
+    table.playing = false;
+    return;
+  }
 
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
     player.inHand = true;
-    if(player.chips <= table.blind) {
-      player.chips = 1000;
-    }
   }
 
   // Assign dealer
