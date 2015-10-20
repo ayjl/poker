@@ -30,16 +30,16 @@ script.
     $('#Chat_list').children().remove();
 
     $(online).each(function(idx, user) {
-      if(user == userID) {
+      if(user.id == userID) {
         return true;
       }
 
-      addChatFriend(user);
+      addChatFriend(user.id, user.tables);
     });
   });
 
   friendSocket.on('user connect', function(user) {
-    addChatFriend(user);
+    addChatFriend(user, []);
   });
 
   friendSocket.on('user disconnect', function(user) {
@@ -76,7 +76,7 @@ script.
     $('.chat__box__title').on('click', toggleChat);
   });
 
-  function addChatFriend(friendID) {
+  function addChatFriend(friendID, tables) {
     var friend;
     for(var idx=0; idx<userFriends.length; idx++) {
       if(userFriends[idx].id == friendID) {
@@ -86,19 +86,45 @@ script.
     }
 
     if(friend) {
-      $el = $('<li></li>');
+      var $el = $('<li></li>');
       $el.text(friend.username);
       $el.addClass('chat__list__friend');
       $el.attr('data-user', friend.id);
       $el.on('click', clickOpenChat);
+
+      if(tables.length > 0) {
+        var $button = $('<button data-dropdown="Chat_table_'+friend.id+'" class="tiny dropdown">Join</button>');
+        var $list = $('<ul id="Chat_table_'+friend.id+'" data-dropdown-content class="f-dropdown"></ul>');
+
+        $(tables).each(function(idx, table) {
+          var big = parseInt(table.blind);
+          var small = big / 2;
+
+          if(small >= 1000) {
+            big = big/1000 + 'k';
+            small = small/1000 + 'k';
+          }
+
+          var blind = small + '/' + big;
+          var $table = $('<li><a href="/poker/'+table.id+'">'+table.name+' ('+blind+')</a></li>');
+          $list.append($table);
+        });
+
+        $el.append($button);
+        $el.append($list);
+      }
+
       $('#Chat_list').append($el);
+      $('#Chat_list').foundation();
     }
   }
 
-  function clickOpenChat() {
-    var username = $(this).text();
-    var friendID = $(this).data('user');
-    openChat(friendID);
+  function clickOpenChat(event) {
+    if($(event.target).hasClass('chat__list__friend')) {
+      var username = $(this).text();
+      var friendID = $(this).data('user');
+      openChat(friendID);
+    }
   }
 
   function openChat(friendID, triggered) {
