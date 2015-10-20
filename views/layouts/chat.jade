@@ -75,6 +75,7 @@ script.
     if(friend) {
       $el = $('<li></li>');
       $el.text(friend.username);
+      $el.addClass('chat__list__friend');
       $el.attr('data-user', friend.id);
       $el.on('click', clickOpenChat);
       $('#Chat_list').append($el);
