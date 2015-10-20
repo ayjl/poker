@@ -77,9 +77,30 @@ a {
   font-size: 0.8rem;
   cursor: pointer;
   padding: 5px;
+  position: relative;
 }
 .chat__list__friend:hover {
   background-color: #f5f5f5;
+}
+.chat__list__friend > button {
+  position: absolute;
+  right: 10px;
+  font-size: 0.72rem !important;
+  padding: 3px 25px 3px 5px !important;
+  margin-bottom: 0;
+}
+.chat__list__friend > button:after {
+  right: 6px !important;
+}
+.chat__list__friend > .f-dropdown {
+  width: 80%;
+  right: 10px !important; left: auto !important;
+}
+.chat__list__friend > .f-dropdown.open::before {
+  right: 10px; left: auto;
+}
+.chat__list__friend > .f-dropdown.open::after {
+  right: 9px; left: auto;
 }
 .chat__box {
   position: relative;

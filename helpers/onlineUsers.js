@@ -14,7 +14,7 @@ OnlineUsers.prototype.find = function(userID) {
 
 OnlineUsers.prototype.getUserIDs = function(userID) {
   return this.users.map(function(user) {
-    return user.id;
+    return { id: user.id, tables: user.tables };
   });
 }
 
@@ -87,6 +87,32 @@ OnlineUsers.prototype.toggleChatState = function(userID, state) {
   }
 }
 
+OnlineUsers.prototype.addTable = function(userID, tableID, tableName, tableBlind) {
+  var idx = this.binarySearch(userID);
+  if(idx >= 0) {
+    var tableIdx = this.users[idx].tables.findIndex(function(table) {
+      return table.id == tableID;
+    });
+
+    if(tableIdx == -1) {
+      this.users[idx].tables.push({ id: tableID, name: tableName, blind: tableBlind });
+    }
+  }
+}
+
+OnlineUsers.prototype.removeTable = function(userID, tableID) {
+  var idx = this.binarySearch(userID);
+  if(idx >= 0) {
+    var tableIdx = this.users[idx].tables.findIndex(function(table) {
+      return table.id == tableID;
+    });
+
+    if(tableIdx >= 0) {
+      this.users[idx].tables.splice(tableIdx, 1);
+    }
+  }
+}
+
 OnlineUsers.prototype.add = function(userID, socketID) {
   var idx = this.binarySearch(userID);
   if(idx < 0) {
@@ -96,6 +122,7 @@ OnlineUsers.prototype.add = function(userID, socketID) {
       , openChats: []
       , chatState: 'max'
       , dcTimer: null
+      , tables: []
     };
 
     idx = -(idx + 1);

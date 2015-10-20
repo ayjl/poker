@@ -127,6 +127,10 @@ module.exports = function(io) {
           return;
         }
 
+        if(socket.request.session.loggedIn) {
+          onlineUsers.addTable(player.id, table.id, table.name, table.blind);
+        }
+
         player.chips = table.blind * config.get('buyInMult');
         storePlayerChips(player.id, -player.chips, socket.request.session.loggedIn);
         socket.emit('chips', chips - player.chips);
@@ -553,6 +557,8 @@ function playerLeave(table, poker, socket, type) {
         progressGameState(table, poker, socket);
       }
     }
+
+    onlineUsers.removeTable(player.id, table.id);
 
     if(type == 'spectate') {
       table.spectators.push(player);
