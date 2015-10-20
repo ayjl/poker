@@ -174,9 +174,6 @@ a {
 .chat__msg--other {
   margin-left: 5%;
 }
-.chat__msg--other {
-  margin-left: 10%;
-}
 .chat__msg--other + .chat__msg--other {
   margin-top: 0; margin-bottom: 0;
 }
