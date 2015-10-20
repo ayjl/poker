@@ -21,5 +21,9 @@ html
   body
     include ./layouts/header
     block content
+
+    if loggedIn
+      include ./layouts/chat
+
     script.
       $(document).foundation();
