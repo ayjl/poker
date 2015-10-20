@@ -51,7 +51,7 @@ module.exports = function(io) {
         , playing: table.playing
       });
     }
-    
+
     var playerID;
     if(socket.request.session.passport) {
       playerID = socket.request.session.passport.user;
@@ -159,7 +159,7 @@ module.exports = function(io) {
 
         if (action.action == 'fold') {
           poker.to(table.id).emit('fold', table.handPlayers[table.turn]);
-          
+
           if(table.handFirstPlayer == player) {
             if(table.turn + 1 == table.handPlayers.length) {
               table.handFirstPlayer = table.handPlayers[0];
@@ -168,7 +168,7 @@ module.exports = function(io) {
               table.handFirstPlayer = table.handPlayers[table.turn+1];
             }
           }
-          
+
           table.handPlayers[table.turn].inHand = false;
           table.handPlayers.splice(idx, 1);
           if (table.handPlayers.length <= 1) {
@@ -186,7 +186,7 @@ module.exports = function(io) {
               extraRaise = table.minRaise;
               action.amount = extraRaise + table.roundBet;
             }
-            
+
             var extraPot = (action.amount - table.roundBet) + (table.bet - player.bet);
             if(extraPot > player.chips) {
               var deduct = extraPot - player.chips;
@@ -226,7 +226,7 @@ module.exports = function(io) {
               extraPot = player.chips;
               player.allIn = true;
             }
-            
+
             player.bet += extraPot;
             table.pot += extraPot;
             player.chips -= extraPot;
@@ -275,7 +275,7 @@ function startGame(table, poker, socket) {
   if(table.gameTimer && !table.gameTimer._called) {
     return;
   }
-  
+
   resetGame(table, poker);
 
   if(table.numPlayers < 2) {
@@ -405,6 +405,8 @@ function startGame(table, poker, socket) {
   deck.shift();
   table.cards.push(deck.shift());
 
+  incrementHandsPlayed(table);
+
   table.gameState = 0;
   table.turn = 0;
   poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
@@ -421,6 +423,8 @@ function progressGameState(table, poker, socket) {
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
       // storePlayerChips(table.handPlayers[0]);
+      console.log("checkHighestWin");
+      checkHighestWin(table.handPlayers[0].id, table.pot);
     }
 
     if (table.numPlayers <= 1) {
@@ -450,7 +454,7 @@ function progressGameState(table, poker, socket) {
   var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
-  
+
   switch (table.gameState) {
     case 0:
       poker.to(table.id).emit('community cards', table.cards.slice(0, 3));
@@ -661,8 +665,19 @@ function evalWinner(table) {
   }
 
   table.winners = Array.from(toUpdate);
+
+  var winnersArray = table.winners.filter(function(item) {
+    return item;
+  })
+  var winnerIDs = {};
+
+  for (var i = 0; i < winnerIDs.length; i++){
+    winnerIDs[i] - winnersArray[i].id;
+  }
+
   for(var i=0; i<table.winners.length; i++) {
     // storePlayerChips(table.winners[i]);
+    checkHighestWin(winnerIDs[i], winningsPerPlayer);
   }
 
   table.winners = table.winners.map(function(player) {
@@ -759,4 +774,23 @@ function getPlayerName(playerID, passport) {
       return sessionData.user.username;
     });
   }
+}
+
+function incrementHandsPlayed(table){
+  var array = table.handPlayers.filter(function(item){
+    return item;
+  });
+
+  for (var i = 0; i < array.length; i++){
+    var userID = array[i].id;
+    User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+  }
+  //User.update({_id: {$in : playerArray}}, { $inc: {handsPlayed: 1}}).exec();
+}
+
+function checkHighestWin(playerID, winnings) {
+  console.log("checkHighestWinfunc");
+  console.log(playerID);
+  console.log(winnings);
+  User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
 }
