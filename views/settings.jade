@@ -4,22 +4,24 @@ block content
   div.row
     div.small-12.column
       h1 Edit details
-      form#Email_Update
-        p Current Email is: <span id='Email'>#{profile.email}</span>
-        div.row
-          div.small-12.column
-            input#Email(name='email' type='email' required placeholder='Email')
-        div.row
-          div.small-12.column
-            button.button.small Submit      
-      form#Password_Update
-        div.row
-          div.small-12.column
-            input#Password(name='password' type='password' required placeholder='Password')
-        div.row
-          div.small-12.column
-            button.button.small Submit
-      a.button(href="/account") Back to my account
+      a.button.tiny(href="/account") Back to my account
+      div.row
+        div.medium-6.column
+          form#Email_Update
+            div.row.collapse
+              div.small-8.column
+                  input#Email(name='email' type='email' required placeholder='Email' value='#{profile.email}')
+              div.small-4.column
+                button.button.postfix Save
+
+        div.medium-6.column
+          form#Password_Update
+            div.row.collapse
+              div.small-8.column
+                input#Password(name='password' type='password' required placeholder='Password')
+              div.small-4.column
+                button.button.postfix Save
+
   script(type='text/javascript').
     $(document).ready(function() {
       $('#Email_Update').find('input').blur(function() {
