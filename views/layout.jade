@@ -26,3 +26,13 @@ html
 
     script.
       $(document).foundation();
+      window.onload = function() {
+        setTimeout(function() {
+          new Image().src = "/img/black-felt.png";
+          new Image().src = "/img/clubs-l.png";
+          new Image().src = "/img/diamonds-l.png";
+          new Image().src = "/img/hearts-l.png";
+          new Image().src = "/img/spades-l.png";
+          new Image().src = "/img/back.png";
+        }, 1000);
+      };
