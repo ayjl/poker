@@ -1,0 +1,112 @@
+extends ./layout
+
+block content
+  div.row
+    div.small-12.column
+      h1 Edit details
+      form#Email_Update
+        p Current Email is: <span id='Email'>#{profile.email}</span>
+        div.row
+          div.small-12.column
+            input#Email(name='email' type='email' required placeholder='Email')
+        div.row
+          div.small-12.column
+            button.button.small Submit      
+      form#Password_Update
+        div.row
+          div.small-12.column
+            input#Password(name='password' type='password' required placeholder='Password')
+        div.row
+          div.small-12.column
+            button.button.small Submit
+      a.button(href="/account") Back to my account
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('#Email_Update').find('input').blur(function() {
+        var name = $(this).attr('name');
+        var value = $(this).val();
+        var $el = $(this);
+        $.ajax({
+          type: 'GET',
+          url: '/signup/check-' + name,
+          data: {
+            value: value
+          },
+        })
+        .done(function(data) {
+          if(data.errors.length > 0) {
+            showErrors($('#Email_Update'), data.errors);
+          }
+          else {
+            $el.closest('.error').removeClass('error');
+            $el.siblings('.error').remove();
+          }
+        });
+      });
+
+      $('#Email_Update').on('submit', function(event) {
+        event.preventDefault();
+        data = formToJSON($(this));
+        console.log(data);
+        $.ajax({
+          type: 'POST',
+          url: '/account/settings',
+          data: {
+            data: data
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            alert("Successfully updated email!");
+            location.reload();
+          }
+          else{
+            showErrors($('#Email_Update'), data.errors);
+          }
+        });
+      });
+
+      $('#Password_Update').find('input').blur(function() {
+        var name = $(this).attr('name');
+        var value = $(this).val();
+        var $el = $(this);
+        $.ajax({
+          type: 'GET',
+          url: '/signup/check-' + name,
+          data: {
+            value: value
+          },
+        })
+        .done(function(data) {
+          if(data.errors.length > 0) {
+            showErrors($('#Password_Update'), data.errors);
+          }
+          else {
+            $el.closest('.error').removeClass('error');
+            $el.siblings('.error').remove();
+          }
+        });
+      });
+
+      $('#Password_Update').on('submit', function(event) {
+        event.preventDefault();
+        data = formToJSON($(this));
+        $.ajax({
+          type: 'POST',
+          url: '/account/settings',
+          data: {
+            data: data
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            alert("Successfully updated password!");
+            location.reload();
+          }
+          else{
+            showErrors($('#Password_Update'), data.errors);
+          }
+        });
+
+      });
+    });

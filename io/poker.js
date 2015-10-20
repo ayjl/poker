@@ -51,16 +51,16 @@ module.exports = function(io) {
         , playing: table.playing
       });
     }
-    
+
     var playerID;
-    if(socket.request.session.passport) {
+    if(socket.request.session.loggedIn) {
       playerID = socket.request.session.passport.user;
     }
     else{
       playerID = socket.request.sessionID;
     }
 
-    getPlayerName(playerID, socket.request.session.passport)
+    getPlayerName(playerID, socket.request.session.loggedIn)
     .then(function(name) {
       var player = {
           id: playerID
@@ -82,7 +82,7 @@ module.exports = function(io) {
 
     socket.on('sit', function(seat) {
       var playerID;
-      if(socket.request.session.passport) {
+      if(socket.request.session.loggedIn) {
         playerID = socket.request.session.passport.user;
       }
       else{
@@ -91,7 +91,7 @@ module.exports = function(io) {
 
       var specIdx = findBySocketID(socket.id, table.spectators);
 
-      getPlayerChips(playerID, socket.request.session.passport)
+      getPlayerChips(playerID, socket.request.session.loggedIn)
       .then(function(chips) {
         if(chips < table.blind * config.get('buyInMult')) {
           socket.emit('customError', {
@@ -128,7 +128,7 @@ module.exports = function(io) {
         }
 
         player.chips = table.blind * config.get('buyInMult');
-        storePlayerChips(player.id, -player.chips, socket.request.session.passport);
+        storePlayerChips(player.id, -player.chips, socket.request.session.loggedIn);
         socket.emit('chips', chips - player.chips);
 
         table.spectators.splice(specIdx, 1);
@@ -159,7 +159,7 @@ module.exports = function(io) {
 
         if (action.action == 'fold') {
           poker.to(table.id).emit('fold', table.handPlayers[table.turn]);
-          
+
           if(table.handFirstPlayer == player) {
             if(table.turn + 1 == table.handPlayers.length) {
               table.handFirstPlayer = table.handPlayers[0];
@@ -168,7 +168,7 @@ module.exports = function(io) {
               table.handFirstPlayer = table.handPlayers[table.turn+1];
             }
           }
-          
+
           table.handPlayers[table.turn].inHand = false;
           table.handPlayers.splice(idx, 1);
           if (table.handPlayers.length <= 1) {
@@ -186,7 +186,7 @@ module.exports = function(io) {
               extraRaise = table.minRaise;
               action.amount = extraRaise + table.roundBet;
             }
-            
+
             var extraPot = (action.amount - table.roundBet) + (table.bet - player.bet);
             if(extraPot > player.chips) {
               var deduct = extraPot - player.chips;
@@ -205,7 +205,6 @@ module.exports = function(io) {
             player.bet = table.bet;
             table.pot += extraPot;
             player.chips -= extraPot;
-            // storePlayerChips(player);
 
             if(player.chips == 0) {
               player.allIn = true;
@@ -226,11 +225,10 @@ module.exports = function(io) {
               extraPot = player.chips;
               player.allIn = true;
             }
-            
+
             player.bet += extraPot;
             table.pot += extraPot;
             player.chips -= extraPot;
-            // storePlayerChips(player);
 
             poker.to(table.id).emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, player);
             socket.emit('confirm bet', table.bet, table.roundBet, player);
@@ -275,7 +273,7 @@ function startGame(table, poker, socket) {
   if(table.gameTimer && !table.gameTimer._called) {
     return;
   }
-  
+
   resetGame(table, poker);
 
   if(table.numPlayers < 2) {
@@ -298,7 +296,6 @@ function startGame(table, poker, socket) {
     player.inHand = true;
     if(player.chips <= table.blind) {
       player.chips = 1000;
-      // storePlayerChips(player);
     }
   }
 
@@ -347,11 +344,9 @@ function startGame(table, poker, socket) {
 
   smallBlindPlayer.bet = table.blind/2;
   smallBlindPlayer.chips -= table.blind/2;
-  // storePlayerChips(smallBlindPlayer);
 
   bigBlindPlayer.bet = table.blind;
   bigBlindPlayer.chips -= table.blind;
-  // storePlayerChips(bigBlindPlayer);
 
   // Move the blinds players to the end
   var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
@@ -397,6 +392,7 @@ function startGame(table, poker, socket) {
   }
 
   // Deal community cards
+  deck.shift();
   table.cards.push(deck.shift());
   table.cards.push(deck.shift());
   table.cards.push(deck.shift());
@@ -404,6 +400,8 @@ function startGame(table, poker, socket) {
   table.cards.push(deck.shift());
   deck.shift();
   table.cards.push(deck.shift());
+
+  incrementHandsPlayed(table);
 
   table.gameState = 0;
   table.turn = 0;
@@ -420,7 +418,7 @@ function progressGameState(table, poker, socket) {
       table.winners = [table.handPlayers[0].id];
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
-      // storePlayerChips(table.handPlayers[0]);
+      checkHighestWin(table.handPlayers[0].id, table.pot);
     }
 
     if (table.numPlayers <= 1) {
@@ -450,7 +448,7 @@ function progressGameState(table, poker, socket) {
   var idx = findBySocketID(table.handFirstPlayer.socketID, table.handPlayers);
   var moveToEnd = table.handPlayers.splice(0, idx);
   table.handPlayers = table.handPlayers.concat(moveToEnd);
-  
+
   switch (table.gameState) {
     case 0:
       poker.to(table.id).emit('community cards', table.cards.slice(0, 3));
@@ -545,10 +543,14 @@ function playerLeave(table, poker, socket, type) {
       player.seat = -1;
     }
 
-    storePlayerChips(player.id, player.chips, socket.request.session.passport)
+    storePlayerChips(player.id, player.chips, socket.request.session.loggedIn)
     .then(function(chips) {
       socket.emit('chips', chips);
     });
+
+    var chipTrackerUpdate = player.chips - table.blind*config.get('buyInMult');
+
+    storePlayerChipTracker(player.id, chipTrackerUpdate, socket.request.session.loggedIn);
 
     table.players.splice(seat, 1, null);
   }
@@ -600,7 +602,7 @@ function evalWinner(table) {
           if(playerHand.handRank > winnerHand.handRank) {
             break;
           }
-          if(player.bet <= winner.bet) {
+          if(player.bet < winner.bet) {
             break;
           }
         }
@@ -635,7 +637,6 @@ function evalWinner(table) {
     // that no one matched
     if(winnings == table.winners[start].bet) {
       table.winners[start].chips = winnings;
-      // storePlayerChips(table.winners[start]);
       continue;
     }
 
@@ -657,8 +658,18 @@ function evalWinner(table) {
   }
 
   table.winners = Array.from(toUpdate);
+
+  var winnersArray = table.winners.filter(function(item) {
+    return item;
+  })
+  var winnerIDs = {};
+
+  for (var i = 0; i < winnerIDs.length; i++){
+    winnerIDs[i] - winnersArray[i].id;
+  }
+
   for(var i=0; i<table.winners.length; i++) {
-    // storePlayerChips(table.winners[i]);
+    checkHighestWin(winnerIDs[i], winningsPerPlayer);
   }
 
   table.winners = table.winners.map(function(player) {
@@ -707,6 +718,24 @@ function storePlayerChips(playerID, diff, passport) {
   }
 }
 
+function storePlayerChipTracker(playerID, balChange, passport) {
+  if(passport) {
+    return User.findById(playerID, { chipTracker: {$slice: -1} }).then(function(user) {
+      return user.chipTracker[0].change;
+    })
+    .then(function(previous) {
+      User.update(
+        { _id: playerID }
+        ,{$push: {chipTracker: {change: previous + balChange, date: Date.now()}}}
+      )
+      .exec();
+    });
+  } else {
+    console.log("Guest user does not keep track of historical chips");
+    return;
+  }
+}
+
 function getPlayerChips(playerID, passport) {
   if(passport) {
     return User.findById(playerID)
@@ -737,4 +766,20 @@ function getPlayerName(playerID, passport) {
       return sessionData.user.username;
     });
   }
+}
+
+function incrementHandsPlayed(table){
+  var array = table.handPlayers.filter(function(item){
+    return item;
+  });
+
+  for (var i = 0; i < array.length; i++){
+    var userID = array[i].id;
+    User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+  }
+  //User.update({_id: {$in : playerArray}}, { $inc: {handsPlayed: 1}}).exec();
+}
+
+function checkHighestWin(playerID, winnings) {
+  User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
 }

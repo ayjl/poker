@@ -1,6 +1,13 @@
 extends ./layout
 
 block content
+  div.row
+    div.small-12.column
+      h2.poker__table__name #{table.name}
+      h3.poker__table__info
+        small Buy-in: $#{table.blind*40}
+        small Blinds: $#{table.blind/2} / $#{table.blind}
+
   div.row.poker__container
     div.poker__table
       div.poker__table-inner
@@ -23,51 +30,28 @@ block content
     div.row
       div.medium-6.column
         ul.button-group
-          li: button#Check.button.small Check
-          li: button#Fold.button.small Fold
-          li: button#Bet.button.small 10
+          li: button#Check.small Check
+          li: button#Fold.small Fold
+          li: button#Bet.small 10
       div.medium-4.column.end
         div.row.collapse
           div.small-7.column
             input(type="number", value=10, min=10)#Bet_amount
           div.small-5.column
-            button#All_in.button.postfix All In
+            button#All_in.postfix All In
 
     div.row
       div.small-12.column
-        button#Spectate.button.small.no-disable Spectate
-
-  div.row
-    div.small-6.column
-      h1 #{table.name}
-      h2 #{table.blind/2} / #{table.blind}
-      h3 Pot
-      p#Pot_tmp 0
-      h3 Players
-      ol#Players_tmp
-        - for(var i=0; i<6; i++)
-          li Empty
-      h3 Winner
-        p#Winner_tmp No one
+        button#Spectate.small.no-disable Spectate
           
-    div.small-6.column
-      h1#Player
-      h3 Chips
-        p#Table_chips
-      h3 Community Cards
-        p#Community_cards_tmp None
-      h3 Your Cards
-      p#Player_cards None
-
   div#Error_modal.reveal-modal.small(data-reveal)
     div.row
       div.small-12.column
         div#Error_message
     a.close-reveal-modal &#215;
     
-  div#ProgressBar
-    div.progress
-      span#FoldBar.meter(style="width:100%")
+  div#ProgressBar.hide.progress
+    span#FoldBar.meter
     
 
   script(type='text/javascript').
@@ -77,7 +61,6 @@ block content
     var roundBet = 0;
     var minBet = 10;
     var chips = 0;
-    var timeRemaining = 10;
     var timer;
 
     socket.on('chips', function(chips) {
@@ -94,13 +77,20 @@ block content
     });
 
     socket.on('player join', function(player, isYou) {
-      $playerEl = $('#Players_tmp').children().eq(player.seat);
-      $playerEl.text(player.name);
-      $playerEl.addClass('poker__players--folded');
-
       var $player = $('#Players').children().eq(player.seat);
       $player.removeClass('poker__player--empty');
-      $player.children('.poker__player-name').text(player.name);
+
+      if(player.id.length == 24) {
+        var $playerLink = $("<a></a>");
+        $playerLink.attr('href', '/profile/' + player.id);
+        $playerLink.attr('target', '_blank');
+        $playerLink.text(player.name);
+        $player.children('.poker__player-name').html($playerLink);
+      }
+      else {
+        $player.children('.poker__player-name').text(player.name);
+      }
+
       $player.children('.poker__player-chips').text(player.chips);
 
       if(isYou) {
@@ -112,24 +102,26 @@ block content
       var $players = $('#Players').children();
       $(data.players).each(function(idx, player) {
         var $player = $players.eq(idx);
-        var $playerEl = $('#Players_tmp').children().eq(idx);
 
         if(player) {
           $player.removeClass('poker__player--empty');
-          $player.children('.poker__player-name').text(player.name);
+
+          if(player.id.length == 24) {
+            var $playerLink = $("<a></a>");
+            $playerLink.attr('href', '/profile/' + player.id);
+            $playerLink.attr('target', '_blank');
+            $playerLink.text(player.name);
+            $player.children('.poker__player-name').html($playerLink);
+          }
+          else {
+            $player.children('.poker__player-name').text(player.name);
+          }
+
           $player.children('.poker__player-chips').text(player.chips);
           if(player.inHand) {
             $player.children('.poker__card-1').addClass('poker__card--back');
             $player.children('.poker__card-2').addClass('poker__card--back');
           }
-
-          $playerEl.text(player.name);
-          if (!player.inHand) {
-            $playerEl.addClass('poker__players--folded');
-          }
-        }
-        else {
-          $playerEl.addClass('poker__players--folded');
         }
       });
 
@@ -146,19 +138,14 @@ block content
 
     socket.on('players in hand', function(data) {
       $.each(data.players, function(id, player) {
-        var $playerEl = $('#Players_tmp').children().eq(player.seat);
         var $player = $('#Players').children().eq(player.seat);
-        $playerEl.removeClass('poker__players--folded');
         if(player.id == data.dealerID) {
-          $playerEl.addClass('poker__players--dealer');
           $player.addClass('poker__player--dealer');
         }
         if(player.id == data.smallBlindID) {
-          $playerEl.addClass('poker__players--small-blind');
           $player.addClass('poker__player--small-blind');
         }
         if(player.id == data.bigBlindID) {
-          $playerEl.addClass('poker__players--big-blind');
           $player.addClass('poker__player--big-blind');
         }
 
@@ -173,12 +160,10 @@ block content
         $player.children('.poker__player-chips').text(player.chips);
         if(player.id == playerID) {
           chips = player.chips;
-          $('#Table_chips').text(player.chips);
         }
       });
 
       $('#Pot').text(data.pot);
-      $('#Pot_tmp').text(data.pot);
 
       if(playerID == data.smallBlindID) {
         bet = data.blind/2;
@@ -214,10 +199,6 @@ block content
     });
 
     socket.on('player leave', function(seat, isYou) {
-      var $playerEl = $('#Players_tmp').children().eq(seat);
-      $playerEl.text('Empty');
-      //- $playerEl.addClass('poker__players--folded');
-
       var $player = $('#Players').children().eq(seat);
       $player.children('.poker__player-name').text('Seat Available');
       $player.addClass('poker__player--empty');
@@ -228,15 +209,12 @@ block content
     });
 
     socket.on('player cards', function(cards, seat) {
-      $('#Player_cards').text(cards.join(' '));
-
       var $player = $('#Players').children().eq(seat);
       $player.children('.poker__card-1').addClass('poker__card poker__card--' + cards[0]);
       $player.children('.poker__card-2').addClass('poker__card poker__card--' + cards[1]);
     });
 
     socket.on('community cards', function(cards) {
-      $('#Community_cards_tmp').text(cards.join(' '));
       $.each(cards, function(idx, card) {
         $('#Community_cards').children().eq(idx).addClass('poker__card--' + card);
       });
@@ -245,12 +223,8 @@ block content
     });
 
     socket.on('reset', function() {
-      $('#Player_cards').text('None');
-      $('#Community_cards_tmp').text('None');
       $('#Winner').text('');
-      $('#Winner_tmp').text('No one');
       $('#Pot').text(0);
-      $('#Pot_tmp').text(0);
       $('#Check').text('Check');
       $('#Bet').removeClass('raise');
       bet = 0;
@@ -258,8 +232,6 @@ block content
       minBet = 10;
       updateBetButton(true);
       $('button:not(.no-disable)').prop('disabled', true);
-      $('#Players_tmp').children().removeClass();  // Remove all classes
-      $('#Players_tmp').children().addClass('poker__players--folded');
 
       $('.poker__player--winner').removeClass('poker__player--winner');
       $('.poker__player--dealer').removeClass('poker__player--dealer');
@@ -273,7 +245,6 @@ block content
     });
 
     socket.on('fold', function(player) {
-      $('#Players_tmp').children().eq(player.seat).addClass('poker__players--folded');
       $('#Players').children().eq(player.seat).addClass('poker__player--folded');
       if (playerID == player.id) {
         $('button:not(.no-disable)').prop('disabled', true);
@@ -281,48 +252,35 @@ block content
     });
 
     socket.on('turn', function(player) {
-      clearInterval(timer);
-      $('#ProgressBar').show();
       $('.poker__players--active').removeClass('poker__players--active');
-      $('#Players_tmp').children().eq(player.seat).addClass('poker__players--active');
       if(player.id == playerID) {
         $('button:not(.no-disable)').prop('disabled', false);
-        
       }
       else {
         $('button:not(.no-disable)').prop('disabled', true);
       }
       $player = $('#Players').children().eq(player.seat);
       $('#ProgressBar').detach().appendTo($player);
+      clearTimeout(timer);
+      $('#ProgressBar').show();
+      $('#FoldBar').removeClass('animate');  // Restart the animation
+      $('#FoldBar').addClass('animate');
       
-      
-      timeRemaining = 30;
-      
-      timer = setInterval(function() { 
-        timeRemaining--;
-        console.log("time: " + timeRemaining);
-        $('#FoldTimer').text(timeRemaining);
-        var percent = timeRemaining/30*100;
-        $('#FoldBar').css('width', percent+'%');
-        if (timeRemaining <= 0){
-          if(player.id == playerID) {
-            socket.emit('action', { action: 'fold' });
-            socket.emit('spectate');
-            clearInterval(timer);
-          }
+      timer = setTimeout(function() { 
+        if(player.id == playerID) {
+          socket.emit('action', { action: 'fold' });
+          socket.emit('spectate');
         }
-      }, 1000);
+      }, 30000);
     });
 
     socket.on('pot', function(pot, tableBet, tableRoundBet, minRaise, player) {
       $('#Pot').text(pot);
-      $('#Pot_tmp').text(pot);
       if(player) {
         $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
 
         if(player.id == playerID) {
           chips = player.chips;
-          $('#Table_chips').text(player.chips);
         }
       }
       
@@ -351,7 +309,6 @@ block content
 
     socket.on('confirm bet', function(tableBet, tableRoundBet, player) {
       $('#Check').text('Check');
-      $('#Table_chips').text(player.chips);
       $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
       $('#Bet_amount').prop('max', player.chips);
       chips = player.chips;
@@ -361,20 +318,19 @@ block content
     });
 
     socket.on('winner', function(handPlayers, winners) {
-      clearInterval(timer);
+      clearTimeout(timer);
+      $('#ProgressBar').hide();
       var textArray = [];
       var bestHand = null;
       $.each(handPlayers, function(idx, player) {
         if(!player) {
           return true;  // This is the equivalent of continue
         }
-        $('#ProgressBar').hide();
 
         if(winners.indexOf(player.id) != -1) {
           bestHand = player.hand;
           if (playerID == player.id) {
             textArray.unshift('You');
-            $('#Table_chips').text(player.chips);
             chips = player.chips;
           }
           else {
@@ -385,7 +341,6 @@ block content
         }
 
         if (playerID == player.id) {
-          $('#Table_chips').text(player.chips);
           chips = player.chips;
         }
         $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
@@ -400,9 +355,8 @@ block content
 
       var text = textArray.join(', ');
       if(bestHand) {
-        text += ' - ' + bestHand.handName;
+        text += ' - ' + bestHand.handName.charAt(0).toUpperCase() + bestHand.handName.slice(1);
       }
-      $('#Winner_tmp').text(text);
 
       if(textArray.length > 1) {
         text = 'Winners:' + text;
@@ -417,17 +371,14 @@ block content
 
     socket.on('player id', function(player) {
       playerID = player.id;
-      $('#Player').text(player.name);
-      $('#Table_chips').text(player.chips);
       $('#Bet_amount').prop('max', player.chips);
       chips = player.chips;
     });
 
     $(document).ready(function() {
-      var quick = '#{query.quick}';
-      if(quick) {
-        var seat = $('.poker__player.poker__player--empty').eq(0).index();
-          socket.emit('sit', seat);
+      var quick = parseInt('#{query.quick}');
+      if(!isNaN(quick)) {
+        socket.emit('sit', quick);
       }
       $('button:not(.no-disable)').prop('disabled', true);
       $('#Check').on('click', function() {

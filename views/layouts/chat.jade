@@ -1,0 +1,150 @@
+div#Chat_container
+  for openChat in openChats
+    - var friend = openChat.friend
+    - var messages = openChat.messages
+    div.chat__box(id='Chat_box_#{friend._id}' data-user='#{friend._id}')
+      include ./chatbox
+  ul#Chat_list
+
+script.
+  var friendSocket = io('/');
+  var userID = '#{user.id}';
+  var userFriends = JSON.parse('!{JSON.stringify(user.friends)}');
+  userFriends = userFriends.map(function(user) {
+    return { id: user._id._id, username: user._id.username };
+  });
+
+  friendSocket.on('online list', function(online) {
+    $('#Chat_list').children().remove();
+
+    $(online).each(function(idx, user) {
+      if(user == userID) {
+        return true;
+      }
+
+      addChatFriend(user);
+    });
+  });
+
+  friendSocket.on('user connect', function(user) {
+    addChatFriend(user);
+  });
+
+  friendSocket.on('user disconnect', function(user) {
+    $('#Chat_list').find('[data-user="'+user+'"]').remove();
+  });
+
+  friendSocket.on('open chat', function(friendID) {
+    openChat(friendID, true);
+  });
+
+  friendSocket.on('close chat', function(friendID) {
+    $('#Chat_box_'+friendID).remove();
+  });
+
+  friendSocket.on('receive message', function(friendID, msg) {
+    var isOpen = openChat(friendID);
+    if(isOpen) {
+      var $msg = $('<li></li>');
+      $msg.addClass('chat__msg');
+      $msg.addClass('chat__msg--other');
+      $msg.text(msg);
+      var $chatMessages = $('#Chat_box_'+friendID).children('.chat__messages').first();
+      $chatMessages.append($msg);
+      scrollBtm($chatMessages);
+    }
+  });
+
+  $(document).ready(function() {
+    $('.chat__compose').on('keypress', sendMessage);
+    $('.chat__close').on('click', closeChat);
+    $('.chat__messages').each(function(idx, el) {
+      scrollBtm($(el));
+    });
+  });
+
+  function addChatFriend(friendID) {
+    var friend;
+    for(var idx=0; idx<userFriends.length; idx++) {
+      if(userFriends[idx].id == friendID) {
+        friend = userFriends[idx];
+        break;
+      }
+    }
+
+    if(friend) {
+      $el = $('<li></li>');
+      $el.text(friend.username);
+      $el.addClass('chat__list__friend');
+      $el.attr('data-user', friend.id);
+      $el.on('click', clickOpenChat);
+      $('#Chat_list').append($el);
+    }
+  }
+
+  function clickOpenChat() {
+    var username = $(this).text();
+    var friendID = $(this).data('user');
+    openChat(friendID);
+  }
+
+  function openChat(friendID, triggered) {
+    var username = userFriends.filter(function(user) {
+      return friendID == user.id;
+    });
+
+    if(username.length == 1) {
+      username = username.username;
+
+      var $chat = $('#Chat_container').children('[data-user="'+friendID+'"]').first();
+
+      if($chat.length == 0) {
+        if(!triggered) {
+          friendSocket.emit('open chat', friendID);
+        }
+        $chat = $('<div id="Chat_box_'+friendID+'" class="chat__box" data-user="'+friendID+'"></div>');
+        $chat.load('/chat/'+friendID, function() {
+          $chat.find('.chat__compose').on('keypress', sendMessage);
+          $chat.find('.chat__compose').get(0).focus();
+          $chat.find('.chat__close').on('click', closeChat);
+          $('#Chat_container').prepend($chat);
+
+          scrollBtm($chat.children('.chat__messages').first());
+        });
+
+        return false;
+      }
+
+      $chat.find('.chat__compose').get(0).focus();
+      return true;
+    }
+  }
+
+  function closeChat() {
+    $chat = $(this).closest('.chat__box');
+    friendSocket.emit('close chat', $chat.data('user'));
+    $chat.remove();
+  }
+
+  function sendMessage(event) {
+    if(event.keyCode == 13) {
+      var msg = $(this).text();
+      $(this).text('');
+      var friendID = $(this).closest('.chat__box').data('user');
+
+      var $msg = $('<li></li>');
+      $msg.addClass('chat__msg');
+      $msg.addClass('chat__msg--you');
+      $msg.text(msg);
+
+      var $chatMessages = $(this).siblings('.chat__messages');
+      $chatMessages.append($msg);
+      scrollBtm($chatMessages);
+
+      friendSocket.emit('send message', friendID, msg);
+    }
+  }
+
+  function scrollBtm($el) {
+    $el.scrollTop($el.get(0).scrollHeight);
+  }
