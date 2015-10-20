@@ -27,10 +27,8 @@ router.post('/', function(req, res, next) {
         , message: 'That email is not in use'
       });
     } else {
-      User.find({email: data.email})
+      User.findOne({email: data.email})
       .then(function(user) {
-        console.log(user);
-        console.log(user.username);
         var smtpTransport = nodemailer.createTransport("SMTP",{
           service: "Gmail",
           auth: {
