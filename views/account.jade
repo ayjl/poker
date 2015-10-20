@@ -16,7 +16,6 @@ block content
         container#Graph
         if loggedIn
           if isYou
-            p #{profile.email}
             button(class='btn', id='Topup') Top Up Balance (2000)
             h2 Friends
             ul#Friends
@@ -30,6 +29,7 @@ block content
                   span.account__friend-action(data-action='accept' data-friend-id='#{friend._id._id}') Accept
                   span.account__friend-action(data-action='ignore' data-friend-id='#{friend._id._id}') Ignore
                   span.account__friend-action(data-action='block' data-friend-id='#{friend._id._id}') Block
+            a.button(href="/account/settings") Update Details
           else
             include ./account/friends.jade
   
