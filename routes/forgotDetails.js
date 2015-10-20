@@ -3,6 +3,7 @@ var router = express.Router();
 var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
+var nodemailer = require("nodemailer");
 
 router.get('/', function(req, res, next) {
   res.render('forgotDetails');
@@ -26,7 +27,34 @@ router.post('/', function(req, res, next) {
         , message: 'That email is not in use'
       });
     } else {
-      //send email here
+      User.find({email: data.email})
+      .then(function(user) {
+        var smtpTransport = nodemailer.createTransport("SMTP",{
+          service: "Gmail",
+          auth: {
+            user: "poker.cs4920@gmail.com",
+            pass: "weaxviorgglomlnk" // or: tgdHN6kNj9SaD['Bs_kc
+          }
+        });
+        var mailOptions={
+          from: "PokerPros Support <poker.cs4920@gmail.com>",
+          to: data.email,
+          subject: "Account Recovery",
+          text: "Hello!\nYour username for PokerPros is: " + user.username + "\nYour password is: " + user.password + "\nWe recommend you change your password immediately once you log in under the Update Details section in your account.\nKind regards,\nPokerPros Support\n"
+        }
+        console.log(mailOptions);
+        smtpTransport.sendMail(mailOptions, function(error, response){
+          if(error){
+            console.log("Error: " + error);
+            errors.push({
+              name: 'email'
+              , message: 'Error when sending mail, try again or contact the site admin'
+            });
+          } else {
+            console.log("Message sent: " + response.message);
+          }
+        });
+      });
     }
     res.json({ errors: errors });
   })
