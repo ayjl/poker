@@ -68,6 +68,7 @@ OnlineUsers.prototype.add = function(userID, socketID) {
         id: userID
       , socketIDs: [socketID]
       , openChats: []
+      , dcTimer: null
     };
 
     idx = -(idx + 1);
@@ -75,6 +76,7 @@ OnlineUsers.prototype.add = function(userID, socketID) {
     return true;
   }
   else{
+    clearTimeout(this.users[idx].dcTimer);
     this.users[idx].socketIDs.push(socketID);
     return false;
   }
@@ -101,7 +103,7 @@ OnlineUsers.prototype.removeUserTimeout = function(userID, socket) {
   var idx = this.binarySearch(userID);
   if(idx >= 0) {
     var user = this.users[idx];
-    setTimeout(function() {
+    user.dcTimer = setTimeout(function() {
       if(user.socketIDs.length == 0) {
         onlineUsers.removeUser(user.id);
         socket.broadcast.emit('user disconnect', user.id);
