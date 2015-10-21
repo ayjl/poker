@@ -27,13 +27,17 @@ router.get('/:user_id', function(req, res) {
     else {
       relationship = 'add';
     }
-    User.count({ chips: { $gt: user.chips}
-    })
+    
+    User.count({ chips: { $gt: user.chips} })
     .then(function(ranking) {
-      res.render('account', { isYou: false, profile: user, ranking: ranking+1, relationship: relationship });
+      res.render('account', {
+          isYou: false
+        , profile: user
+        , ranking: ranking+1
+        , relationship: relationship
+        , chipTracker: JSON.stringify(user.chipTracker)
+      });
   });
-
-
   });
 });
 

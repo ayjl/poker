@@ -41,7 +41,7 @@ router.post('/', function(req, res, next) {
       chips: 2000,
       largestWin: 0,
       handsPlayed: 0
-      ,chipTracker: [{change: 2000, date: Date.now()}]
+      ,chipTracker: [{change: 0, date: Date.now()}]
     });
 
     newUser.save().then(function() {
@@ -93,7 +93,7 @@ router.get('/check-email', function(req, res, next) {
     return res.json({ errors: errors });
   }
 
-  User.find({email: req.query.value})
+  User.count({email: req.query.value})
   .then(function(emailCount) {
     if (emailCount > 0) {
       errors.push({

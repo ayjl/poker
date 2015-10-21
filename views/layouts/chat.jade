@@ -1,0 +1,203 @@
+div#Chat_container
+  for openChat in openChats
+    - var friend = openChat.friend
+    - var messages = openChat.messages
+    if openChat.state == 'min'
+      div.chat__box.chat__box--min(id='Chat_box_#{friend._id}' data-user='#{friend._id}')
+        include ./chatbox
+    else
+      div.chat__box(id='Chat_box_#{friend._id}' data-user='#{friend._id}')
+        include ./chatbox
+
+  if chatState == 'min'
+    div.chat__list.chat__box--min
+      div.chat__box__title Online Friends
+      ul#Chat_list
+  else
+    div.chat__list
+      div.chat__box__title Online Friends
+      ul#Chat_list
+
+script.
+  var friendSocket = io('/');
+  var userID = '#{user.id}';
+  var userFriends = JSON.parse('!{JSON.stringify(user.friends)}');
+  userFriends = userFriends.map(function(user) {
+    return { id: user._id._id, username: user._id.username };
+  });
+
+  friendSocket.on('online list', function(online) {
+    $('#Chat_list').children().remove();
+
+    $(online).each(function(idx, user) {
+      if(user.id == userID) {
+        return true;
+      }
+
+      addChatFriend(user.id, user.tables);
+    });
+  });
+
+  friendSocket.on('user connect', function(user) {
+    addChatFriend(user, []);
+  });
+
+  friendSocket.on('user disconnect', function(user) {
+    $('#Chat_list').find('[data-user="'+user+'"]').remove();
+  });
+
+  friendSocket.on('open chat', function(friendID) {
+    openChat(friendID, true);
+  });
+
+  friendSocket.on('close chat', function(friendID) {
+    $('#Chat_box_'+friendID).remove();
+  });
+
+  friendSocket.on('receive message', function(friendID, msg) {
+    var isOpen = openChat(friendID);
+    if(isOpen) {
+      var $msg = $('<li></li>');
+      $msg.addClass('chat__msg');
+      $msg.addClass('chat__msg--other');
+      $msg.text(msg);
+      var $chatMessages = $('#Chat_box_'+friendID).children('.chat__messages').first();
+      $chatMessages.append($msg);
+      scrollBtm($chatMessages);
+    }
+  });
+
+  $(document).ready(function() {
+    $('.chat__compose').on('keypress', sendMessage);
+    $('.chat__close').on('click', closeChat);
+    $('.chat__messages').each(function(idx, el) {
+      scrollBtm($(el));
+    });
+    $('.chat__box__title').on('click', toggleChat);
+  });
+
+  function addChatFriend(friendID, tables) {
+    var friend;
+    for(var idx=0; idx<userFriends.length; idx++) {
+      if(userFriends[idx].id == friendID) {
+        friend = userFriends[idx];
+        break;
+      }
+    }
+
+    if(friend) {
+      var $el = $('<li></li>');
+      $el.text(friend.username);
+      $el.addClass('chat__list__friend');
+      $el.attr('data-user', friend.id);
+      $el.on('click', clickOpenChat);
+
+      if(tables.length > 0) {
+        var $button = $('<button data-dropdown="Chat_table_'+friend.id+'" class="tiny dropdown">Join</button>');
+        var $list = $('<ul id="Chat_table_'+friend.id+'" data-dropdown-content class="f-dropdown"></ul>');
+
+        $(tables).each(function(idx, table) {
+          var big = parseInt(table.blind);
+          var small = big / 2;
+
+          if(small >= 1000) {
+            big = big/1000 + 'k';
+            small = small/1000 + 'k';
+          }
+
+          var blind = small + '/' + big;
+          var $table = $('<li><a href="/poker/'+table.id+'">'+table.name+' ('+blind+')</a></li>');
+          $list.append($table);
+        });
+
+        $el.append($button);
+        $el.append($list);
+      }
+
+      $('#Chat_list').append($el);
+      $('#Chat_list').foundation();
+    }
+  }
+
+  function clickOpenChat(event) {
+    if($(event.target).hasClass('chat__list__friend')) {
+      var username = $(this).text();
+      var friendID = $(this).data('user');
+      openChat(friendID);
+    }
+  }
+
+  function openChat(friendID, triggered) {
+    var username = userFriends.filter(function(user) {
+      return friendID == user.id;
+    });
+
+    if(username.length == 1) {
+      username = username.username;
+
+      var $chat = $('#Chat_container').children('[data-user="'+friendID+'"]').first();
+
+      if($chat.length == 0) {
+        if(!triggered) {
+          friendSocket.emit('open chat', friendID);
+        }
+        $chat = $('<div id="Chat_box_'+friendID+'" class="chat__box" data-user="'+friendID+'"></div>');
+        $chat.load('/chat/'+friendID, function() {
+          $chat.find('.chat__compose').on('keypress', sendMessage);
+          $chat.find('.chat__compose').get(0).focus();
+          $chat.find('.chat__close').on('click', closeChat);
+          $chat.children('.chat__box__title').on('click', toggleChat);
+          $('#Chat_container').prepend($chat);
+
+          scrollBtm($chat.children('.chat__messages').first());
+        });
+
+        return false;
+      }
+
+      $chat.find('.chat__compose').get(0).focus();
+      return true;
+    }
+  }
+
+  function closeChat() {
+    var $chat = $(this).closest('.chat__box');
+    friendSocket.emit('close chat', $chat.data('user'));
+    $chat.remove();
+  }
+
+  function toggleChat() {
+    var $el = $(this).parent();
+    $el.toggleClass('chat__box--min');
+    var friendID = $el.hasClass('chat__list')? 'chat list' : $el.data('user');
+
+    if($el.hasClass('chat__box--min')) {
+      friendSocket.emit('toggle chat', friendID, false);
+    }
+    else {
+      friendSocket.emit('toggle chat', friendID, true);
+    }
+  }
+
+  function sendMessage(event) {
+    if(event.keyCode == 13) {
+      var msg = $(this).text();
+      $(this).text('');
+      var friendID = $(this).closest('.chat__box').data('user');
+
+      var $msg = $('<li></li>');
+      $msg.addClass('chat__msg');
+      $msg.addClass('chat__msg--you');
+      $msg.text(msg);
+
+      var $chatMessages = $(this).siblings('.chat__messages');
+      $chatMessages.append($msg);
+      scrollBtm($chatMessages);
+
+      friendSocket.emit('send message', friendID, msg);
+    }
+  }
+
+  function scrollBtm($el) {
+    $el.scrollTop($el.get(0).scrollHeight);
+  }

@@ -3,7 +3,12 @@ var router = express.Router();
 var config = require('config');
 
 router.get('/', function(req, res, next) {
-  res.render('index');
+  if(req.isAuthenticated()) {
+    res.redirect('/tables');
+  }
+  else {
+    res.render('index');
+  }
 });
 
 module.exports = router;

@@ -37,7 +37,11 @@ router.get('/', function(req, res) {
     User.count({ chips: { $gt: user.chips}
   })
   .then(function(ranking) {
-    res.render('account', { isYou: true, profile: user , ranking: ranking+1, chipTracker: JSON.stringify(user.chipTracker)});
+    res.render('account', {
+        isYou: true, profile: user
+      , ranking: ranking+1
+      , chipTracker: JSON.stringify(user.chipTracker)
+    });
   });
 });
 });
