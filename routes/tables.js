@@ -64,12 +64,16 @@ router.get('/rows', function(req, res, next) {
 
 router.get('/quick', function(req, res, next) {
   var chips;
-  if(req.user) {
+  var userID;
+  if(req.isAuthenticated()) {
     chips = req.user.chips;
+    userID = req.user.id;
   }
   else {
     chips = req.session.user.chips;
+    userID = req.sessionID;
   }
+
 
   // Minimum blind amount
   if(chips < 10 * config.get('buyInMult')) {
@@ -94,6 +98,15 @@ router.get('/quick', function(req, res, next) {
       continue;
     }
 
+    // Check if player is already playing on table
+
+    var playerIdx = table.players.findIndex(function(player) {
+      return (player && player.id == userID);
+    });
+    if(playerIdx >= 0) {
+      continue;
+    }
+
     // Favour tables with the highest number of players and the highest number of blinds
     if(!best || (table.numPlayers > best.numPlayers ||
                  (table.numPlayers == best.numPlayers && table.blind > best.blind))) {
@@ -113,10 +126,10 @@ router.get('/quick', function(req, res, next) {
 
     if(i > 0) {
       var table = tables.create(allowedBlinds[i-1]);
-      res.redirect('/poker/' + table.id);
+      res.redirect('/poker/' + table.id + '?quick='+0);
     }
     else{
-      req.flash('error', 'You don\'t have enough chips to play at any tables. Top up below.');
+      req.flash('error', 'You don\'t have enough chips to play at any tables. You may top up below.');
       res.redirect('/account');
     }
 
