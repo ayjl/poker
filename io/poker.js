@@ -438,7 +438,7 @@ function progressGameState(table, poker, socket) {
       table.winners = [table.handPlayers[0].id];
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
-      checkHighestWin(table.handPlayers[0].id, table.pot);
+      // checkHighestWin(table.handPlayers[0].id, table.pot);
     }
 
     if (table.numPlayers <= 1) {
@@ -691,7 +691,7 @@ function evalWinner(table) {
   }
 
   for(var i=0; i<table.winners.length; i++) {
-    checkHighestWin(winnerIDs[i], winningsPerPlayer);
+    // checkHighestWin(winnerIDs[i], winningsPerPlayer);
   }
 
   table.winners = table.winners.map(function(player) {
