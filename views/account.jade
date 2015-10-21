@@ -7,21 +7,60 @@ block content
         h1 This profile couldn't be found
       else
         h1 #{profile.username}
+          small.profile__balance $#[span#Balance #{profile.chips}]
         if errorFlash.length
           div.alert-box.alert #{errorFlash}
-        p Current Balance is: <span id='Balance'>#{profile.chips}</span>
-        container#Graph
+
+        if !profile._id && !loggedIn && isYou
+          div
+            button#Topup.small Top up chips to $2000
+
+        if profile._id
+          div.row
+            div.medium-8.column
+              container#Graph
+            div.medium-4.column
+              dl
+                dt Largest Pot Won
+                dd $#{profile.largestWin}
+                dt Hands Played
+                dd #{profile.handsPlayed}
+                dt Site Ranking
+                dd ##{ranking}
+              if isYou
+                div
+                  button#Topup.small Top up chips to $2000
+                div
+                  a.button.small(href="/account/settings") Update Details
+
         if loggedIn
           if isYou
-            p #{profile.email}
-            button(class='btn', id='Topup') Top Up Balance (2000)
-          else
-            if relationship
-              p #{relationship}
-            else
-              button.button.small#Add_friend Add Friend
+            div.row
+              div.medium-6.column
+                h2 Friends
+                ul#Friends.account__friends
+                  each friend in friends
+                    li.account__friend__handle
+                      a(href='/profile/'+friend._id._id).button.split.tiny #{friend._id.username}
+                        span(data-dropdown='Drop_#{friend._id._id}')
+                      ul.f-dropdown(id='Drop_#{friend._id._id}')
+                        li: a.account__friend-action(data-action='unfriend' data-friend-id='#{friend._id._id}') Unfriend
+              div.medium-6.column
+                h2 Friend Requests
+                ul.account__friend-request
+                  each friend in incomingFriends
+                    li.account__friend__handle
+                      a.button.split.tiny(href='/profile/'+friend._id._id) #{friend._id.username}
+                        span(data-dropdown='Drop_#{friend._id._id}')
+                      ul.f-dropdown(id='Drop_#{friend._id._id}')
+                        li: a.account__friend-action(data-action='accept' data-friend-id='#{friend._id._id}') Accept
+                        li: a.account__friend-action(data-action='ignore' data-friend-id='#{friend._id._id}') Ignore
+                        li: a.account__friend-action(data-action='block' data-friend-id='#{friend._id._id}') Block
+
+        if loggedIn && !isYou
+          include ./account/friends.jade
   
-  if profile
+  if isYou
     script(type='text/javascript').
       $(document).ready(function() {
         $('#Topup').on('click', function() {
@@ -37,19 +76,50 @@ block content
             $('#Chips').text(data.chips);
           });
         });
+      });
 
-        $('#Add_friend').on('click', function() {
+  if loggedIn
+    script(type='text/javascript').
+      $(document).ready(function() {
+        $('.account__friend-action').on('click', function() {
+          var action = $(this).data('action');
+          var friendID = $(this).data('friend-id');
+          var $el = $(this);
+
           $.ajax({
             type: 'POST',
-            url: '/account/add-friend',
+            url: '/account/friend',
             data: {
-              friendID: '#{profile.id}'
+                friendID: friendID
+              , action: action
             }
           })
           .done(function() {
-            $('#Add_friend').text('Friend request sent');
-            $('#Add_friend').off('click');
+            switch(action) {
+              case 'accept':
+                $el.closest('ul').prev().children('span').trigger('click');
+                $el.closest('.account__friend__handle').detach().appendTo('#Friends');
+                $el.parent().siblings().remove();
+                $el.text('Unfriend');
+                $el.data('action', 'unfriend');
+                break;
+              case 'ignore':
+                $el.closest('.account__friend__handle').remove();
+                break;
+              case 'block':
+                $el.closest('.account__friend__handle').remove();
+                break;
+              case 'unfriend':
+                $el.closest('.account__friend__handle').remove();
+                break;
+            }
           })
+        });
+
+        Highcharts.setOptions({
+            lang: {
+              thousandsSep: ','
+            }
         });
 
         $('#Graph').highcharts({
@@ -61,8 +131,7 @@ block content
             enabled: false
           },
           title: {
-            text: 'Overall lifetime profitability',
-            x: -20
+            text: 'Lifetime Profitability'
           },
           yAxis: {
             title: {
@@ -72,12 +141,24 @@ block content
           xAxis: {
             type: 'datetime',
             dateTimeLabelFormats: {
-                month: '%e. %b',
-                year: '%b'
+              second: '%b-%d<br/>%H:%M:%S',
+              minute: '%b-%d<br/>%H:%M',
+              hour: '%b-%d<br/>%H:%M',
+              day: '%b-%d',
+              week: '%Y<br/>%b-%d',
+              month: '%b %Y',
+              year: '%Y'
             },
             title: {
-              text: 'Time Played'
+              text: 'Date Played'
             }
+          },
+          legend: {
+            enabled: false
+          },
+          tooltip: {
+            valuePrefix: '$',
+            xDateFormat: '%b %d %Y %H:%M'
           },
           series: [{
             name: 'Profitability',
@@ -89,9 +170,9 @@ block content
         // offset in minutes converted to milliseconds
         var offset = new Date().getTimezoneOffset() * 60000;
         for (var i = 0; i < chipTracker.length; i++) {
-            var epochDate = Date.parse(chipTracker[i].date);
-            epochDate -= offset;
-            mySeries.push([epochDate, chipTracker[i].change]);
+          var epochDate = Date.parse(chipTracker[i].date);
+          epochDate -= offset;
+          mySeries.push([epochDate, chipTracker[i].change]);
         }
         var chart = $('#Graph').highcharts();
         chart.series[0].setData(mySeries); 
