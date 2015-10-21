@@ -797,11 +797,15 @@ function incrementHandsPlayed(table){
 
   for (var i = 0; i < array.length; i++){
     var userID = array[i].id;
-    User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+    if(userID.length == 24) {
+      User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+    }
   }
   //User.update({_id: {$in : playerArray}}, { $inc: {handsPlayed: 1}}).exec();
 }
 
 function checkHighestWin(playerID, winnings) {
-  User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  if(playerID.length == 24) {
+    User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  }
 }
