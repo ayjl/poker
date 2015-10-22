@@ -9,7 +9,10 @@ router.get('/', function(req, res) {
   new Promise(function(resolve, reject) {
     if(req.isAuthenticated()) {
       User.findById(req.user.id)
-      .then(function(user) {
+      .populate({
+          path: 'friends._id'
+        , select: 'username'
+      }).then(function(user) {
         resolve(user);
       });
     }
@@ -18,8 +21,29 @@ router.get('/', function(req, res) {
     }
   })
   .then(function(user) {
-    res.render('account', { isYou: true, profile: user , chipTracker: JSON.stringify(user.chipTracker)});
+    if(req.isAuthenticated()) {
+      res.locals.friends = [];
+      res.locals.incomingFriends = [];
+
+      for(var i=0; i<user.friends.length; i++) {
+        if(user.friends[i].status == 'accepted') {
+          res.locals.friends.push(user.friends[i]);
+        }
+        else if(user.friends[i].status == 'incoming') {
+          res.locals.incomingFriends.push(user.friends[i]);
+        }
+      }
+    }
+    User.count({ chips: { $gt: user.chips}
+  })
+  .then(function(ranking) {
+    res.render('account', {
+        isYou: true, profile: user
+      , ranking: ranking+1
+      , chipTracker: JSON.stringify(user.chipTracker)
+    });
   });
+});
 });
 
 router.post('/topup-chips', function(req, res, next) {
@@ -39,22 +63,78 @@ router.post('/topup-chips', function(req, res, next) {
   }
 });
 
-router.post('/add-friend', function(req, res, next) {
+router.post('/friend', function(req, res, next) {
   if(!req.isAuthenticated()) {
     return res.sendStatus(401);
   }
 
   var friendID = req.body.friendID;
 
-  User.update(
-      { _id: req.user.id }
-    , { $addToSet : { 'friends.outgoing': friendID } }
-  ).exec();
+  switch(req.body.action) {
+    case 'add':
+      User.update(
+          { _id: friendID}
+        , { $pull : { 'friends': { _id: req.user.id, status: 'ignored' } } }
+      ).then(function() {
+        User.update(
+            { _id: req.user.id, 'friends._id': { $ne: friendID } }
+          , { $push : { 'friends': { _id: friendID, status: 'outgoing' } } }
+        ).exec();
 
-  User.update(
-      { _id: friendID }
-    , { $addToSet : { 'friends.incoming': req.user.id } }
-  ).exec();
+        User.update(
+            { _id: friendID, 'friends._id': { $ne: req.user.id } }
+          , { $push : { 'friends': { _id: req.user.id, status: 'incoming' } } }
+        ).exec();
+      });
+      break;
+    case 'accept':
+      User.update(
+        {
+          _id: req.user.id
+          , 'friends._id': friendID
+          , 'friends.status': { $in: ['incoming', 'ignored', 'blocked'] }
+        }
+        , { $set : { 'friends.$.status': 'accepted' } }
+      ).exec();
+
+      User.update(
+          { _id: friendID, 'friends._id': req.user.id, 'friends.status': 'outgoing' }
+        , { $set : { 'friends.$.status': 'accepted' } }
+      ).exec();
+      break;
+    case 'ignore':
+      User.update(
+        {
+          _id: req.user.id
+          , 'friends._id': friendID
+          , 'friends.status': { $in: ['incoming', 'blocked'] }
+        }
+        , { $set : { 'friends.$.status': 'ignored' } }
+      ).exec();
+      break;
+    case 'block':
+      User.update(
+        {
+          _id: req.user.id
+          , 'friends._id': friendID
+          , 'friends.status': { $in: ['incoming', 'ignored'] }
+        }
+        , { $set : { 'friends.$.status': 'blocked' } }
+      ).exec();
+      break;
+    case 'unfriend':
+    case 'cancel':
+      User.update(
+          { _id: req.user.id }
+        , { $pull : { 'friends': { _id: friendID } } }
+      ).exec();
+
+      User.update(
+          { _id: friendID }
+        , { $pull : { 'friends': { _id: req.user.id } } }
+      ).exec();
+      break;
+  }
 
   return res.sendStatus(200);
 });
