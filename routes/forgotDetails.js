@@ -31,7 +31,8 @@ router.post('/', function(req, res, next) {
         var token = randomString(10);
         user.resetPasswordToken = token;
         console.log("Token: " + token);
-        user.resetPasswordExpires = Date.now() + 360000;
+        user.resetPasswordExpires = Date.now() + 3600000;
+        user.save();
         var smtpTransport = nodemailer.createTransport("SMTP",{
           service: "Gmail",
           auth: {
