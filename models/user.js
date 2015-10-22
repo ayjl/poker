@@ -9,6 +9,8 @@ var userSchema = new mongoose.Schema( {
   , largestWin: Number
   , handsPlayed: Number
   , chipTracker: [{change: Number, date: Date}]
+  , resetPasswordToken: String
+  , resetPasswordExpires: Date
   , friends: [{ _id: { type: Schema.Types.ObjectId, ref: '' }, status: String }]
 });
 
