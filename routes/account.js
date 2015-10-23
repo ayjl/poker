@@ -33,6 +33,10 @@ router.get('/', function(req, res) {
           res.locals.incomingFriends.push(user.friends[i]);
         }
       }
+      res.locals.hands = [];
+      for (var i = 0; i < user.handHistory.length; i++){
+        res.locals.hands.push(user.handHistory[i]);
+      }
     }
     User.count({ chips: { $gt: user.chips}
   })

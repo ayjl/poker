@@ -607,6 +607,11 @@ body {
   top: 55px; left: 50%;
 }
 
+.poker__card-history {
+  margin-right: 5px;
+  position: relative;
+}
+
 .poker__card[class*='poker__card--'] {
   display: block;
 }
