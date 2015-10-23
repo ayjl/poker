@@ -195,11 +195,24 @@ body {
   padding: 5px;
   position: relative;
 }
+.chat__box__badge {
+  display: none;
+  font-size: 0.9em;
+  padding: 1px 5px;
+  margin-left: 10px;
+}
+.chat__box--min .chat__box__badge {
+  display: inline-block;
+}
+.chat__box__badge:empty {
+  display: none;
+}
 .chat__close {
   cursor: pointer;
   font-size: 0.7rem;
+  padding: 0 10px 0 5px;
   position: absolute;
-  right: 5px; top: 5px;
+  right: 0; top: 5px;
 }
 .chat__messages {
   background-color: #e5e5e5;
