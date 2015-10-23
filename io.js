@@ -23,19 +23,21 @@ module.exports = function(io) {
       });
 
       socket.on('send message', function(friendID, msg) {
-        var fromID = socket.request.session.passport.user;
+        if(msg.length > 0) {
+          var fromID = socket.request.session.passport.user;
 
-        var chat = new Chat({ 
-            from: fromID
-          , to: friendID
-          , message: msg
-        });
+          var chat = new Chat({ 
+              from: fromID
+            , to: friendID
+            , message: msg
+          });
 
-        chat.save()
-        .then(function(savedMsg) {
-          var time = moment(savedMsg._id.getTimestamp()).format('ddd DD MMM HH:mm');
-          socket.broadcast.to(friendID).emit('receive message', fromID, msg, time);
-        });
+          chat.save()
+          .then(function(savedMsg) {
+            var time = moment(savedMsg._id.getTimestamp()).format('ddd DD MMM HH:mm');
+            socket.broadcast.to(friendID).emit('receive message', fromID, msg, time);
+          });
+        }
       });
 
       socket.on('open chat', function(friendID) {

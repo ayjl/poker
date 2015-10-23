@@ -264,6 +264,26 @@ module.exports = function(io) {
       playerLeave(table, poker, socket, 'spectate');
     });
 
+    socket.on('send message', function(msg) {
+      if(msg.length > 0) {
+        var table = tables.find(socket.tableID);
+        var idx = findBySocketID(socket.id, table.players);
+        var player;
+        if(idx >= 0) {
+          player = table.players[idx];
+        }
+        else {
+          idx = findBySocketID(socket.id, table.spectators);
+          player = table.spectators[idx];
+        }
+
+        if(player) {
+          msg = player.name + ': ' + msg;
+          poker.to(table.id).emit('receive message', msg);
+        }
+      }
+    });
+
     socket.on('disconnect', function() {
       var table = tables.find(socket.tableID);
       playerLeave(table, poker, socket, 'disconnect');

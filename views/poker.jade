@@ -43,6 +43,11 @@ block content
     div.row
       div.small-12.column
         button#Spectate.small.no-disable Spectate
+
+  div.row
+    div.small-12.poker__chat
+      ul#Chat_messages.poker__chat__messages
+      div#Send_chat.poker__chat__compose(contenteditable='true' placeholder='Send a message')
           
   div#Error_modal.reveal-modal.small(data-reveal)
     div.row
@@ -74,6 +79,13 @@ block content
     socket.on('customError', function(err){
       $('#Error_message').text(err.message);
       $('#Error_modal').foundation('reveal', 'open');
+    });
+
+    socket.on('receive message', function(msg) {
+      var $el = $('<li></li>');
+      $el.text(msg);
+      $('#Chat_messages').append($el);
+      $('#Chat_messages').scrollTop($('#Chat_messages').get(0).scrollHeight);
     });
 
     socket.on('player join', function(player, isYou) {
@@ -406,15 +418,26 @@ block content
       $('#Spectate').on('click', function() {
         socket.emit('spectate');
       });
+      $('#Send_chat').on('keypress', function(event) {
+        event.stopPropagation();
+        if(event.keyCode == 13) {
+          event.preventDefault();
+          var msg = $(this).text();
+          $(this).text('');
+          if(msg.length > 0) {
+            socket.emit('send message', msg);
+          }
+        }
+      });
 
-      $(document).keypress(function(event) {
+      $(document).on('keypress', function(event) {
         switch(event.keyCode) {
           case 99:  // C
             $('#Check').click();
             break;
-          case 102: // F
-            $('#Fold').click();
-            break;
+          //- case 102: // F
+          //-   $('#Fold').click();
+          //-   break;
           case 98:  // B
           case 114: // R
             $('#Bet').click();
