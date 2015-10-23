@@ -127,6 +127,10 @@ module.exports = function(io) {
           return;
         }
 
+        if(socket.request.session.loggedIn) {
+          onlineUsers.addTable(player.id, table.id, table.name, table.blind);
+        }
+
         player.chips = table.blind * config.get('buyInMult');
         storePlayerChips(player.id, -player.chips, socket.request.session.loggedIn);
         socket.emit('chips', chips - player.chips);
@@ -287,16 +291,32 @@ function startGame(table, poker, socket) {
 
   var deck = require('../helpers/deck')();
   var seat = 0;
-  table.handPlayers = table.players.filter(function(item) {
-    return item;
+  table.handPlayers = table.players.filter(function(player) {
+    return player;
   });
+
+  var kick = table.handPlayers.filter(function(player) {
+    return player.chips < table.blind;
+  });
+
+  for(var i=0; i<kick.length; i++) {
+    var idx = table.handPlayers.indexOf(kick[i]);
+    table.handPlayers.splice(idx, 1);
+    var kickSocket = poker.connected[kick[i].socketID];
+    kickSocket.emit('customError', {
+      message: 'You\'ve run out of chips. Choose a seat to buy-in again.'
+    });
+    playerLeave(table, poker, kickSocket, 'spectate');
+  }
+
+  if(table.handPlayers.length < 2) {
+    table.playing = false;
+    return;
+  }
 
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
     player.inHand = true;
-    if(player.chips <= table.blind) {
-      player.chips = 1000;
-    }
   }
 
   // Assign dealer
@@ -418,7 +438,7 @@ function progressGameState(table, poker, socket) {
       table.winners = [table.handPlayers[0].id];
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
-      checkHighestWin(table.handPlayers[0].id, table.pot);
+      // checkHighestWin(table.handPlayers[0].id, table.pot);
     }
 
     if (table.numPlayers <= 1) {
@@ -537,6 +557,8 @@ function playerLeave(table, poker, socket, type) {
         progressGameState(table, poker, socket);
       }
     }
+
+    onlineUsers.removeTable(player.id, table.id);
 
     if(type == 'spectate') {
       table.spectators.push(player);
@@ -669,7 +691,7 @@ function evalWinner(table) {
   }
 
   for(var i=0; i<table.winners.length; i++) {
-    checkHighestWin(winnerIDs[i], winningsPerPlayer);
+    // checkHighestWin(winnerIDs[i], winningsPerPlayer);
   }
 
   table.winners = table.winners.map(function(player) {
@@ -775,11 +797,15 @@ function incrementHandsPlayed(table){
 
   for (var i = 0; i < array.length; i++){
     var userID = array[i].id;
-    User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+    if(userID.length == 24) {
+      User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+    }
   }
   //User.update({_id: {$in : playerArray}}, { $inc: {handsPlayed: 1}}).exec();
 }
 
 function checkHighestWin(playerID, winnings) {
-  User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  if(playerID.length == 24) {
+    User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  }
 }

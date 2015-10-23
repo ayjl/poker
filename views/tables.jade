@@ -151,7 +151,7 @@ block content
 
     function nameFormat(value) {
       var data = value.split('|');
-      return '<a href=/poker/' + data[1] + '>' + data[0] + '</a>';
+      return '<a href="/poker/' + data[1] + '">' + data[0] + '</a>';
     }
 
     function playersFormat(value) {
@@ -167,7 +167,7 @@ block content
         small = small/1000 + 'k';
       }
 
-      return small + '/' + big;
+      return small + ' / ' + big;
     }
 
     function buyInFormat(value) {

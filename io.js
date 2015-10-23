@@ -47,6 +47,17 @@ module.exports = function(io) {
         onlineUsers.removeOpenChats(userID, friendID);
         socket.broadcast.to(userID).emit('close chat', friendID);
       });
+
+      socket.on('toggle chat', function(friendID, isMax) {
+        var userID = socket.request.session.passport.user;
+        var state = isMax? 'max' : 'min';
+        if(friendID == 'chat list') {
+          onlineUsers.toggleChatState(userID, state);
+        }
+        else {
+          onlineUsers.toggleOpenChats(userID, friendID, state);
+        }
+      });
     }
   });
 
