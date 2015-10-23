@@ -59,7 +59,28 @@ block content
 
         if loggedIn && !isYou
           include ./account/friends.jade
-  
+    div.small-12.column
+      ul
+      each hand in hands
+        | your hand: 
+        li(class = 'poker__card poker__card-community poker__card--#{hand.hand1}')
+        li(class = 'poker__card poker__card-community poker__card--#{hand.hand2}')
+        p
+        |community cards: 
+        li(class = 'poker__card poker__card-community poker__card--#{hand.community1}')
+        li(class = 'poker__card poker__card-community poker__card--#{hand.community2}')
+        li(class = 'poker__card poker__card-community poker__card--#{hand.community3}')
+        li(class = 'poker__card poker__card-community poker__card--#{hand.community4}')
+        li(class = 'poker__card poker__card-community poker__card--#{hand.community5}')
+        p
+        | result: #{hand.result}
+        | pot: #{hand.pot}
+        p
+        | winners hand: 
+        p
+        li(class = 'poker__card poker__card-community poker__card--#{hand.winningHand1}')
+        li(class = 'poker__card poker__card-community poker__card--#{hand.winningHand2}')
+        p
   if isYou
     script(type='text/javascript').
       $(document).ready(function() {
