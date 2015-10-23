@@ -5,10 +5,6 @@ var User = require('../models/user.js');
 var Session = require('../models/session.js');
 var nodemailer = require("nodemailer");
 
-router.get('/', function(req, res, next) {
-  res.render('forgotDetails');
-});
-
 router.post('/', function(req, res, next) {
   var errors = [];
   var data = JSON.parse(req.body.data);
@@ -30,7 +26,6 @@ router.post('/', function(req, res, next) {
       .then(function(user) {
         var token = randomString(10);
         user.resetPasswordToken = token;
-        console.log("Token: " + token);
         user.resetPasswordExpires = Date.now() + 3600000;
         user.save();
         var smtpTransport = nodemailer.createTransport("SMTP",{
@@ -60,7 +55,6 @@ router.post('/', function(req, res, next) {
               , message: 'Error when sending mail, try again or contact the site admin'
             });
           } else {
-            console.log("Message sent: " + response.message);
           }
         });
       });

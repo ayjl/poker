@@ -4,15 +4,16 @@ block content
   div.home-bg
     div.row
       div.small-6.small-centered.column.home__box
-        h1 Reset Password
+        img.home__brand(src='/img/poker-dots.png')
         form#Reset
           div.row
             div.small-12.column
-              input#Password(name='password' type='password' required placeholder='Password')
+              div.row.collapse
+                div.small-9.column
+                  input#Password(name='password' type='password' required placeholder='New password')
+                div.small-3.column
+                  button.postfix Reset
               input#Username(name='username' type='hidden' value='#{profile.username}')
-          div.row
-            div.small-12.column
-              button.button.small Submit
 
   script(type='text/javascript').
     $(document).ready(function() {
@@ -38,6 +39,7 @@ block content
           }
         });
       });
+
       $('#Reset').on('submit', function(event) {
         event.preventDefault();
         data = formToJSON($(this));
@@ -56,6 +58,5 @@ block content
             showErrors($('#Reset'), data.errors);
           }
         });
-
       });
     });

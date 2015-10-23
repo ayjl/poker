@@ -4,35 +4,86 @@ block content
   div.home-bg
     div.row
       div.small-6.small-centered.column.home__box
-        h1 Poker Pros
-        form#Log_in
-          div.row
-            div.small-12.column
-              label Username
+        img.home__brand(src='/img/poker-dots.png')
+        div#Login
+          form#Login_form
+            div.row
+              div.small-12.column
                 input(name='username' type='text' required placeholder='Username')
-          div.row
-            div.small-12.column
-              label Password
+            div.row
+              div.small-12.column
                 input(name='password' type='password' required placeholder='Password')
+            div.row
+              div.small-12.column
+                button.tiny.login__btn Log in #[i.fa.fa-arrow-right.fa-right]
+                a#Show_recover.right Forgot Username or Password?
+          
+          div.home__hr
+            div.home__line.home__line---left
+            span OR
+            div.home__line.home__line--right
+
           div.row
             div.small-12.column
-              button.small Log in
-        hr
-        div.row
-          div.small-12.column
-            ul.button-group
-              li: a.button(href="/signup") Sign Up
-              li: a.button(href="/tables") Play as a Guest
-              li: a.button(href="/forgotDetails") Forgot Username or Password?
+              div.button-group
+                a#Show_signup.button.tiny.secondary #[i.fa.fa-user-plus.fa-left]Sign Up
+                a.button.tiny.secondary(href="/tables") #[i.fa.fa-user.fa-left]Play as a Guest
+
+        div#Recover.hide
+          form#Recover_form
+            div.row
+              div.small-12.column
+                div#Recover_success.alert-box.success A recovery email has been sent.
+                div.row.collapse
+                  div.small-9.column
+                    input(name='email' type='email' required placeholder='Email')
+                  div.small-3.column
+                    button.postfix Recover
+            div.row
+              div.small-12.column
+                button.show-login.tiny.secondary Cancel
+
+        div#Signup.hide
+          form#Signup_form
+            div.row
+              div.small-12.column
+                input#Username(name='username' type='text' required placeholder='Username')
+            div.row
+              div.small-12.column
+                input#Password(name='password' type='password' required placeholder='Password')
+            div.row
+              div.small-12.column
+                input#Email(name='email' type='email' required placeholder='Email')
+            div.row
+              div.small-12.column
+                div.button-group
+                  button.tiny Sign up
+                  button.show-login.tiny.secondary Cancel
 
   script(type='text/javascript').
     $(document).ready(function() {
-      $('#Log_in').find('input').on('change', function(event) {
+      $('#Login_form').find('input').on('change', function(event) {
         $(this).closest('.error').removeClass('error');
         $(this).parent().siblings('.error').remove();
       });
 
-      $('#Log_in').on('submit', function(event) {
+      $('#Show_recover').on('click', function() {
+        $('#Login').hide();
+        $('#Recover').show();
+      });
+
+      $('#Show_signup').on('click', function() {
+        $('#Login').hide();
+        $('#Signup').show();
+      });
+
+      $('.show-login').on('click', function() {
+        $('#Login').show();
+        $('#Recover').hide();
+        $('#Signup').hide();
+      });
+
+      $('#Login_form').on('submit', function(event) {
         event.preventDefault();
 
         var username = $(this).find('[name="username"]').val();
@@ -51,7 +102,73 @@ block content
             window.location.href = '/tables';
           }
           else{
-            showErrors($('#Log_in'), data.errors);
+            showErrors($('#Login_form'), data.errors);
+          }
+        });
+      });
+
+      $('#Recover_form').on('submit', function(event) {
+        event.preventDefault();
+        data = formToJSON($(this));;
+        $.ajax({
+          type: 'POST',
+          url: '/recover',
+          data: {
+            data: data
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            $('#Recover_success').show();
+            $('#Recover_form').find('small.error').remove();
+          }
+          else{
+            showErrors($('#Recover_form'), data.errors);
+          }
+        });
+      });
+
+      $('#Signup_form').find('input').blur(function() {
+        var name = $(this).attr('name');
+        var value = $(this).val();
+        var $el = $(this);
+
+        $.ajax({
+          type: 'GET',
+          url: '/signup/check-' + name,
+          data: {
+            value: value
+          },
+        })
+        .done(function(data) {
+          if(data.errors.length > 0) {
+            showErrors($('#Signup_form'), data.errors);
+          }
+          else {
+            $el.closest('.error').removeClass('error');
+            $el.siblings('.error').remove();
+          }
+        });
+      });
+
+      $('#Signup_form').on('submit', function(event) {
+        event.preventDefault();
+
+        data = formToJSON($(this));
+
+        $.ajax({
+          type: 'POST',
+          url: '/signup',
+          data: {
+            data: data
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            window.location.href = '/account';
+          }
+          else{
+            showErrors($('#Signup_form'), data.errors);
           }
         });
 

@@ -4,10 +4,6 @@ var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
-router.get('/', function(req, res, next) {
-  res.render('signup');
-});
-
 router.post('/', function(req, res, next) {
   var errors = [];
   var data = JSON.parse(req.body.data);
