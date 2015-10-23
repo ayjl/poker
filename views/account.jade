@@ -64,7 +64,7 @@ block content
 
         if loggedIn && !isYou
           include ./account/friends.jade
-    if isYou
+    if loggedIn && isYou
       div.small-12.column
         ul
         each hand in hands
