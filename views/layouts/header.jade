@@ -16,6 +16,8 @@ div.fixed
         li
           a(href='/account') #{user.username}: 
             span#Chips $#{user.chips}
+            if incomingFriendReq > 0
+              span.label.friend-notification #{incomingFriendReq}
         if loggedIn
           li: a(href='/logout') Log out
         else

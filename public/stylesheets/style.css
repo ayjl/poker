@@ -26,6 +26,10 @@ body {
   max-width: 120px;
 }
 
+.friend-notification {
+  margin-left: 5px;
+}
+
 /* === Login === */
 
 .home-bg {
@@ -98,7 +102,7 @@ body {
   vertical-align: middle;
 }
 #Friends_empty > a:before {
-  content: 'Poker is more friends. Add some!';
+  content: 'Poker is more fun with friends. Add some!';
 }
 .account__friends{
   list-style: none;
@@ -117,6 +121,7 @@ body {
   display: block;
 }
 
+/* === Chat === */
 #Chat_container {
   position: fixed;
   bottom: 0; right: 10px;
@@ -195,11 +200,24 @@ body {
   padding: 5px;
   position: relative;
 }
+.chat__box__badge {
+  display: none;
+  font-size: 0.9em;
+  padding: 1px 5px;
+  margin-left: 10px;
+}
+.chat__box--min .chat__box__badge {
+  display: inline-block;
+}
+.chat__box__badge:empty {
+  display: none;
+}
 .chat__close {
   cursor: pointer;
   font-size: 0.7rem;
+  padding: 0 10px 0 5px;
   position: absolute;
-  right: 5px; top: 5px;
+  right: 0; top: 5px;
 }
 .chat__messages {
   background-color: #e5e5e5;
@@ -278,6 +296,7 @@ body {
   margin: 0 auto;
 }
 
+/* === Poker === */
 .poker__table__name {
   margin: 0;
 }
@@ -348,6 +367,7 @@ body {
 }
 @keyframes fold-timer {
   0% {
+    background-color: #008CBA;
     width: 100%;
   }
   70% {
@@ -647,6 +667,24 @@ body {
 }
 #Bet.raise:before {
   content: 'Raise to ';
+}
+
+.poker__chat {
+  border: 1px solid tomato;
+  padding: 10px;
+}
+.poker__chat__messages {
+  border-bottom: 1px solid tomato;
+  list-style: none;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100px;
+}
+.poker__chat__compose {
+  cursor: text;
+  margin-top: 10px;
+  outline: 0;
 }
 
 /* Tables */
