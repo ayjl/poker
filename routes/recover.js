@@ -36,11 +36,11 @@ router.post('/', function(req, res, next) {
           }
         });
         var mailOptions={
-          from: "PokerPros Support <poker.cs4920@gmail.com>",
+          from: "PokerDots Support <poker.cs4920@gmail.com>",
           to: data.email,
           subject: "Account Recovery",
           text: 'Hello!\n\n' +
-            'You are receiving this because you (or someone else) have requested the reset of the password or your username for your account.\n\n' +
+            'You are receiving this because you have requested a recovery email.\n\n' +
             'Your username is: ' + user.username + '\n\n' +
             'Please click on the following link, or paste this into your browser to reset your password:\n\n' +
             'http://' + req.headers.host + '/reset/' + token + '\n\n' +
