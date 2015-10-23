@@ -10,9 +10,13 @@ router.get('/', function(req, res) {
 router.get('/rows', function(req, res, next) {
   var rows = [];
   var t = tables.all();
+  var userID = '';
+  if(req.isAuthenticated()) {
+    userID = req.user.id;
+  }
 
   User.find(
-      { _id: { $ne: req.user.id } }
+      { _id: { $ne: userID } }
     , { username: 1, chips: 1 }
   )
   .then(function(users) {
