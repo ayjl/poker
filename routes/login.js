@@ -23,8 +23,19 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done) {
-  User.findById(id, { username: 1, chips: 1 }, function(err, user) {
-    done(err, user);
+  User.findById(id, { username: 1, chips: 1, friends: 1 })
+  .populate({
+      path: 'friends._id'
+    , select: 'username'
+  })
+  .then(function(user) {
+    user.friends = user.friends.filter(function(friend) {
+      return friend.status == 'accepted';
+    })
+    done(null, user);
+  })
+  .catch(function(err) {
+    done(err, null);
   });
 });
 

@@ -1,26 +1,23 @@
 extends ./layout
 
 block content
-  div.row
-    div.small-12.column
-      h1 Sign Up
-      form#Sign_up
-        div.row
-          div.small-12.column
-            input#Username(name='username' type='text' required placeholder='Username')
-        div.row
-          div.small-12.column
-            input#Password(name='password' type='password' required placeholder='Password')
-        div.row
-          div.small-12.column
-            input#Email(name='email' type='email' required placeholder='Email')
-        div.row
-          div.small-12.column
-            button.button.small Submit
+  div.home-bg
+    div.row
+      div.small-6.small-centered.column.home__box
+        img.home__brand(src='/img/poker-dots.png')
+        form#Reset
+          div.row
+            div.small-12.column
+              div.row.collapse
+                div.small-9.column
+                  input#Password(name='password' type='password' required placeholder='New password')
+                div.small-3.column
+                  button.postfix Reset
+              input#Username(name='username' type='hidden' value='#{profile.username}')
 
   script(type='text/javascript').
     $(document).ready(function() {
-      $('#Sign_up').find('input').blur(function() {
+      $('#Reset').find('input').blur(function() {
         var name = $(this).attr('name');
         var value = $(this).val();
         var $el = $(this);
@@ -34,7 +31,7 @@ block content
         })
         .done(function(data) {
           if(data.errors.length > 0) {
-            showErrors($('#Sign_up'), data.errors);
+            showErrors($('#Reset'), data.errors);
           }
           else {
             $el.closest('.error').removeClass('error');
@@ -43,26 +40,23 @@ block content
         });
       });
 
-      $('#Sign_up').on('submit', function(event) {
+      $('#Reset').on('submit', function(event) {
         event.preventDefault();
-
         data = formToJSON($(this));
-
         $.ajax({
           type: 'POST',
-          url: '/signup',
+          url: '/reset',
           data: {
             data: data
           }
         })
         .done(function(data) {
           if(data.errors.length == 0) {
-            window.location.href = '/account';
+            window.location.href = '/';
           }
           else{
-            showErrors($('#Sign_up'), data.errors);
+            showErrors($('#Reset'), data.errors);
           }
         });
-
       });
     });

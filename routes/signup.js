@@ -4,10 +4,6 @@ var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
-router.get('/', function(req, res, next) {
-  res.render('signup');
-});
-
 router.post('/', function(req, res, next) {
   var errors = [];
   var data = JSON.parse(req.body.data);
@@ -34,11 +30,14 @@ router.post('/', function(req, res, next) {
   }
 
   if (errors.length == 0) {
-    var newUser = new User({ 
-      username: data.username, 
-      email: data.email, 
-      password: data.password, 
-      chips: 2000
+    var newUser = new User({
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      chips: 2000,
+      largestWin: 0,
+      handsPlayed: 0
+      ,chipTracker: [{change: 2000, date: Date.now()}]
     });
 
     newUser.save().then(function() {
@@ -53,7 +52,7 @@ router.post('/', function(req, res, next) {
   else {
     res.json({ errors: errors });
   }
-  
+
 });
 
 router.get('/check-username', function(req, res, next) {
@@ -90,7 +89,7 @@ router.get('/check-email', function(req, res, next) {
     return res.json({ errors: errors });
   }
 
-  User.find({email: req.query.value})
+  User.count({email: req.query.value})
   .then(function(emailCount) {
     if (emailCount > 0) {
       errors.push({
