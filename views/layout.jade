@@ -1,7 +1,9 @@
 doctype html
 html
   head
-    title= title
+    title PokerDots
+    link(rel='shortcut icon' href='/favicon.ico' type='image/x-icon')
+    link(rel='icon' href='/favicon.ico' type='image/x-icon')
     //- CSS
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/normalize.min.css')
     link(rel='stylesheet', href='/stylesheets/foundation.min.css')
@@ -20,7 +22,9 @@ html
     script(src='/js/script.js')
 
   body
-    include ./layouts/header
+    if path != '/'
+      include ./layouts/header
+
     block content
 
     if loggedIn
