@@ -1,4 +1,5 @@
 var Chat = require('./models/chat.js');
+var moment = require('moment');
 
 module.exports = function(io) {
   io.on('connection', function(socket) {
@@ -31,8 +32,9 @@ module.exports = function(io) {
         });
 
         chat.save()
-        .then(function() {
-          socket.broadcast.to(friendID).emit('receive message', fromID, msg);
+        .then(function(savedMsg) {
+          var time = moment(savedMsg._id.getTimestamp()).format('ddd DD MMM HH:mm');
+          socket.broadcast.to(friendID).emit('receive message', fromID, msg, time);
         });
       });
 
