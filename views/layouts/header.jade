@@ -13,6 +13,7 @@ div.fixed
         li
           a(href='/account') #{user.username}: 
             span#Chips $#{user.chips}
+            span.label Friend requests: #{incomingFriendReq}
         if loggedIn
           li: a(href='/logout') Log out
         else
