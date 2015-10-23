@@ -69,6 +69,9 @@ app.use('/profile', require('./routes/profile'));
 app.use('/chat', require('./routes/chat'));
 app.use('/', require('./routes/login'));
 app.use('/tables', require('./routes/tables'));
+app.use('/users', require('./routes/users'));
+
+app.locals.moment = require('moment');
 
 var Tables = require('./helpers/tables');
 tables = new Tables();
