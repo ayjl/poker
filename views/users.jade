@@ -1,0 +1,70 @@
+extends ./layout
+
+block content
+  div.row
+    div.small-12.column
+      h1 Users
+  div.row
+    div.small-12.column
+      input#Username_filter(type='text' placeholder='Filter by Username')
+
+  div.row
+    div.small-12.column
+      table#Users.table
+
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('#Users').footable({
+        columns: [
+          {   name: 'username'
+            , title: 'Username'
+            , type: 'text'
+            , formatter: nameFormat
+            , sorted: true
+            , direction: 'ASC'
+          }
+          , { name: 'chips'
+            , title: 'Chips'
+            , type: 'number'
+          }
+          , { name: 'joined'
+            , title: 'Joined'
+            , type: 'date'
+            , formatString: "DD-MMM-YYYY"
+          }
+        ],
+        rows: $.get('/users/rows'),
+        sorting: {
+          enabled: true
+        },
+        filtering: {
+          enabled: true
+        },
+        paging: {
+          enabled: true
+        }
+      });
+
+      $('#Username_filter').on('keyup', function() {
+        var val = $(this).val();
+        filter('username', val, ['username'], val);
+      });
+    });
+
+    function filter(name, query, columns, val) {
+      var filter = FooTable.get($('#Users')).components.core[0];
+
+      if(val) {
+        filter.addFilter(name, query, columns);
+      }
+      else {
+        filter.removeFilter(name);
+      }
+
+      filter.filter();
+    }
+
+    function nameFormat(value) {
+      var data = value.split('|');
+      return '<a href="/profile/' + data[1] + '">' + data[0] + '</a>';
+    }

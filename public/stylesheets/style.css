@@ -6,6 +6,10 @@ body {
   margin-right: 7px;
 }
 
+.title-area {
+  width: 180px;
+}
+
 .top-bar .name {
   position: relative;
 }
@@ -14,7 +18,7 @@ body {
   background-image: url(/img/poker-dots-line.png);
   background-size: contain;
   background-repeat: no-repeat;
-  margin-left: 10px;
+  margin-left: 20px;
   margin-top: -10px;
   position: absolute;
   top: 50%;
@@ -93,13 +97,12 @@ body {
   margin: 0 5px;
   vertical-align: middle;
 }
+#Friends_empty > a:before {
+  content: 'Poker is more friends. Add some!';
+}
 .account__friends{
   list-style: none;
   margin: 0;
-}
-.account__friends:empty:before {
-  content: 'Poker is more fun with friends!';
-  display: block;
 }
 .account__friends .button, .account__friend-request .button {
   margin-bottom: 1px;
