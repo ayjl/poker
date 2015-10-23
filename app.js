@@ -15,15 +15,7 @@ var nodemailer = require("nodemailer");
 var passport = require('passport');
 var flash = require('connect-flash');
 
-var routes = require('./routes/index');
-var poker = require('./routes/poker');
 var dbTest = require('./routes/db-test');
-var account = require('./routes/account');
-var forgotDetails = require('./routes/forgotDetails');
-var settings = require('./routes/settings');
-var reset = require('./routes/reset');
-var signup = require('./routes/signup');
-var tablesRouter = require('./routes/tables');
 var socketTest = require('./routes/socket-test');
 
 var app = express();
@@ -49,8 +41,7 @@ var sessionMiddleware = session({
   })
 });
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -65,19 +56,19 @@ app.use(require('./middleware/auth'));
 app.use(require('./middleware/flash'));
 
 
-app.use('/', routes);
+app.use('/', require('./routes/index'));
 app.use('/db', dbTest);
 app.use('/socket', socketTest);
-app.use('/poker', poker);
-app.use('/account', account);
-app.use('/reset', reset);
-app.use('/forgotDetails', forgotDetails);
-app.use('/account/settings', settings);
-app.use('/signup', signup);
+app.use('/poker', require('./routes/poker'));
+app.use('/account', require('./routes/account'));
+app.use('/reset', require('./routes/reset'));
+app.use('/recover', require('./routes/recover'));
+app.use('/account/settings', require('./routes/settings'));
+app.use('/signup', require('./routes/signup'));
 app.use('/profile', require('./routes/profile'));
 app.use('/chat', require('./routes/chat'));
 app.use('/', require('./routes/login'));
-app.use('/tables', tablesRouter);
+app.use('/tables', require('./routes/tables'));
 
 var Tables = require('./helpers/tables');
 tables = new Tables();

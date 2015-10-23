@@ -15,6 +15,7 @@ module.exports = function(req, res, next) {
   }
 
   res.locals.query = req.query;
+  res.locals.path = req.path;
 
   res.locals.loggedIn = req.isAuthenticated();
   if(req.isAuthenticated()) {

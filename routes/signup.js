@@ -3,10 +3,7 @@ var router = express.Router();
 var config = require('config');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
-
-router.get('/', function(req, res, next) {
-  res.render('signup');
-});
+var Promise = require('bluebird');
 
 router.post('/', function(req, res, next) {
   var errors = [];
@@ -33,30 +30,49 @@ router.post('/', function(req, res, next) {
     });
   }
 
-  if (errors.length == 0) {
-    var newUser = new User({
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      chips: 2000,
-      largestWin: 0,
-      handsPlayed: 0
-      ,chipTracker: [{change: 0, date: Date.now()}]
-    });
-
-    newUser.save().then(function() {
-      req.login(newUser, function(err) {
-        if(err) {
-          return next(err);
-        }
-        res.json({ errors: errors });
+  Promise.all([
+      User.count({username: data.username})
+    , User.count({email: data.email})
+  ])
+  .then(function(results) {
+    if(results[0] > 0) {
+      errors.push({
+          name: 'username'
+        , message: 'That username has been taken'
       });
-    });
-  }
-  else {
-    res.json({ errors: errors });
-  }
+    }
 
+    if(results[1] > 0) {
+      errors.push({
+          name: 'email'
+        , message: 'That email is in use'
+      });
+    }
+
+    if (errors.length == 0) {
+      var newUser = new User({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        chips: 2000,
+        largestWin: 0,
+        handsPlayed: 0
+        ,chipTracker: [{change: 2000, date: Date.now()}]
+      });
+
+      newUser.save().then(function() {
+        req.login(newUser, function(err) {
+          if(err) {
+            return next(err);
+          }
+          res.json({ errors: errors });
+        });
+      });
+    }
+    else {
+      res.json({ errors: errors });
+    }
+  });
 });
 
 router.get('/check-username', function(req, res, next) {
