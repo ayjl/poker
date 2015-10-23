@@ -1,0 +1,95 @@
+extends ./layout
+
+block content
+  div.home-bg
+    div.row
+      div.small-6.small-centered.column.home__box
+        img.home__brand(src='/img/poker-dots.png')
+        if valid
+          form#Reset
+            div.row
+              div.small-12.column
+                div.row.collapse
+                  div.small-9.column
+                    input#Password(name='password' type='password' required placeholder='New password')
+                  div.small-3.column
+                    button.postfix Reset
+        else
+          div#Recover
+            form#Recover_form
+              div.row
+                div.small-12.column
+                  div.alert-box.alert The link you have followed is invalid or has expired.<br>Request a new recovery link below.
+                  div#Recover_success.alert-box.success A recovery email has been sent.
+                  div.row.collapse
+                    div.small-9.column
+                      input(name='email' type='email' required placeholder='Email')
+                    div.small-3.column
+                      button.postfix Recover
+
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('#Reset').find('input').blur(function() {
+        var name = $(this).attr('name');
+        var value = $(this).val();
+        var $el = $(this);
+
+        $.ajax({
+          type: 'GET',
+          url: '/signup/check-' + name,
+          data: {
+            value: value
+          },
+        })
+        .done(function(data) {
+          if(data.errors.length > 0) {
+            showErrors($('#Reset'), data.errors);
+          }
+          else {
+            $el.closest('.error').removeClass('error');
+            $el.siblings('.error').remove();
+          }
+        });
+      });
+
+      $('#Reset').on('submit', function(event) {
+        event.preventDefault();
+        data = formToJSON($(this));
+        $.ajax({
+          type: 'POST',
+          url: '#{path}',
+          data: {
+            data: data
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            window.location.href = '/';
+          }
+          else{
+            showErrors($('#Reset'), data.errors);
+          }
+        });
+      });
+
+      $('#Recover_form').on('submit', function(event) {
+        event.preventDefault();
+        data = formToJSON($(this));;
+        $.ajax({
+          type: 'POST',
+          url: '/recover',
+          data: {
+            data: data
+          }
+        })
+        .done(function(data) {
+          if(data.errors.length == 0) {
+            $('#Recover_success').show();
+            $('#Recover_form').find('small.error').remove();
+          }
+          else{
+            showErrors($('#Recover_form'), data.errors);
+          }
+        });
+      });
+    });

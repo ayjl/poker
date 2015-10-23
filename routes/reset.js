@@ -7,15 +7,16 @@ var Session = require('../models/session.js');
 router.get('/:token', function(req, res, next) {
   User.findOne({resetPasswordToken: req.params.token})
   .then(function(user) {
-    if (user && Date.now()< user.resetPasswordExpires) {
-      return res.render('reset_valid', {profile: user});
-    } else {
-      return res.render('reset_invalid');
+    if (user && Date.now() < user.resetPasswordExpires) {
+      return res.render('reset', {valid: true});
+    }
+    else {
+      return res.render('reset', {valid: false});
     }
   });
 });
 
-router.post('/', function(req, res, next) {
+router.post('/:token', function(req, res, next) {
   var errors = [];
   var data = JSON.parse(req.body.data);
   if(data.password.length < 6) {
@@ -24,20 +25,30 @@ router.post('/', function(req, res, next) {
       , message: 'A password of at least 6 characters is required'
     });
   } else {
-    User.findOne({username: data.username})
+    User.findOne({resetPasswordToken: req.params.token})
     .then(function(user) {
-      user.password = data.password;
-      user.save().then(function(user) {
-        req.login(user, function(err) {
-          if(err) {
-            return next(err);
-          }
-          res.json({ errors: errors });
+      if (user && Date.now() < user.resetPasswordExpires) {
+        user.password = data.password;
+        user.resetPasswordToken = '';
+        user.save().then(function(user) {
+          req.login(user, function(err) {
+            if(err) {
+              return next(err);
+            }
+            return res.json({ errors: errors });
+          });
         });
-      });
+      }
+      else {
+        errors.push({
+            name: 'password'
+          , message: 'This password reset link is invalid or has expired.'
+        });
+
+        return res.json({ errors: errors });
+      }
     });
   }
-  res.json({ errors: errors });
 });
 
 module.exports = router;
