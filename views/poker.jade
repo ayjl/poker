@@ -52,7 +52,8 @@ block content
     
   div#ProgressBar.hide.progress
     span#FoldBar.meter
-    
+  audio#TimeExpiring
+    source(src="/sounds/Ping.wav" type="audio/wav")
 
   script(type='text/javascript').
     var socket = io('/poker', { query: 'table=#{table.id}' });
@@ -62,6 +63,7 @@ block content
     var minBet = 10;
     var chips = 0;
     var timer;
+    var expirationTimer;
 
     socket.on('chips', function(chips) {
       $('#Chips').text('$'+chips);
@@ -262,6 +264,7 @@ block content
       $player = $('#Players').children().eq(player.seat);
       $('#ProgressBar').detach().appendTo($player);
       clearTimeout(timer);
+      clearTimeout(expirationTimer);
       $('#ProgressBar').show();
       $('#FoldBar').removeClass('animate');  // Restart the animation
       $('#FoldBar').addClass('animate');
@@ -272,6 +275,12 @@ block content
           socket.emit('spectate');
         }
       }, 30000);
+      expirationTimer = setTimeout(function() { 
+        if(player.id == playerID) {
+          var audio = $("#TimeExpiring")[0]; 
+          audio.play();
+        }
+      }, 20000);
     });
 
     socket.on('pot', function(pot, tableBet, tableRoundBet, minRaise, player) {
@@ -319,6 +328,7 @@ block content
 
     socket.on('winner', function(handPlayers, winners) {
       clearTimeout(timer);
+      clearTimeout(expirationTimer);
       $('#ProgressBar').hide();
       var textArray = [];
       var bestHand = null;
