@@ -3,13 +3,16 @@ div.fixed
     ul.title-area
       li.name
         h1
-          a(href='/') Poker
+          a(href='/') &nbsp;
+            div.title-brand
       li.toggle-topbar.menu-icon
         a(href='#')
           span Menu
     section.top-bar-section
-      ul.right
+      ul.left
         li: a(href='/tables') Tables
+        li: a(href='/users') Users
+      ul.right
         li
           a(href='/account') #{user.username}: 
             span#Chips $#{user.chips}

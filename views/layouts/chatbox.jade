@@ -1,9 +1,10 @@
 div.chat__box__title #{friend.username}
+  span.label.chat__box__badge
   small.chat__close X
 ul.chat__messages
   - for (var i=messages.length-1; i>=0; i--)
     if messages[i].from == user.id
-      li.chat__msg.chat__msg--you #{messages[i].message}
+      li.chat__msg.chat__msg--you(title='#{moment(messages[i]._id.getTimestamp()).format("ddd DD MMM HH:mm")}') #{messages[i].message}
     else
-      li.chat__msg.chat__msg--other #{messages[i].message}
+      li.chat__msg.chat__msg--other(title='#{moment(messages[i]._id.getTimestamp()).format("ddd DD MMM HH:mm")}') #{messages[i].message}
 div.chat__compose(contenteditable='true' placeholder='Send a message')

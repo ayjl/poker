@@ -438,7 +438,7 @@ function progressGameState(table, poker, socket) {
       table.winners = [table.handPlayers[0].id];
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
-      checkHighestWin(table.handPlayers[0].id, table.pot);
+      // checkHighestWin(table.handPlayers[0].id, table.pot);
     }
 
     if (table.numPlayers <= 1) {
@@ -691,7 +691,7 @@ function evalWinner(table) {
   }
 
   for(var i=0; i<table.winners.length; i++) {
-    checkHighestWin(winnerIDs[i], winningsPerPlayer);
+    // checkHighestWin(winnerIDs[i], winningsPerPlayer);
   }
 
   table.winners = table.winners.map(function(player) {
@@ -797,11 +797,15 @@ function incrementHandsPlayed(table){
 
   for (var i = 0; i < array.length; i++){
     var userID = array[i].id;
-    User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+    if(userID.length == 24) {
+      User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+    }
   }
   //User.update({_id: {$in : playerArray}}, { $inc: {handsPlayed: 1}}).exec();
 }
 
 function checkHighestWin(playerID, winnings) {
-  User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  if(playerID.length == 24) {
+    User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  }
 }
