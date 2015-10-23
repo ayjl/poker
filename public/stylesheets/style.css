@@ -22,6 +22,10 @@ body {
   max-width: 120px;
 }
 
+.friend-notification {
+  margin-left: 5px;
+}
+
 /* === Login === */
 
 .home-bg {
