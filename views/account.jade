@@ -21,6 +21,8 @@ block content
               container#Graph
             div.medium-4.column
               dl
+                dt Joined
+                dd #{moment(profile._id.getTimestamp()).format('DD MMMM YYYY')}
                 dt Largest Pot Won
                 dd $#{profile.largestWin}
                 dt Hands Played
@@ -39,12 +41,15 @@ block content
               div.medium-6.column
                 h2 Friends
                 ul#Friends.account__friends
-                  each friend in friends
-                    li.account__friend__handle
-                      a(href='/profile/'+friend._id._id).button.split.tiny #{friend._id.username}
-                        span(data-dropdown='Drop_#{friend._id._id}')
-                      ul.f-dropdown(id='Drop_#{friend._id._id}')
-                        li: a.account__friend-action(data-action='unfriend' data-friend-id='#{friend._id._id}') Unfriend
+                  if friends.length == 0
+                    li#Friends_empty: a(href='/users/')
+                  else
+                    each friend in friends
+                      li.account__friend__handle
+                        a(href='/profile/'+friend._id._id).button.split.tiny #{friend._id.username}
+                          span(data-dropdown='Drop_#{friend._id._id}')
+                        ul.f-dropdown(id='Drop_#{friend._id._id}')
+                          li: a.account__friend-action(data-action='unfriend' data-friend-id='#{friend._id._id}') Unfriend
               div.medium-6.column
                 h2 Friend Requests
                 ul.account__friend-request
@@ -97,6 +102,7 @@ block content
           .done(function() {
             switch(action) {
               case 'accept':
+                $('#Friends_empty').remove();
                 $el.closest('ul').prev().children('span').trigger('click');
                 $el.closest('.account__friend__handle').detach().appendTo('#Friends');
                 $el.parent().siblings().remove();
@@ -111,6 +117,9 @@ block content
                 break;
               case 'unfriend':
                 $el.closest('.account__friend__handle').remove();
+                if($('#Friends').children().length == 0) {
+                  $('#Friends').append('<li id="Friends_empty"><a href="/users"></a></li>');
+                }
                 break;
             }
           })

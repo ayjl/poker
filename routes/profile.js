@@ -37,7 +37,7 @@ router.get('/:user_id', function(req, res) {
         , relationship: relationship
         , chipTracker: JSON.stringify(user.chipTracker)
       });
-  });
+    });
   });
 });
 
