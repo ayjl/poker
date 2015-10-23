@@ -17,6 +17,8 @@ div#Chat_container
     div.chat__list
       div.chat__box__title Online Friends
       ul#Chat_list
+audio#ReceivedMessage
+  source(src="/sounds/Pop.wav" type="audio/wav")
 
 script.
   var friendSocket = io('/');
@@ -55,6 +57,8 @@ script.
   });
 
   friendSocket.on('receive message', function(friendID, msg, time) {
+    var audio = $("#ReceivedMessage")[0];
+    audio.play();
     var isOpen = openChat(friendID, false, true);
     if(isOpen) {
       var $msg = $('<li></li>');

@@ -26,6 +26,10 @@ body {
   max-width: 120px;
 }
 
+.friend-notification {
+  margin-left: 5px;
+}
+
 /* === Login === */
 
 .home-bg {
@@ -621,6 +625,11 @@ body {
   box-shadow: -2px 2px 12px -4px #333;
   margin-left: -24px;
   top: 55px; left: 50%;
+}
+
+.poker__card-history {
+  margin-right: 5px;
+  position: relative;
 }
 
 .poker__card[class*='poker__card--'] {
