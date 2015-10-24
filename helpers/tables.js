@@ -73,6 +73,7 @@ Tables.prototype.create = function(blinds, id) {
     , playing: false
     , turn: -1
     , handPlayers: []
+    , initialHandPlayers: []
     , handFirstPlayer: null
     , gameState: -1
     , pot: 0
