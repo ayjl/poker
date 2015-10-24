@@ -335,6 +335,8 @@ function startGame(table, poker, socket) {
     return;
   }
 
+  table.initialHandPlayers = table.handPlayers.slice();
+
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
     player.inHand = true;
@@ -460,13 +462,9 @@ function progressGameState(table, poker, socket) {
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
 
-      table.winners[0] = table.handPlayers[0];
-      var numCardsShown = 0;
-      if (table.gameState > 0){
-        numCardsShown = table.gameState + 2;
-      }
-      updateUsersHandHistory(table, numCardsShown);
       updateHighestWin(table.handPlayers[0].id, table.pot);
+
+      saveHandHistory(table, [table.handPlayers[0]], {}, false);
     }
 
     if (table.numPlayers <= 1) {
@@ -509,6 +507,7 @@ function progressGameState(table, poker, socket) {
       break;
     case 3:
       evalWinner(table);
+
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
 
       table.gameTimer = setTimeout(function() {
@@ -534,6 +533,7 @@ function resetGame(table, poker) {
   table.winners = [];
   table.turn = -1;
   table.handPlayers = [];
+  table.initialHandPlayers = [];
   table.gameState = -1;
   table.bet = 0;
   table.minRaise = table.blind;
@@ -735,7 +735,7 @@ function evalWinner(table) {
   }
   require('assert').equal(assertTest, 0, 'Highest win assert failed!');
 
-  updateUsersHandHistory(table, 5);
+  saveHandHistory(table, table.winners, largestWin, true);
 
   table.winners = table.winners.map(function(player) {
     return player.id;
@@ -856,54 +856,72 @@ function updateHighestWin(playerID, winnings) {
   }
 }
 
-function updateUsersHandHistory(table, numCardsShown){
-  var array = table.players.filter(function(item){
-    return item;
-  });
+function saveHandHistory(table, winners, largestWin, revealWinner){
+  var numCards;
+  switch(table.gameState) {
+    case 0:
+      numCards = 0;
+      break;
+    case 1:
+      numCards = 3;
+      break;
+    case 2:
+      numCards = 4;
+      break;
+    default:
+      numCards = 5;
+      break;
 
-  for (var i = 0; i < array.length; i++){
-    var userID = array[i].id;
-    // Check if user won
-    var result = "Lost";
-    for (var j = 0; j < table.winners.length; j++){
-      if(userID == table.winners[j].id){
-        result = "Won";
+  }
+  var communityCards = table.cards.slice(0, numCards);
+
+  var winningHand = null;
+  if(revealWinner && winners.length > 0) {
+    var name = winners[0].hand.handName;
+    var handName = name.charAt(0).toUpperCase() + name.slice(1);
+
+    winningHand = {
+        name: handName
+      , cards: winners[0].cards
+    };
+  }
+
+  for (var i=0; i<table.initialHandPlayers.length; i++){
+    var player = table.initialHandPlayers[i];
+
+    // Skip guest players
+    if(!mongoose.Types.ObjectId.isValid(player.id)) {
+      continue;
+    }
+
+    var profit;
+    if(revealWinner) {
+      if(largestWin.hasOwnProperty(player.id)) {
+        profit = largestWin[player.id];
+      }
+      else {
+        profit = -player.bet;
+      }
+    }
+    else {
+      if(winners.length > 0 && player.id == winners[0].id) {
+        profit = table.pot - player.bet;
+      }
+      else {
+        profit = -player.bet;
       }
     }
 
+    var handHistory = {
+        cards: player.cards
+      , community: communityCards
+      , winningHand, winningHand
+      , profit, profit
+    };
 
-    // If user is not a guest
-    if(userID.length == 24) {
-      // May not have seen all community cards if everyone else folded
-      if (numCardsShown < 5){
-        if (numCardsShown = 4){
-          table.cards[4] = 0;
-        }
-        if (numCardsShown = 3){
-          table.cards[3] = 0;
-        }
-        if (numCardsShown = 0){
-          table.cards[2] = 0;
-          table.cards[1] = 0;
-          table.cards[0] = 0;
-        }
-      }
-
-      var player = table.players[i];
-      User.update({_id: array[i].id}, {
-        $push: {
-          handHistory: {
-            hand1: array[i].cards[0],
-            hand2: array[i].cards[1],
-            community1: table.cards[0],
-            community2: table.cards[1],
-            community3: table.cards[2],
-            community4: table.cards[3],
-            community5: table.cards[4],
-            result: result,
-            pot: table.pot,
-            winningHand1: table.winners[0].cards[0],
-            winningHand2: table.winners[0].cards[1]}}}).exec();
-    }
+    User.update(
+        { _id: player.id }
+      , { $push: { handHistory: { $each: [handHistory], $slice: -20 } } }
+    ).exec();
   }
 }
