@@ -20,17 +20,27 @@ router.get('/test/eval', function(req, res, next) {
 
   var table = {};
   table.pot = 120;
-  table.cards = ['Ah', '6c', '5s', 'Kc', '3c'];
+  table.cards = ['Ah', 'Kc', 'Qs', 'Jc', '8c'];
   table.handPlayers = [];
   table.winners = [];
   table.handPlayers.push({
+    id: 1,
     bet: 10,
-    cards: ['2s', '8h'],
+    cards: ['8s', '6h'],
     chips: 0
   });
   table.handPlayers.push({
+    id: 2,
     bet: 10,
-    cards: ['Jc', '4d'],
+    // cards: ['2s', '8h'],
+    cards: ['8d', '6d'],
+    chips: 0
+  });
+  table.handPlayers.push({
+    id: 3,
+    bet: 100,
+    // cards: ['2s', '8h'],
+    cards: ['7d', '6d'],
     chips: 0
   });
   // table.handPlayers.push({
@@ -48,7 +58,6 @@ router.get('/test/eval', function(req, res, next) {
     if (table.handPlayers[i]) {
       var player = table.handPlayers[i];
       var hand = table.cards.concat(player.cards);
-      console.log('hand ' , hand);
       var eval = evaluator.evalHand(hand);
       player.allCards = hand;
       player.hand =
@@ -90,19 +99,27 @@ router.get('/test/eval', function(req, res, next) {
     }
   }
 
+  console.log('===== Table Winners =======');
   console.log(table.winners);
-  console.log('============');
+  console.log('===========================');
 
 
   var start = 0;
   var end = 0;
   var toUpdate = new Set();
+  var largestWin = {};
   for(start=0; start<table.winners.length; start++) {
     var numSharing = 1;
     var winnings = table.winners[start].bet;
     if(winnings == 0) {
       continue;
     }
+
+    if(!largestWin.hasOwnProperty(table.winners[start].id)) {
+      largestWin[table.winners[start].id] = 0;
+    }
+
+    largestWin[table.winners[start].id] -= winnings;
 
     for(end=start+1; end<table.winners.length; end++) {
       if(table.winners[start].hand.handType == table.winners[end].hand.handType && table.winners[start].hand.handRank == table.winners[end].hand.handRank) {
@@ -112,11 +129,23 @@ router.get('/test/eval', function(req, res, next) {
       var deduct = Math.min(table.winners[start].bet, table.winners[end].bet);
       winnings += deduct;
       table.winners[end].bet -= deduct;
+
+      if(!largestWin.hasOwnProperty(table.winners[end].id)) {
+        largestWin[table.winners[end].id] = 0;
+      }
+      largestWin[table.winners[end].id] -= deduct;
     }
 
     console.log('start:', start);
     console.log('numSharing ' , numSharing);
     console.log('winnings ' , winnings);
+
+    if(winnings == table.winners[start].bet) {
+      table.winners[start].chips += winnings;
+      largestWin[table.winners[start].id] += winnings;
+      console.log('increasing',winnings,'from id:',table.winners[start].id);
+      continue;
+    }
 
     var winningsPerPlayer = winnings / numSharing;
     var extra = winningsPerPlayer % 1;
@@ -128,23 +157,40 @@ router.get('/test/eval', function(req, res, next) {
     console.log('extra: ',extra);
     table.winners[start].bet = 0;
     for(var i=0; i<numSharing; i++) {
-      table.winners[start+i].chips += winningsPerPlayer;
+      var winner = table.winners[start+i];
       toUpdate.add(table.winners[start+i]);
+
+      largestWin[winner.id] += winningsPerPlayer;
+      console.log('increasing',winnings,'from id:',winner.id);
+
+      winner.chips += winningsPerPlayer;
       if(i < extra) {
-        table.winners[start+i].chips++;
-        console.log('giving extra to', start+i);
+        winner.chips++;
+        largestWin[winner.id]++;
       }
     }
   }
 
-  console.log('toUpdate.size ' , toUpdate.size);
-  table.winners = Array.from(toUpdate);
+  console.log('================LargestWin=================');
+  console.log('largestWin ' , largestWin);
+  console.log('=================================');
+  console.log('===============WINNERS==================');
   console.log('table.winners ' , table.winners);
+  console.log('=================================');
+  table.winners = Array.from(toUpdate);
+
+  for(var prop in largestWin) {
+    if(largestWin.hasOwnProperty(prop)) {
+      console.log('-> prop:', prop) // DEBUG
+    }
+    else {
+      console.log('-> 1:', 1) // DEBUG
+    }
+  }
 
   table.winners = table.winners.map(function(player) {
     return player.chips;
   });
-  console.log('table.winners ' , table.winners);
 
   res.json(table.winners);
 });
