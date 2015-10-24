@@ -1,37 +1,112 @@
 body {
-  padding: 40px 0 0;
-  /*font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;*/
   font: 14px 'Source Sans Pro', Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
+.button-group > * {
+  margin-right: 7px;
 }
+
+.title-area {
+  width: 180px;
+}
+
+.top-bar .name {
+  position: relative;
+}
+
+.title-brand {
+  background-image: url(/img/poker-dots-line.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-left: 20px;
+  margin-top: -10px;
+  position: absolute;
+  top: 50%;
+  width: 120px; height: 20px;
+  max-width: 120px;
+}
+
+.friend-notification {
+  margin-left: 5px;
+}
+
+/* === Login === */
 
 .home-bg {
   background-attachment: fixed;
   background-color: #000;
-  background-image: url(/images/chips.jpg);
-  background-position: right bottom;
+  background-image: url(/img/home-bg.jpg);
+  background-size: cover;
   background-repeat: no-repeat;
   width: 100%; height: 100%;
 }
-.home__box {
-  background-color: #fff;
-  margin-top: 5em;
+
+.home__brand {
+  display: block;
+  margin: 0 auto;
+  padding: 25px;
+  width: 250px;
 }
 
+.home__box {
+  background-color: rgba(0, 0, 0, 0.75);
+  margin-top: 5em;
+  border-style: outset;
+  border-width: 5px;
+  border-color: #333;
+}
+
+.home__hr {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.home__line {
+  position: absolute;
+  height: 1px;
+  background-color: #fff;
+  text-align: center;
+  top: 50%;
+  width: 45%;
+}
+
+.home__line--right {
+  right: 0;
+}
+
+.home__hr span {
+  color: #fff;
+  line-height: 20px;
+  left: 50%;
+  margin-left: -10px;
+  position: relative;
+  text-align: center;
+  width: 20px; height: 20px;
+}
+
+.fa-left {
+  margin-right: 10px;
+}
+
+.fa-right {
+  margin-left: 10px;
+}
+
+#Recover_success {
+  display: none;
+}
+
+/* === Profile === */
 .profile__balance {
   margin: 0 5px;
   vertical-align: middle;
 }
+#Friends_empty > a:before {
+  content: 'Poker is more fun with friends. Add some!';
+}
 .account__friends{
   list-style: none;
   margin: 0;
-}
-.account__friends:empty:before {
-  content: 'Poker is more fun with friends!';
-  display: block;
 }
 .account__friends .button, .account__friend-request .button {
   margin-bottom: 1px;
@@ -46,6 +121,7 @@ a {
   display: block;
 }
 
+/* === Chat === */
 #Chat_container {
   position: fixed;
   bottom: 0; right: 10px;
@@ -124,11 +200,24 @@ a {
   padding: 5px;
   position: relative;
 }
+.chat__box__badge {
+  display: none;
+  font-size: 0.9em;
+  padding: 1px 5px;
+  margin-left: 10px;
+}
+.chat__box--min .chat__box__badge {
+  display: inline-block;
+}
+.chat__box__badge:empty {
+  display: none;
+}
 .chat__close {
   cursor: pointer;
   font-size: 0.7rem;
+  padding: 0 10px 0 5px;
   position: absolute;
-  right: 5px; top: 5px;
+  right: 0; top: 5px;
 }
 .chat__messages {
   background-color: #e5e5e5;
@@ -207,6 +296,7 @@ a {
   margin: 0 auto;
 }
 
+/* === Poker === */
 .poker__table__name {
   margin: 0;
 }
@@ -223,7 +313,7 @@ a {
 }
 .poker__table {
   background-color: #055e00;
-  background-image: url('../img/black-felt.png');
+  background-image: url(/img/black-felt.png);
   background-size: contain;
   /*background-color: #008c09;*/
   /*background-image: url('../img/felt.png');*/
@@ -277,6 +367,7 @@ a {
 }
 @keyframes fold-timer {
   0% {
+    background-color: #008CBA;
     width: 100%;
   }
   70% {
@@ -536,6 +627,11 @@ a {
   top: 55px; left: 50%;
 }
 
+.poker__card-history {
+  margin-right: 5px;
+  position: relative;
+}
+
 .poker__card[class*='poker__card--'] {
   display: block;
 }
@@ -543,7 +639,7 @@ a {
   display: inline-block;
 }
 .poker__card--back {
-  background-image: url('/img/back.png');
+  background-image: url(/img/back.png);
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 70%;
@@ -571,6 +667,24 @@ a {
 }
 #Bet.raise:before {
   content: 'Raise to ';
+}
+
+.poker__chat {
+  border: 1px solid tomato;
+  padding: 10px;
+}
+.poker__chat__messages {
+  border-bottom: 1px solid tomato;
+  list-style: none;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100px;
+}
+.poker__chat__compose {
+  cursor: text;
+  margin-top: 10px;
+  outline: 0;
 }
 
 /* Tables */

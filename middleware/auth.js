@@ -15,12 +15,14 @@ module.exports = function(req, res, next) {
   }
 
   res.locals.query = req.query;
+  res.locals.path = req.path;
 
   res.locals.loggedIn = req.isAuthenticated();
   if(req.isAuthenticated()) {
     req.session.loggedIn = true;
     res.locals.user = req.user;
     res.locals.openChats = [];
+    res.locals.incomingFriendReq = 0;
     var openChats = onlineUsers.getOpenChats(req.user.id);
     res.locals.chatState = openChats.chatState;
     openChats = openChats.openChats;
@@ -39,15 +41,22 @@ module.exports = function(req, res, next) {
       .limit(20)
       .sort({ _id: -1 }));
     }
+    promises.push(User.findById(req.user.id, {friends: 1}));
       
     Promise.all(promises)
     .then(function(results) {
-      for(var i=0; i<results.length; i+=2) {
+      for(var i=0; i<results.length-1; i+=2) {
         res.locals.openChats.push({
             friend: results[i]
           , state: state
           , messages: results[i+1]
         });
+      }
+      var lastResult = results[results.length-1].friends;
+      for(var y=0; y<lastResult.length; y++) {
+        if(lastResult[y].status == 'incoming') {
+          res.locals.incomingFriendReq++;
+        }
       }
       next();
     });
