@@ -244,6 +244,10 @@ button, .button {
   display: block;
 }
 
+#Update_result {
+  display: none;
+}
+
 /* === Chat === */
 #Chat_container {
   position: fixed;

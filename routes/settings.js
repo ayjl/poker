@@ -32,16 +32,27 @@ router.post('/', function(req, res, next) {
       });
     }
 
-    if (errors.length == 0) {
-      User.findByIdAndUpdate(req.user.id, { $set: { email: data.email } }, { new: true })
-        .then(function(user) {
-          return res.json({ errors: errors, email: user.email });
+    User.count({ _id: { $ne: req.user.id }, email: data.email })
+    .then(function(emailCount) {
+      if (emailCount > 0) {
+        errors.push({
+            name: 'email'
+          , message: 'That email is in use'
         });
-    }
-    else {
-      return res.json({ errors: errors });
-    }
-  } else if (data.password) {
+      }
+
+      if (errors.length == 0) {
+        User.findByIdAndUpdate(req.user.id, { $set: { email: data.email } }, { new: true })
+          .then(function(user) {
+            return res.json({ errors: errors, email: user.email });
+          });
+      }
+      else {
+        return res.json({ errors: errors });
+      }
+    });
+  }
+  else if (data.password) {
     if(data.password.length < 6) {
       errors.push({
           name: 'password'
@@ -49,19 +60,52 @@ router.post('/', function(req, res, next) {
       });
     }
 
-    if (errors.length == 0) {
-      User.findByIdAndUpdate(req.user.id, { $set: { password: data.password } }, { new: true })
-        .then(function(user) {
-          return res.json({ errors: errors });
+    User.count({ _id: req.user.id, password: data.old_password })
+    .then(function(count) {
+    console.log('count ' , count);
+      if(count == 0) {
+        errors.push({
+            name: 'password'
+          , message: 'The current password you provided is incorrect'
         });
-    }
-    else {
-      return res.json({ errors: errors });
-    }
+      }
+
+      if (errors.length == 0) {
+        User.findByIdAndUpdate(req.user.id, { $set: { password: data.password } }, { new: true })
+          .then(function(user) {
+            return res.json({ errors: errors });
+          });
+      }
+      else {
+        return res.json({ errors: errors });
+      }
+    });
   } else {
     return;
   }
-  
+});
+
+router.get('/check-email', function(req, res, next) {
+  var errors = [];
+
+  if(!isEmail(req.query.value)) {
+    errors.push({
+        name: 'email'
+      , message: 'A valid email is required'
+    });
+    return res.json({ errors: errors });
+  }
+
+  User.count({ _id: { $ne: req.user.id }, email: req.query.value })
+  .then(function(emailCount) {
+    if (emailCount > 0) {
+      errors.push({
+          name: 'email'
+        , message: 'That email is in use'
+      });
+    }
+    res.json({ errors: errors });
+  })
 });
 
 function isEmail(email) {

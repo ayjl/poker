@@ -4,6 +4,7 @@ block content
   div.row
     div.small-12.column
       h2 Update details
+      div#Update_result.alert-box.success.hide
       div.row
         div.medium-6.column
           form#Email_Update
@@ -15,9 +16,12 @@ block content
 
         div.medium-6.column
           form#Password_Update
+            div.row
+              div.small-12.column
+                input(name='old_password' type='password' required placeholder='Current password')
             div.row.collapse
               div.small-8.column
-                input#Password(name='password' type='password' required placeholder='Password')
+                input(name='password' type='password' required placeholder='New password')
               div.small-4.column
                 button.button.postfix Save
     div.small-12.column
@@ -31,7 +35,7 @@ block content
         var $el = $(this);
         $.ajax({
           type: 'GET',
-          url: '/signup/check-' + name,
+          url: '/account/settings/check-' + name,
           data: {
             value: value
           },
@@ -60,33 +64,13 @@ block content
         })
         .done(function(data) {
           if(data.errors.length == 0) {
-            alert("Successfully updated email!");
-            location.reload();
+            $('#Update_result').text('Your email has been updated.');
+            $('#Update_result').show();
+            $('#Email_Update').find('.column.error').removeClass('error');
+            $('#Email_Update').find('.error').remove();
           }
           else{
             showErrors($('#Email_Update'), data.errors);
-          }
-        });
-      });
-
-      $('#Password_Update').find('input').blur(function() {
-        var name = $(this).attr('name');
-        var value = $(this).val();
-        var $el = $(this);
-        $.ajax({
-          type: 'GET',
-          url: '/signup/check-' + name,
-          data: {
-            value: value
-          },
-        })
-        .done(function(data) {
-          if(data.errors.length > 0) {
-            showErrors($('#Password_Update'), data.errors);
-          }
-          else {
-            $el.closest('.error').removeClass('error');
-            $el.siblings('.error').remove();
           }
         });
       });
@@ -103,8 +87,11 @@ block content
         })
         .done(function(data) {
           if(data.errors.length == 0) {
-            alert("Successfully updated password!");
-            location.reload();
+            $('#Update_result').text('Your password has been updated.');
+            $('#Update_result').show();
+            $('#Password_Update').find('.column.error').removeClass('error');
+            $('#Password_Update').find('.error').remove();
+
           }
           else{
             showErrors($('#Password_Update'), data.errors);
