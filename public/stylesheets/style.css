@@ -22,6 +22,58 @@ button, .button {
   margin: 0;
 }
 
+span.white {
+  color: #fff;
+}
+
+table {
+  border: 0;
+}
+table thead, table thead tr {
+  background: #4f0000 !important;
+}
+table thead th {
+  border: 0 !important;
+  color: #fff !important;
+}
+table tbody td, table tfoot td {
+  border-color: #4f0000 !important;
+}
+table tr.even, table tr.alt, table tr:nth-of-type(even) {
+  background: #ffa6a6;
+}
+table tr.odd, table tr.alt, table tr:nth-of-type(odd) {
+  background: #ffa6a6;
+}
+td {
+  font-size: 1rem !important;
+}
+.footable-paging > td {
+  text-align: center;
+}
+.footable-paging > td:empty {
+  display: none;
+}
+.pagination {
+  display: inline-block !important;
+  margin-bottom: 0;
+}
+ul.pagination li a, ul.pagination li button {
+  color: #222;
+}
+.footable-page.visible.active > a {
+  background: #4f0000;
+  color: #fff
+}
+.footable .label-default {
+  font-weight: 400;
+  background: #4f0000;
+}
+.footable-page-nav.disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
 .full-width {
   display: block;
   width: 100%;
@@ -42,6 +94,11 @@ button, .button {
 
 .friend-notification {
   margin-left: 5px;
+}
+
+#Chips:before {
+  content: '$';
+  display: inline-block;
 }
 
 /* === Login === */
@@ -845,6 +902,33 @@ button, .button {
 /* Tables */
 .tables__checkbox > input {
   margin-top: 0.7rem;
+  display: none;
+}
+.table__filters {
+  margin-bottom: 10px;
+}
+.table__filters label{
+  color: #fff;
+  font-size: 1.2rem;
+  transition: color .5s;
+}
+.table__filters label:hover, .table__filters input:checked + label{
+  color: #4f0000;
+}
+.table__filters button, .table__filters .button {
+  background: transparent;
+  font-size: 2rem;
+  line-height: 1.8rem;
+  margin-top: -14px;
+  padding-left: 28px !important;
+  padding: 0;
+  text-align: left;
+  text-indent: -28px;
+  transition: color .5s;
+  width: 110px;
+}
+.table__filters button:hover, .table__filters .button:hover {
+  color: #4f0000;
 }
 
 /* Overrides */

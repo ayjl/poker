@@ -3,8 +3,8 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      h1 Tables
-  div.row
+      h2 Choose #[span.white Table]
+  div.row.table__filters
     div.small-2.column
       input#Name_filter(type='text' placeholder='Filter by Name')
     div.small-3.column
@@ -20,7 +20,7 @@ block content
       input#Full_filter(type='checkbox')
       label(for='Full_filter') Hide Full
     div.small-2.column
-      a.button.small.right(href='/tables/quick') Quick Play
+      a.button.small.right(href='/tables/quick') Quick<br>Play
     div.small-2.column
       button.small.right(data-reveal-id='Create_modal') Create Table
 
