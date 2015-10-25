@@ -29,6 +29,7 @@ block content
               div.poker__card.poker__card-2
               p.poker__player-name Seat Available
               p.poker__player-chips
+              p.poker__player-bet
 
   div.poker__controls
     div.row
@@ -167,6 +168,8 @@ block content
         }
 
         $player.children('.poker__player-chips').text(player.chips);
+        $player.children('.poker__player-bet').text(player.bet);
+
         if(player.id == playerID) {
           chips = player.chips;
         }
@@ -236,6 +239,7 @@ block content
       $('#Pot').text(0);
       $('#Check').text('Check');
       $('#Bet').removeClass('raise');
+      $('.poker__player-bet').text('');
       bet = 0;
       roundBet = 0;
       minBet = #{table.blind*2};
@@ -262,7 +266,7 @@ block content
       }
     });
 
-    socket.on('turn', function(player) {
+    socket.on('turn', function(player, resetBets) {
       $('.poker__players--active').removeClass('poker__players--active');
       if(player.id == playerID) {
         $('button:not(.no-disable)').prop('disabled', false);
@@ -272,6 +276,11 @@ block content
         $('button:not(.no-disable)').prop('disabled', true);
         $('#Bet_amount').prop('disabled', true);
       }
+
+      if(resetBets) {
+        $('.poker__player-bet').text('');
+      }
+
       $player = $('#Players').children().eq(player.seat);
       $('#ProgressBar').detach().appendTo($player);
       clearTimeout(timer);
@@ -297,8 +306,9 @@ block content
     socket.on('pot', function(pot, tableBet, tableRoundBet, minRaise, player) {
       $('#Pot').text(pot);
       if(player) {
-        $('#Players').children().eq(player.seat).children('.poker__player-chips').text(player.chips);
-
+        var $player = $('#Players').children().eq(player.seat);
+        $player.children('.poker__player-chips').text(player.chips);
+        $player.children('.poker__player-bet').text(tableRoundBet);
         if(player.id == playerID) {
           chips = player.chips;
         }
@@ -315,14 +325,12 @@ block content
       }
 
       minBet = tableRoundBet + minRaise;
-      console.log('tableRoundBet:', tableRoundBet);
       if(tableRoundBet > 0) {
         $('#Bet').addClass('raise');
       }
       else{
         $('#Bet').removeClass('raise');
       }
-      console.log(tableBet, tableRoundBet, minRaise, bet);
 
       updateBetButton(true);
     });
@@ -334,7 +342,6 @@ block content
       chips = player.chips;
       bet = tableBet;
       roundBet = tableRoundBet
-      console.log('Your bet is now '+tableBet+'. You have '+player.chips+' chips.');
     });
 
     socket.on('winner', function(handPlayers, winners) {
@@ -388,7 +395,7 @@ block content
       $('#Winner').text(text);
 
       var $el = $('<li></li>');
-      $el.text(text);
+      $el.text('[' + text + ']');
       $('#Chat_messages').append($el);
       $('#Chat_messages').scrollTop($('#Chat_messages').get(0).scrollHeight);
 

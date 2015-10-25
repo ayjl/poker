@@ -255,7 +255,7 @@ module.exports = function(io) {
           progressGameState(table, poker, socket);
         }
         else if(table.handPlayers.length >= 2) {
-          poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
+          poker.to(table.id).emit('turn', table.handPlayers[table.turn], false);
         }
       }
     });
@@ -448,7 +448,7 @@ function startGame(table, poker, socket) {
 
   table.gameState = 0;
   table.turn = 0;
-  poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
+  poker.to(table.id).emit('turn', table.handPlayers[table.turn], false);
 }
 
 function progressGameState(table, poker, socket) {
@@ -522,7 +522,7 @@ function progressGameState(table, poker, socket) {
     table.gameState++;
   }
   if(table.gameState >= 0 && table.gameState <= 3) {
-    poker.to(table.id).emit('turn', table.handPlayers[table.turn]);
+    poker.to(table.id).emit('turn', table.handPlayers[table.turn], true);
     poker.to(table.id).emit('pot', table.pot, table.bet, table.roundBet, table.minRaise, null);
   }
 }
@@ -795,9 +795,6 @@ function storePlayerChipTracker(playerID, balChange, passport) {
       )
       .exec();
     });
-  } else {
-    console.log("Guest user does not keep track of historical chips");
-    return;
   }
 }
 

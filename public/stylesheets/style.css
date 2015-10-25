@@ -336,7 +336,7 @@ ul.pagination li a, ul.pagination li button {
   position: relative;
 }
 #Chat_list:empty:before {
-  content: 'No friends online =(';
+  content: 'No friends online';
   font-size: 1.2rem;
   display: block;
   position: absolute;
@@ -545,7 +545,7 @@ ul.pagination li a, ul.pagination li button {
 }
 .poker__table-middle {
   position: absolute;
-  margin-top: -70px; margin-left: -120px;
+  margin-top: -62px; margin-left: -113px;
   font-size: 0.9rem;
   top: 50%; left: 50%;
 }
@@ -609,7 +609,7 @@ ul.pagination li a, ul.pagination li button {
 }
 
 #Community_cards {
-  margin: 0;
+  margin: 0 0 -8px 0;
 }
 
 #Pot:before {
@@ -707,6 +707,10 @@ ul.pagination li a, ul.pagination li button {
   bottom: -7em;
   left: 2.7em;
 }
+.poker__player--0 .poker__player-bet {
+  bottom: -9.2em;
+  left: 3.1em;
+}
 
 .poker__player--1 {
   -webkit-transform: rotate(333deg) translate(20.3em) rotate(-333deg);
@@ -719,6 +723,10 @@ ul.pagination li a, ul.pagination li button {
 .poker__player--1.poker__player--small-blind:after, .poker__player--1.poker__player--big-blind:after {
   bottom: -2.8em;
   left: -8em;
+}
+.poker__player--1 .poker__player-bet {
+  bottom: -4.5em;
+  left: -9.3em;
 }
 
 .poker__player--2 {
@@ -733,6 +741,10 @@ ul.pagination li a, ul.pagination li button {
   bottom: 1.4em;
   left: -8.2em;
 }
+.poker__player--2 .poker__player-bet {
+  bottom: 1.4em;
+  left: -8.2em;
+}
 
 .poker__player--3 {
   -webkit-transform: rotate(86deg) translate(12em) rotate(-86deg);
@@ -740,11 +752,15 @@ ul.pagination li a, ul.pagination li button {
 }
 .poker__player--3.poker__player--dealer:before {
   top: -7em;
-  left: 4.9em;
+  left: 4.5em;
 }
 .poker__player--3.poker__player--small-blind:after, .poker__player--3.poker__player--big-blind:after {
   top: -7em;
-  left: 2.7em;
+  left: 2.5em;
+}
+.poker__player--3 .poker__player-bet {
+  top: -7.6em;
+  left: 2.6em;
 }
 
 .poker__player--4 {
@@ -759,6 +775,11 @@ ul.pagination li a, ul.pagination li button {
   bottom: 1.6em;
   right: -8.4em;
 }
+.poker__player--4 .poker__player-bet {
+  bottom: 1.4em;
+  right: -8em;
+}
+
 .poker__player--5 {
   -webkit-transform: rotate(210deg) translate(17.5em) rotate(-210deg);
           transform: rotate(210deg) translate(17.5em) rotate(-210deg);
@@ -771,6 +792,11 @@ ul.pagination li a, ul.pagination li button {
   bottom: -2.8em;
   right: -6em;
 }
+.poker__player--5 .poker__player-bet {
+  bottom: -4.4em;
+  right: -7.5em;
+}
+
 
 .poker__player-name {
   background-color: #4f0000;
@@ -797,6 +823,16 @@ ul.pagination li a, ul.pagination li button {
   margin: 0;
 }
 .poker__player-chips:before {
+  content: '$';
+}
+.poker__player-bet {
+  font-size: 0.8rem;
+  position: absolute;
+}
+.poker__player-bet:empty {
+  display: none;
+}
+.poker__player-bet:before {
   content: '$';
 }
 .poker__card {
