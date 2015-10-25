@@ -148,7 +148,7 @@ module.exports = function(io) {
           table.playing = true;
           table.gameTimer = setTimeout(function() {
             startGame(table, poker, socket);
-          }, 3000);
+          }, 5000);
         }
       });
     });
@@ -473,7 +473,7 @@ function progressGameState(table, poker, socket) {
 
     table.gameTimer = setTimeout(function() {
       startGame(table, poker, socket);
-    }, 3000);
+    }, 5000);
 
     return;
   }
@@ -512,7 +512,7 @@ function progressGameState(table, poker, socket) {
 
       table.gameTimer = setTimeout(function() {
         startGame(table, poker, socket);
-      }, 3000);
+      }, 5000);
       break;
     default:
       console.log("default switch. should not be here. gameState: "+table.gameState);
