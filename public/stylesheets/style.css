@@ -434,7 +434,7 @@ ul.pagination li a, ul.pagination li button {
 .chat__close {
   cursor: pointer;
   font-size: 0.7rem;
-  padding: 0 10px 0 5px;
+  padding: 3px 10px 3px 5px;
   text-align: center;
   position: absolute;
   right: 0; top: 5px;

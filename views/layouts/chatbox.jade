@@ -1,6 +1,6 @@
 div.chat__box__title #{friend.username}
   span.label.chat__box__badge
-  small.chat__close X
+  small.chat__close.fa.fa-times
 ul.chat__messages
   - for (var i=messages.length-1; i>=0; i--)
     if messages[i].from == user.id
