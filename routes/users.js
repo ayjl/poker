@@ -10,14 +10,14 @@ router.get('/', function(req, res) {
 router.get('/rows', function(req, res, next) {
   var rows = [];
   var t = tables.all();
-  var userID = '';
+  var search = {};
   
   if(req.isAuthenticated()) {
-    userID = req.user.id;
+    search = { _id: { $ne: req.user.id } };
   }
 
   User.find(
-      { _id: { $ne: userID } }
+      search
     , { username: 1, chips: 1 }
   )
   .then(function(users) {

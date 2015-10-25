@@ -11,21 +11,25 @@ router.get('/:user_id', function(req, res) {
   }
 
   User.findById(userID).then(function(user) {
-    var relationship = user.friends.filter(function(friend) {
-      return friend._id == req.user.id;
-    });
+    var relationship = '';
 
-    if(relationship.length == 1) {
-      relationship = relationship[0].status;
-      if(relationship == 'outgoing') {
-        relationship = 'incoming';
+    if(req.isAuthenticated()) {
+      relationship = user.friends.filter(function(friend) {
+        return friend._id == req.user.id;
+      });
+
+      if(relationship.length == 1) {
+        relationship = relationship[0].status;
+        if(relationship == 'outgoing') {
+          relationship = 'incoming';
+        }
+        else if(relationship == 'incoming') {
+          relationship = 'outgoing';
+        }
       }
-      else if(relationship == 'incoming') {
-        relationship = 'outgoing';
+      else {
+        relationship = 'add';
       }
-    }
-    else {
-      relationship = 'add';
     }
     
     User.count({ chips: { $gt: user.chips} })

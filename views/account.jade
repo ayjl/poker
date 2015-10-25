@@ -92,93 +92,96 @@ block content
             }
           })
         });
-
-        Highcharts.setOptions({
-            lang: {
-              thousandsSep: ','
-            }
-        });
-
-        $('#Graph').highcharts({
-          chart: {
-            backgroundColor: 'transparent'
-            , type: 'line'
-          },
-          title: {
-            text: 'Lifetime Profitability',
-            color: '#4f0000'
-          },
-          series: [{
-            name: 'Profitability',
-            color: '#4f0000',
-            data: []
-          }],
-          yAxis: {
-            title: {
-              text: 'Profitability'
-              , style: 'color: #4f0000'
-            }
-            , gridLineColor: '#ff8c8c'
-            , tickColor: '#4f0000'
-            , lineColor: '#4f0000'
-            , lineWidth: '2'
-            , labels: {
-              style: 'color: #4f0000'
-            }
-          },
-          xAxis: {
-            title: {
-              text: 'Date Played'
-              , style: 'color: #4f0000'
-            }
-            , type: 'datetime'
-            , dateTimeLabelFormats: {
-              millisecond: '%b-%d<br/>%H:%M',
-              second: '%b-%d<br/>%H:%M',
-              minute: '%b-%d<br/>%H:%M',
-              hour: '%b-%d<br/>%H:%M',
-              day: '%b-%d',
-              week: '%Y<br/>%b-%d',
-              month: '%b %Y',
-              year: '%Y'
-            }
-            , lineColor: '#4f0000'
-            , lineWidth: '2'
-            , tickColor: '#4f0000'
-            , labels: {
-              style: 'color: #4f0000'
-            }
-          },
-          legend: {
-            enabled: false
-          },
-          tooltip: {
-            valuePrefix: '$',
-            xDateFormat: '%b %d %Y %H:%M'
-          },
-          plotOptions: {
-              line: {
-                  marker: {
-                      enabled: false
-                  }
-              }
-          },
-          credits: {
-            enabled: false
-          },
-          exporting: {
-            enabled: false
-          }
-        });
-        var chipTracker = JSON.parse('!{chipTracker}'); 
-        var mySeries = [];
-        // offset in minutes converted to milliseconds
-        var offset = new Date().getTimezoneOffset() * 60000;
-        for (var i = 0; i < chipTracker.length; i++) {
-          var epochDate = Date.parse(chipTracker[i].date);
-          epochDate -= offset;
-          mySeries.push([epochDate, chipTracker[i].change]);
-        }
-        var chart = $('#Graph').highcharts();
-        chart.series[0].setData(mySeries); 
       });
+
+  script(type='text/javascript').
+    $(document).ready(function() {
+      Highcharts.setOptions({
+          lang: {
+            thousandsSep: ','
+          }
+      });
+
+      $('#Graph').highcharts({
+        chart: {
+          backgroundColor: 'transparent'
+          , type: 'line'
+        },
+        title: {
+          text: 'Lifetime Profitability',
+          color: '#4f0000'
+        },
+        series: [{
+          name: 'Profitability',
+          color: '#4f0000',
+          data: []
+        }],
+        yAxis: {
+          title: {
+            text: 'Profitability'
+            , style: 'color: #4f0000'
+          }
+          , gridLineColor: '#ff8c8c'
+          , tickColor: '#4f0000'
+          , lineColor: '#4f0000'
+          , lineWidth: '2'
+          , labels: {
+            style: 'color: #4f0000'
+          }
+        },
+        xAxis: {
+          title: {
+            text: 'Date Played'
+            , style: 'color: #4f0000'
+          }
+          , type: 'datetime'
+          , dateTimeLabelFormats: {
+            millisecond: '%b-%d<br/>%H:%M',
+            second: '%b-%d<br/>%H:%M',
+            minute: '%b-%d<br/>%H:%M',
+            hour: '%b-%d<br/>%H:%M',
+            day: '%b-%d',
+            week: '%Y<br/>%b-%d',
+            month: '%b %Y',
+            year: '%Y'
+          }
+          , lineColor: '#4f0000'
+          , lineWidth: '2'
+          , tickColor: '#4f0000'
+          , labels: {
+            style: 'color: #4f0000'
+          }
+        },
+        legend: {
+          enabled: false
+        },
+        tooltip: {
+          valuePrefix: '$',
+          xDateFormat: '%b %d %Y %H:%M'
+        },
+        plotOptions: {
+            line: {
+                marker: {
+                    enabled: false
+                }
+            }
+        },
+        credits: {
+          enabled: false
+        },
+        exporting: {
+          enabled: false
+        }
+      });
+      var chipTracker = JSON.parse('!{chipTracker}'); 
+      var mySeries = [];
+      // offset in minutes converted to milliseconds
+      var offset = new Date().getTimezoneOffset() * 60000;
+      for (var i = 0; i < chipTracker.length; i++) {
+        var epochDate = Date.parse(chipTracker[i].date);
+        epochDate -= offset;
+        mySeries.push([epochDate, chipTracker[i].change]);
+      }
+      var chart = $('#Graph').highcharts();
+      chart.series[0].setData(mySeries);
+    })
