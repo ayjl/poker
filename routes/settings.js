@@ -66,7 +66,6 @@ router.post('/', function(req, res, next) {
 
     User.count({ _id: req.user.id, password: data.old_password })
     .then(function(count) {
-    console.log('count ' , count);
       if(count == 0) {
         errors.push({
             name: 'password'

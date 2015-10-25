@@ -932,8 +932,6 @@ function saveHandHistory(table, winners, largestWin, revealWinner){
       , profit, profit
     };
 
-    console.log(handHistory);
-
     User.update(
         { _id: player.id }
       , { $push: { handHistory: { $each: [handHistory], $slice: -20 } } }

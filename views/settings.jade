@@ -54,7 +54,6 @@ block content
       $('#Email_Update').on('submit', function(event) {
         event.preventDefault();
         data = formToJSON($(this));
-        console.log(data);
         $.ajax({
           type: 'POST',
           url: '/account/settings',
