@@ -244,7 +244,10 @@ ul.pagination li a, ul.pagination li button {
   text-align: right;
 }
 .account__history__win .account__history__meta {
-  color: #ffa6a6;
+  color: #FF8C00;
+}
+.account__history__loss .account__history__meta {
+  color: #4f0000;
 }
 .account__history__meta > p {
   margin: 0;
@@ -263,7 +266,7 @@ ul.pagination li a, ul.pagination li button {
   display: inline-block;
 }
 .account__history__winner {
-  border-color: darkorange !important;
+  border-color: #FF8C00 !important;
   border-radius: 8px;
   display: inline-block;
   position: relative;
@@ -924,22 +927,6 @@ ul.pagination li a, ul.pagination li button {
   background-color: #262c36;
 }
 
-.poker__players--active {
-  color: green;
-  font-weight: 700;
-}
-.poker__players--folded {
-  text-decoration: line-through;
-}
-.poker__players--dealer {
-  text-decoration: underline;
-}
-.poker__players--small-blind:after {
-  content: ' Small Blind';
-}
-.poker__players--big-blind:after {
-  content: ' Big Blind';
-}
 #Bet:before {
   content: 'Bet ';
 }
