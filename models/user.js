@@ -12,7 +12,7 @@ var userSchema = new mongoose.Schema( {
   , resetPasswordToken: { type: String, default: '' }
   , resetPasswordExpires: { type: Date, default: Date.now }
   , handHistory: [{
-      cards: [String]
+      hand: { name: String, cards: [String] }
     , community: [String]
     , profit: Number
     , winningHand: { name: String, cards: [String] }

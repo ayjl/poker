@@ -1,4 +1,4 @@
-h3 Hand History
+h3.white Hand History
 ul.account__history
   each hand in hands
     if hand.profit > 0
@@ -13,7 +13,8 @@ ul.account__history
         else
           p -$#{-hand.profit}
       div.account__history__you
-        each card in hand.cards
+        p.account__history__text #{hand.hand.name}
+        each card in hand.hand.cards
           div(class='poker__card poker__card-account poker__card--#{card}') &nbsp;
       div.account__history__community
         each card in hand.community

@@ -25,7 +25,7 @@ button, .button {
   margin: 0;
 }
 
-span.white {
+.white {
   color: #fff;
 }
 
@@ -179,7 +179,6 @@ ul.pagination li a, ul.pagination li button {
   vertical-align: middle;
 }
 .profile__balance {
-  color: #fff;
   font-size: 0.7em;
   margin-left: 7px;
   vertical-align: middle;
@@ -214,6 +213,10 @@ ul.pagination li a, ul.pagination li button {
 .account__history {
   list-style: none;
   margin: 0;
+}
+.account__history:empty:before {
+  content: 'Go play some poker!';
+  display: block;
 }
 .account__history > li {
   padding: 5px;
@@ -609,7 +612,8 @@ ul.pagination li a, ul.pagination li button {
 }
 
 #Community_cards {
-  margin: 0 0 -8px 0;
+  margin: 0;
+  height: 54px;
 }
 
 #Pot:before {

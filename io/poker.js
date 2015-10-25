@@ -909,12 +909,30 @@ function saveHandHistory(table, winners, largestWin, revealWinner){
       }
     }
 
+    var hand = {}
+    hand.cards = player.cards;
+    if(player.hand) {
+      var name = player.hand.handName;
+      var handName = name.charAt(0).toUpperCase() + name.slice(1);
+      hand.name = handName;
+    }
+    else {
+      if(profit > 0) {
+        hand.name = 'Muck';
+      }
+      else {
+        hand.name = 'Fold';
+      }
+    }
+
     var handHistory = {
-        cards: player.cards
+        hand: hand
       , community: communityCards
       , winningHand, winningHand
       , profit, profit
     };
+
+    console.log(handHistory);
 
     User.update(
         { _id: player.id }
