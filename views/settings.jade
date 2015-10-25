@@ -12,8 +12,8 @@ block content
               div.small-8.column
                   input#Email(name='email' type='email' required placeholder='Email' value='#{profile.email}')
               div.small-4.column
-                button.button.postfix Save
-          a.button.tiny(href="/account") #[i.fa.fa-arrow-left.fa-left] Back to my account
+                button.secondary.postfix Save
+          a.button.tiny.secondary(href="/account") #[i.fa.fa-arrow-left.fa-left] Back to my account
 
         div.medium-6.column
           form#Password_Update
@@ -24,7 +24,7 @@ block content
               div.small-8.column
                 input(name='password' type='password' required placeholder='New password')
               div.small-4.column
-                button.button.postfix Save
+                button.secondary.postfix Save
 
   script(type='text/javascript').
     $(document).ready(function() {
