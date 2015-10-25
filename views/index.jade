@@ -64,7 +64,7 @@ block content
     $(document).ready(function() {
       $('#Login_form').find('input').on('change', function(event) {
         $(this).closest('.error').removeClass('error');
-        $(this).parent().siblings('.error').remove();
+        $(this).siblings('.error').remove();
       });
 
       $('#Show_recover').on('click', function() {
