@@ -878,7 +878,6 @@ function saveHandHistory(table, winners, largestWin, revealWinner){
   var winningHand = null;
   if(revealWinner && winners.length > 0) {
     var name = winners[0].hand.handName;
-    console.log('winners[0] ' , winners[0]);
     var handName = name.charAt(0).toUpperCase() + name.slice(1);
 
     winningHand = {
@@ -919,8 +918,6 @@ function saveHandHistory(table, winners, largestWin, revealWinner){
       , winningHand, winningHand
       , profit, profit
     };
-
-    console.log(handHistory);
 
     User.update(
         { _id: player.id }

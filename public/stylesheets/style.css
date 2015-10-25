@@ -259,8 +259,12 @@ button, .button {
   box-shadow: rgba(0, 0, 0, 0.14902) 1px -1px 3px 1px;
   display: inline-block;
   vertical-align: bottom;
-  margin-right: 20px;
+  margin-right: 10px;
   width: 200px;
+}
+.chat__list {
+  margin-right: 5px;
+  width: 170px;
 }
 #Chat_list {
   background-color: #fff;
@@ -290,14 +294,17 @@ button, .button {
   right: 6px !important;
 }
 .chat__list__friend > .f-dropdown {
-  width: 80%;
   right: 10px !important; left: auto !important;
+  width: 85%;
 }
 .chat__list__friend > .f-dropdown.open::before {
   right: 10px; left: auto;
 }
 .chat__list__friend > .f-dropdown.open::after {
   right: 9px; left: auto;
+}
+.chat__list__friend > .f-dropdown li a {
+  font-size: 0.8rem;
 }
 .chat__box {
   position: relative;
@@ -306,17 +313,28 @@ button, .button {
   height: 26px;
   overflow: hidden;
   vertical-align: bottom;
-  width: 160px;
+  width: 140px;
+}
+.chat__list i{
+  display: none;
 }
 .chat__list.chat__box--min {
-  margin: 0 0 0 -144px;
-  transform: rotate(-90deg) translate(67px, 67px);
+  margin-right: 0px;
+  width: 35px;
+}
+.chat__list.chat__box--min .chat__box__title {
+  font-size: 0;
+  text-align: center;
+}
+.chat__list.chat__box--min i {
+  display: block;
+  font-size: 16px;
 }
 .chat__box--min .chat__compose {
   display: none !important;
 }
 .chat__box__title {
-  background-color: #008CBA;
+  background-color: #4f0000;
   color: #fff;
   cursor: pointer;
   font-size: 0.8rem;
@@ -350,7 +368,8 @@ button, .button {
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  height: 200px;
+  height: 180px;
+  margin-bottom: 20px;
 }
 .chat__msg {
   background-color: #fff;
