@@ -47,6 +47,11 @@ router.get('/', function(req, res) {
         });
       });
     }
+    else {
+      res.render('account', {
+          isYou: true, profile: user
+      });
+    }
   });
 });
 
