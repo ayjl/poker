@@ -176,6 +176,9 @@ ul.pagination li a, ul.pagination li button {
 .profile__balance {
   margin-left: 7px;
 }
+#Graph {
+  height: 430px;
+}
 .account__well {
   background-color: #ffa6a6;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;
@@ -183,6 +186,7 @@ ul.pagination li a, ul.pagination li button {
 }
 .account__stats {
   margin-bottom: 20px;
+  height: 430px;
 }
 .account__stats dt {
   color: #a60000;

@@ -12,7 +12,7 @@ block content
         if errorFlash.length
           div.alert-box.alert #{errorFlash}
 
-        if !profile._id && !loggedIn && isYou
+        if !profile._id && !loggedIn && isYou && user.chips < 3000
           div
             button#Topup.secondary.small Top up chips to $3000
 
@@ -37,6 +37,7 @@ block content
     script(type='text/javascript').
       $(document).ready(function() {
         $('#Topup').on('click', function() {
+          var $el = $(this);
           $.ajax({
             type: 'POST',
             url: '/account/topup-chips',
@@ -47,6 +48,7 @@ block content
           .done(function(data) {
             $('#Balance').text(data.chips);
             $('#Chips').text(data.chips);
+            $el.hide();
           });
         });
       });
