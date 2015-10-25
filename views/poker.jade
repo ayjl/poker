@@ -10,7 +10,7 @@ block content
   div.row.poker__container
     div.medium-3.column
       div.poker__chat
-        h3.poker__chat__title Table Chat
+        h4.poker__chat__title Table Chat
         ul#Chat_messages.poker__chat__messages
         div#Send_chat.poker__chat__compose(contenteditable='true' placeholder='Send a message')
     div.medium-9.column
@@ -387,7 +387,7 @@ block content
       }
 
       if(textArray.length > 1) {
-        text = 'Winners:' + text;
+        text = 'Winners: ' + text;
       }
       else {
         text = 'Winner: ' + text;
