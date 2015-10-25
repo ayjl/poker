@@ -7,8 +7,8 @@ block content
         h2 This profile couldn't be found
       else
         h2
-          span.profile__name.white #{profile.username}
-          span.profile__balance $#[span#Balance #{profile.chips}]
+          span.profile__name #{profile.username}
+          span.profile__balance.white $#[span#Balance #{profile.chips}]
         if errorFlash.length
           div.alert-box.alert #{errorFlash}
 
