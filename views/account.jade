@@ -64,7 +64,21 @@ block content
 
         if loggedIn && !isYou
           include ./account/friends.jade
-  
+    if loggedIn && isYou
+      div.small-12.column
+        ul
+        each hand in hands
+          li
+            p Your cards:
+            each card in hand.cards
+              div(class = 'poker__card poker__card-community poker__card--#{card}')
+            p Community cards:
+            each card in hand.community
+              div(class = 'poker__card poker__card-community poker__card--#{card}')
+            p Profit: #{hand.profit}
+            p Winning Hand: #{hand.winningHand.name}
+            each card in hand.winningHand.cards
+              div(class = 'poker__card poker__card-community poker__card--#{card}')
   if isYou
     script(type='text/javascript').
       $(document).ready(function() {

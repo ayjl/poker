@@ -54,7 +54,7 @@ router.post('/', function(req, res, next) {
           username: data.username
         , email: data.email
         , password: data.password
-        , chipTracker: [{change: 2000, date: Date.now()}]
+        , chipTracker: [{change: 0, date: Date.now()}]
       });
 
       newUser.save().then(function() {

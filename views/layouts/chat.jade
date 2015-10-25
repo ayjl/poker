@@ -17,6 +17,8 @@ div#Chat_container
     div.chat__list
       div.chat__box__title Online Friends
       ul#Chat_list
+audio#ReceivedMessage
+  source(src="/sounds/Pop.wav" type="audio/wav")
 
 script.
   var friendSocket = io('/');
@@ -55,6 +57,8 @@ script.
   });
 
   friendSocket.on('receive message', function(friendID, msg, time) {
+    var audio = $("#ReceivedMessage")[0];
+    audio.play();
     var isOpen = openChat(friendID, false, true);
     if(isOpen) {
       var $msg = $('<li></li>');
@@ -205,22 +209,26 @@ script.
   }
 
   function sendMessage(event) {
+    event.stopPropagation();
     if(event.keyCode == 13) {
+      event.preventDefault();
       var msg = $(this).text();
       $(this).text('');
-      var friendID = $(this).closest('.chat__box').data('user');
+      if(msg.length > 0) {
+        var friendID = $(this).closest('.chat__box').data('user');
 
-      var $msg = $('<li></li>');
-      $msg.addClass('chat__msg');
-      $msg.addClass('chat__msg--you');
-      $msg.text(msg);
-      $msg.attr('title', moment().format("ddd DD MMM HH:mm"));
+        var $msg = $('<li></li>');
+        $msg.addClass('chat__msg');
+        $msg.addClass('chat__msg--you');
+        $msg.text(msg);
+        $msg.attr('title', moment().format("ddd DD MMM HH:mm"));
 
-      var $chatMessages = $(this).siblings('.chat__messages');
-      $chatMessages.append($msg);
-      scrollBtm($chatMessages);
+        var $chatMessages = $(this).siblings('.chat__messages');
+        $chatMessages.append($msg);
+        scrollBtm($chatMessages);
 
-      friendSocket.emit('send message', friendID, msg);
+        friendSocket.emit('send message', friendID, msg);
+      }
     }
   }
 

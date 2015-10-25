@@ -11,6 +11,12 @@ var userSchema = new mongoose.Schema( {
   , chipTracker: [{change: Number, date: Date}]
   , resetPasswordToken: { type: String, default: '' }
   , resetPasswordExpires: { type: Date, default: Date.now }
+  , handHistory: [{
+      cards: [String]
+    , community: [String]
+    , profit: Number
+    , winningHand: { name: String, cards: [String] }
+    }]
   , friends: [{ _id: { type: Schema.Types.ObjectId, ref: '' }, status: String }]
 });
 
