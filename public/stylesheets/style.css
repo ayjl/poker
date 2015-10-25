@@ -18,6 +18,15 @@ body {
   border: 0;
 }
 
+button, .button {
+  margin: 0;
+}
+
+.full-width {
+  display: block;
+  width: 100%;
+}
+
 .button-group > * {
   margin-right: 7px;
 }
@@ -26,12 +35,9 @@ body {
   background-image: url(/img/poker-dots-line.png);
   background-size: contain;
   background-repeat: no-repeat;
+  background-position: center center;
   margin-left: 20px;
-  margin-top: -10px;
-  position: absolute;
-  top: 50%;
-  width: 120px; height: 20px;
-  max-width: 120px;
+  width: 120px; height: 45px;
 }
 
 .friend-notification {
@@ -52,21 +58,23 @@ body {
 .home__brand {
   display: block;
   margin: 0 auto;
-  padding: 25px;
+  padding: 0 25px 25px;
   width: 250px;
 }
 
 .home__box {
   background-color: rgba(0, 0, 0, 0.75);
-  margin-top: 5em;
+  border-color: #333;
   border-style: outset;
   border-width: 5px;
-  border-color: #333;
+  margin-top: 5em;
+  padding-bottom: 25px;
+  padding-top: 25px;
 }
 
 .home__hr {
   position: relative;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 .home__line {
@@ -105,9 +113,116 @@ body {
 }
 
 /* === Profile === */
-.profile__balance {
-  margin: 0 5px;
+.profile__name {
+  border-right: 2px solid #fff;
+  padding-right: 5px;
   vertical-align: middle;
+}
+.profile__balance {
+  color: #fff;
+  font-size: 0.7em;
+  margin-left: 7px;
+  vertical-align: middle;
+}
+.account__well {
+  background-color: #ffa6a6;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;
+  padding: 15px 10px;
+}
+.account__stats {
+  margin-bottom: 20px;
+}
+.account__stats dt {
+  color: #a60000;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 24px;
+  margin-bottom: 3px;
+}
+.account__stats dd {
+  text-align: center;
+  font-size: 26px;
+  line-height: 26px;
+  margin-bottom: 15px;
+}
+.account__stats button, .account__stats .button {
+  width: 100%;
+}
+.account__details-button {
+  margin-top: 10px;
+}
+.account__history {
+  list-style: none;
+  margin: 0;
+}
+.account__history > li {
+  padding: 5px;
+}
+.account__history > li > * {
+  border: 1px solid transparent;
+  height: 67px;
+  padding: 5px;
+  vertical-align: top;
+}
+/*.account__history__win {
+  background-color: #ffa6a6;
+}
+.account__history__loss {
+  background-color: #d93434;
+}*/
+.account__history__profit {
+  display: inline-block;
+  width: 50px;
+}
+.poker__card-account {
+  margin-right: 3px;
+  display: inline-block !important;
+  position: relative !important;
+}
+.poker__card-account:last-child {
+  margin: 0;
+}
+.account__history__meta {
+  display: inline-block;
+  text-align: right;
+}
+.account__history__win .account__history__meta {
+  color: #ffa6a6;
+}
+.account__history__meta > p {
+  margin: 0;
+}
+.account__history__you {
+  border-color: #ffa6a6 !important;
+  border-radius: 8px;
+  display: inline-block;
+  position: relative;
+}
+.account__history__you > p{
+  background-color: #4f0000;
+  color: #fff;
+}
+.account__history__community {
+  display: inline-block;
+}
+.account__history__winner {
+  border-color: darkorange !important;
+  border-radius: 8px;
+  display: inline-block;
+  position: relative;
+}
+.account__history__winner > p{
+  background-color: #4f0000;
+  color: #fff;
+}
+.account__history__text {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 0.9rem;
+  position: absolute;
+  text-align: center;
+  z-index: 1;
+  bottom: 5px; left: 5px; right: 5px;
 }
 #Friends_empty > a:before {
   content: 'Poker is more fun with friends. Add some!';
@@ -118,7 +233,7 @@ body {
 }
 .account__friends .button, .account__friend-request .button {
   margin-bottom: 1px;
-  width: 170px;
+  width: 100%;
 }
 .account__friend-request{
   list-style: none;

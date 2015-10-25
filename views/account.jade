@@ -4,10 +4,11 @@ block content
   div.row
     div.small-12.column
       if !profile
-        h1 This profile couldn't be found
+        h2 This profile couldn't be found
       else
-        h1 #{profile.username}
-          small.profile__balance $#[span#Balance #{profile.chips}]
+        h2
+          span.profile__name #{profile.username}
+          span.profile__balance $#[span#Balance #{profile.chips}]
         if errorFlash.length
           div.alert-box.alert #{errorFlash}
 
@@ -17,68 +18,21 @@ block content
 
         if profile._id
           div.row
-            div.medium-8.column
-              container#Graph
-            div.medium-4.column
-              dl
-                dt Joined
-                dd #{moment(profile._id.getTimestamp()).format('DD MMMM YYYY')}
-                dt Largest Pot Won
-                dd $#{profile.largestWin}
-                dt Hands Played
-                dd #{profile.handsPlayed}
-                dt Site Ranking
-                dd ##{ranking}
-              if isYou
-                div
-                  button#Topup.small Top up chips to $2000
-                div
-                  a.button.small(href="/account/settings") Update Details
+            div.medium-9.column
+              div#Graph.account__well
+            div.medium-3.column
+              include ./account/stats.jade
+              if loggedIn && !isYou
+                include ./account/profileFriend.jade
 
-        if loggedIn
-          if isYou
-            div.row
-              div.medium-6.column
-                h2 Friends
-                ul#Friends.account__friends
-                  if friends.length == 0
-                    li#Friends_empty: a(href='/users/')
-                  else
-                    each friend in friends
-                      li.account__friend__handle
-                        a(href='/profile/'+friend._id._id).button.split.tiny #{friend._id.username}
-                          span(data-dropdown='Drop_#{friend._id._id}')
-                        ul.f-dropdown(id='Drop_#{friend._id._id}')
-                          li: a.account__friend-action(data-action='unfriend' data-friend-id='#{friend._id._id}') Unfriend
-              div.medium-6.column
-                h2 Friend Requests
-                ul.account__friend-request
-                  each friend in incomingFriends
-                    li.account__friend__handle
-                      a.button.split.tiny(href='/profile/'+friend._id._id) #{friend._id.username}
-                        span(data-dropdown='Drop_#{friend._id._id}')
-                      ul.f-dropdown(id='Drop_#{friend._id._id}')
-                        li: a.account__friend-action(data-action='accept' data-friend-id='#{friend._id._id}') Accept
-                        li: a.account__friend-action(data-action='ignore' data-friend-id='#{friend._id._id}') Ignore
-                        li: a.account__friend-action(data-action='block' data-friend-id='#{friend._id._id}') Block
 
-        if loggedIn && !isYou
-          include ./account/friends.jade
-    if loggedIn && isYou
-      div.small-12.column
-        ul
-        each hand in hands
-          li
-            p Your cards:
-            each card in hand.cards
-              div(class = 'poker__card poker__card-community poker__card--#{card}')
-            p Community cards:
-            each card in hand.community
-              div(class = 'poker__card poker__card-community poker__card--#{card}')
-            p Profit: #{hand.profit}
-            p Winning Hand: #{hand.winningHand.name}
-            each card in hand.winningHand.cards
-              div(class = 'poker__card poker__card-community poker__card--#{card}')
+        if loggedIn && isYou
+          div.row
+            div.medium-9.column
+              include ./account/handHistory.jade
+            div.medium-3.column
+              include ./account/accountFriends.jade
+
   if isYou
     script(type='text/javascript').
       $(document).ready(function() {
@@ -146,34 +100,53 @@ block content
         });
 
         $('#Graph').highcharts({
-          chart: {},
-          credits: {
-            enabled: false
-          },
-          exporting: {
-            enabled: false
+          chart: {
+            backgroundColor: 'transparent'
+            , type: 'line'
           },
           title: {
-            text: 'Lifetime Profitability'
+            text: 'Lifetime Profitability',
+            color: '#4f0000'
           },
+          series: [{
+            name: 'Profitability',
+            color: '#4f0000',
+            data: []
+          }],
           yAxis: {
             title: {
               text: 'Profitability'
+              , style: 'color: #4f0000'
+            }
+            , gridLineColor: '#ff8c8c'
+            , tickColor: '#4f0000'
+            , lineColor: '#4f0000'
+            , lineWidth: '2'
+            , labels: {
+              style: 'color: #4f0000'
             }
           },
           xAxis: {
-            type: 'datetime',
-            dateTimeLabelFormats: {
-              second: '%b-%d<br/>%H:%M:%S',
+            title: {
+              text: 'Date Played'
+              , style: 'color: #4f0000'
+            }
+            , type: 'datetime'
+            , dateTimeLabelFormats: {
+              millisecond: '%b-%d<br/>%H:%M',
+              second: '%b-%d<br/>%H:%M',
               minute: '%b-%d<br/>%H:%M',
               hour: '%b-%d<br/>%H:%M',
               day: '%b-%d',
               week: '%Y<br/>%b-%d',
               month: '%b %Y',
               year: '%Y'
-            },
-            title: {
-              text: 'Date Played'
+            }
+            , lineColor: '#4f0000'
+            , lineWidth: '2'
+            , tickColor: '#4f0000'
+            , labels: {
+              style: 'color: #4f0000'
             }
           },
           legend: {
@@ -183,10 +156,19 @@ block content
             valuePrefix: '$',
             xDateFormat: '%b %d %Y %H:%M'
           },
-          series: [{
-            name: 'Profitability',
-            data: []
-          }]
+          plotOptions: {
+              line: {
+                  marker: {
+                      enabled: false
+                  }
+              }
+          },
+          credits: {
+            enabled: false
+          },
+          exporting: {
+            enabled: false
+          }
         });
         var chipTracker = JSON.parse('!{chipTracker}'); 
         var mySeries = [];

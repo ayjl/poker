@@ -1,0 +1,25 @@
+h3 Hand History
+ul.account__history
+  each hand in hands
+    if hand.profit > 0
+      - var win = 'account__history__win'
+    else
+      - var win = 'account__history__loss'
+    li(class=win)
+      div.account__history__meta
+        p #{hand.when}
+        if hand.profit > 0
+          p $#{hand.profit}
+        else
+          p -$#{-hand.profit}
+      div.account__history__you
+        each card in hand.cards
+          div(class='poker__card poker__card-account poker__card--#{card}') &nbsp;
+      div.account__history__community
+        each card in hand.community
+          div(class='poker__card poker__card-account poker__card--#{card}') &nbsp;
+      if hand.winningHand.cards.length > 0
+        div.account__history__winner
+          p.account__history__text #{hand.winningHand.name}
+          each card in hand.winningHand.cards
+            div(class='poker__card poker__card-account poker__card--#{card}') &nbsp;

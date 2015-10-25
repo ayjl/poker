@@ -204,7 +204,9 @@ script.
     }
     else {
       friendSocket.emit('toggle chat', friendID, true);
-      scrollBtm($el.children('.chat__messages'));
+      if($el.hasClass('chat__box')) {
+        scrollBtm($el.children('.chat__messages'));
+      }
     }
   }
 

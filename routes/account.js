@@ -4,6 +4,7 @@ var config = require('config');
 var Promise = require('bluebird');
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
+var moment = require('moment');
 
 router.get('/', function(req, res) {
   new Promise(function(resolve, reject) {
@@ -35,7 +36,9 @@ router.get('/', function(req, res) {
       }
       res.locals.hands = [];
       for (var i = 0; i < user.handHistory.length; i++){
-        res.locals.hands.unshift(user.handHistory[i]);
+        var hist = user.handHistory[i];
+        hist.when = moment(hist._id.getTimestamp()).format('ddd DD MMM HH:mm');
+        res.locals.hands.unshift(hist);
       }
     
       User.count({ chips: { $gt: user.chips} })

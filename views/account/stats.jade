@@ -1,0 +1,14 @@
+div.account__well.account__stats
+  dl
+    dt Joined
+    dd #{moment(profile._id.getTimestamp()).format('DD MMMM YYYY')}
+    dt Largest Single Earning
+    dd $#{profile.largestWin}
+    dt Hands Played
+    dd #{profile.handsPlayed}
+    dt Site Ranking
+    dd ##{ranking}
+
+  if isYou
+    button#Topup.small Top up chips to $2000
+    a.button.small.account__details-button(href="/account/settings") Update Details

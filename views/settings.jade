@@ -3,8 +3,7 @@ extends ./layout
 block content
   div.row
     div.small-12.column
-      h1 Edit details
-      a.button.tiny(href="/account") Back to my account
+      h2 Update details
       div.row
         div.medium-6.column
           form#Email_Update
@@ -21,6 +20,8 @@ block content
                 input#Password(name='password' type='password' required placeholder='Password')
               div.small-4.column
                 button.button.postfix Save
+    div.small-12.column
+      a.button.tiny(href="/account") Back to my account
 
   script(type='text/javascript').
     $(document).ready(function() {

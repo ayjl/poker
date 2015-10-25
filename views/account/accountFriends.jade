@@ -1,0 +1,26 @@
+div.account__well
+  div.row
+    div.small-12.column
+      h3 Friend Requests
+      ul.account__friend-request
+        each friend in incomingFriends
+          li.account__friend__handle
+            a.button.split.tiny(href='/profile/'+friend._id._id) #{friend._id.username}
+              span(data-dropdown='Drop_#{friend._id._id}')
+            ul.f-dropdown(id='Drop_#{friend._id._id}')
+              li: a.account__friend-action(data-action='accept' data-friend-id='#{friend._id._id}') Accept
+              li: a.account__friend-action(data-action='ignore' data-friend-id='#{friend._id._id}') Ignore
+              li: a.account__friend-action(data-action='block' data-friend-id='#{friend._id._id}') Block
+  div.row
+    div.small-12.column
+      h3 Friends
+      ul#Friends.account__friends
+        if friends.length == 0
+          li#Friends_empty: a(href='/users/')
+        else
+          each friend in friends
+            li.account__friend__handle
+              a(href='/profile/'+friend._id._id).button.split.tiny #{friend._id.username}
+                span(data-dropdown='Drop_#{friend._id._id}')
+              ul.f-dropdown(id='Drop_#{friend._id._id}')
+                li: a.account__friend-action(data-action='unfriend' data-friend-id='#{friend._id._id}') Unfriend
