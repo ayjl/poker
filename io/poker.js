@@ -1,6 +1,7 @@
 var User = require('../models/user.js');
 var Session = require('../models/session.js');
 var config = require('config');
+var mongoose = require('mongoose');
 
 module.exports = function(io) {
   var poker = io.of('/poker');
@@ -264,6 +265,26 @@ module.exports = function(io) {
       playerLeave(table, poker, socket, 'spectate');
     });
 
+    socket.on('send message', function(msg) {
+      if(msg.length > 0) {
+        var table = tables.find(socket.tableID);
+        var idx = findBySocketID(socket.id, table.players);
+        var player;
+        if(idx >= 0) {
+          player = table.players[idx];
+        }
+        else {
+          idx = findBySocketID(socket.id, table.spectators);
+          player = table.spectators[idx];
+        }
+
+        if(player) {
+          msg = player.name + ': ' + msg;
+          poker.to(table.id).emit('receive message', msg);
+        }
+      }
+    });
+
     socket.on('disconnect', function() {
       var table = tables.find(socket.tableID);
       playerLeave(table, poker, socket, 'disconnect');
@@ -313,6 +334,8 @@ function startGame(table, poker, socket) {
     table.playing = false;
     return;
   }
+
+  table.initialHandPlayers = table.handPlayers.slice();
 
   for (var i = 0; i < table.handPlayers.length; i++) {
     var player = table.handPlayers[i];
@@ -438,7 +461,10 @@ function progressGameState(table, poker, socket) {
       table.winners = [table.handPlayers[0].id];
       table.handPlayers[0].chips += table.pot;
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
-      // checkHighestWin(table.handPlayers[0].id, table.pot);
+
+      updateHighestWin(table.handPlayers[0].id, table.pot);
+
+      saveHandHistory(table, [table.handPlayers[0]], {}, false);
     }
 
     if (table.numPlayers <= 1) {
@@ -481,6 +507,7 @@ function progressGameState(table, poker, socket) {
       break;
     case 3:
       evalWinner(table);
+
       poker.to(table.id).emit('winner', table.handPlayers, table.winners);
 
       table.gameTimer = setTimeout(function() {
@@ -506,6 +533,7 @@ function resetGame(table, poker) {
   table.winners = [];
   table.turn = -1;
   table.handPlayers = [];
+  table.initialHandPlayers = [];
   table.gameState = -1;
   table.bet = 0;
   table.minRaise = table.blind;
@@ -637,12 +665,18 @@ function evalWinner(table) {
   var start = 0;
   var end = 0;
   var toUpdate = new Set();
+  var largestWin = {};
   for(start=0; start<table.winners.length; start++) {
     var numSharing = 1;
     var winnings = table.winners[start].bet;
     if(winnings == 0) {
       continue;
     }
+
+    if(!largestWin.hasOwnProperty(table.winners[start].id)) {
+      largestWin[table.winners[start].id] = 0;
+    }
+    largestWin[table.winners[start].id] -= winnings;
 
     for(end=start+1; end<table.winners.length; end++) {
       if(table.winners[start].hand.handType == table.winners[end].hand.handType &&
@@ -653,12 +687,18 @@ function evalWinner(table) {
       var deduct = Math.min(table.winners[start].bet, table.winners[end].bet);
       winnings += deduct;
       table.winners[end].bet -= deduct;
+
+      if(!largestWin.hasOwnProperty(table.winners[end].id)) {
+        largestWin[table.winners[end].id] = 0;
+      }
+      largestWin[table.winners[end].id] -= deduct;
     }
 
     // If the player hasn't actually won any chips, then he is just getting back chips
     // that no one matched
     if(winnings == table.winners[start].bet) {
-      table.winners[start].chips = winnings;
+      table.winners[start].chips += winnings;
+      largestWin[table.winners[start].id] += winnings;
       continue;
     }
 
@@ -671,28 +711,31 @@ function evalWinner(table) {
     }
     table.winners[start].bet = 0;
     for(var i=0; i<numSharing; i++) {
+      var winner = table.winners[start+i];
       toUpdate.add(table.winners[start+i]);
-      table.winners[start+i].chips += winningsPerPlayer;
+
+      largestWin[winner.id] += winningsPerPlayer;
+
+      winner.chips += winningsPerPlayer;
       if(i < extra) {
-        table.winners[start+i].chips++;
+        winner.chips++;
+        largestWin[winner.id]++;
       }
     }
   }
 
   table.winners = Array.from(toUpdate);
 
-  var winnersArray = table.winners.filter(function(item) {
-    return item;
-  })
-  var winnerIDs = {};
-
-  for (var i = 0; i < winnerIDs.length; i++){
-    winnerIDs[i] - winnersArray[i].id;
+  var assertTest = 0;
+  for(var prop in largestWin) {
+    if(largestWin.hasOwnProperty(prop)) {
+      assertTest += largestWin[prop];
+      updateHighestWin(prop, largestWin[prop]);
+    }
   }
+  require('assert').equal(assertTest, 0, 'Highest win assert failed!');
 
-  for(var i=0; i<table.winners.length; i++) {
-    // checkHighestWin(winnerIDs[i], winningsPerPlayer);
-  }
+  saveHandHistory(table, table.winners, largestWin, true);
 
   table.winners = table.winners.map(function(player) {
     return player.id;
@@ -791,21 +834,94 @@ function getPlayerName(playerID, passport) {
 }
 
 function incrementHandsPlayed(table){
-  var array = table.handPlayers.filter(function(item){
-    return item;
-  });
+  var userIDs = [];
 
-  for (var i = 0; i < array.length; i++){
-    var userID = array[i].id;
-    if(userID.length == 24) {
-      User.update({_id: userID}, { $inc: { handsPlayed: 1}}).exec();
+  for(var i=0; i<table.handPlayers.length; i++) {
+    var id = table.handPlayers[i].id;
+    if(mongoose.Types.ObjectId.isValid(id)) {
+      userIDs.push(id);
     }
   }
-  //User.update({_id: {$in : playerArray}}, { $inc: {handsPlayed: 1}}).exec();
+
+  User.update(
+      { _id: { $in: userIDs } }
+    , { $inc: { handsPlayed: 1} }
+    , { multi: true }
+  ).exec();
 }
 
-function checkHighestWin(playerID, winnings) {
-  if(playerID.length == 24) {
+function updateHighestWin(playerID, winnings) {
+  if(mongoose.Types.ObjectId.isValid(playerID)) {
     User.update({_id: playerID}, {$max: {largestWin: winnings}}).exec();
+  }
+}
+
+function saveHandHistory(table, winners, largestWin, revealWinner){
+  var numCards;
+  switch(table.gameState) {
+    case 0:
+      numCards = 0;
+      break;
+    case 1:
+      numCards = 3;
+      break;
+    case 2:
+      numCards = 4;
+      break;
+    default:
+      numCards = 5;
+      break;
+
+  }
+  var communityCards = table.cards.slice(0, numCards);
+
+  var winningHand = null;
+  if(revealWinner && winners.length > 0) {
+    var name = winners[0].hand.handName;
+    var handName = name.charAt(0).toUpperCase() + name.slice(1);
+
+    winningHand = {
+        name: handName
+      , cards: winners[0].cards
+    };
+  }
+
+  for (var i=0; i<table.initialHandPlayers.length; i++){
+    var player = table.initialHandPlayers[i];
+
+    // Skip guest players
+    if(!mongoose.Types.ObjectId.isValid(player.id)) {
+      continue;
+    }
+
+    var profit;
+    if(revealWinner) {
+      if(largestWin.hasOwnProperty(player.id)) {
+        profit = largestWin[player.id];
+      }
+      else {
+        profit = -player.bet;
+      }
+    }
+    else {
+      if(winners.length > 0 && player.id == winners[0].id) {
+        profit = table.pot - player.bet;
+      }
+      else {
+        profit = -player.bet;
+      }
+    }
+
+    var handHistory = {
+        cards: player.cards
+      , community: communityCards
+      , winningHand, winningHand
+      , profit, profit
+    };
+
+    User.update(
+        { _id: player.id }
+      , { $push: { handHistory: { $each: [handHistory], $slice: -20 } } }
+    ).exec();
   }
 }

@@ -33,17 +33,26 @@ router.get('/', function(req, res) {
           res.locals.incomingFriends.push(user.friends[i]);
         }
       }
+      res.locals.hands = [];
+      for (var i = 0; i < user.handHistory.length; i++){
+        res.locals.hands.unshift(user.handHistory[i]);
+      }
+    
+      User.count({ chips: { $gt: user.chips} })
+      .then(function(ranking) {
+        res.render('account', {
+            isYou: true, profile: user
+          , ranking: ranking+1
+          , chipTracker: JSON.stringify(user.chipTracker)
+        });
+      });
     }
-    User.count({ chips: { $gt: user.chips}
-  })
-  .then(function(ranking) {
-    res.render('account', {
-        isYou: true, profile: user
-      , ranking: ranking+1
-      , chipTracker: JSON.stringify(user.chipTracker)
-    });
+    else {
+      res.render('account', {
+          isYou: true, profile: user
+      });
+    }
   });
-});
 });
 
 router.post('/topup-chips', function(req, res, next) {
