@@ -1,7 +1,9 @@
 div.account__well
   div.row
     div.small-12.column
-      h3 Friend Requests
+      h3 Requests
+        if incomingFriends.length > 0
+          span#Pending_count.label #{incomingFriends.length}
       ul.account__friend-request
         each friend in incomingFriends
           li.account__friend__handle
@@ -24,3 +26,60 @@ div.account__well
                 span(data-dropdown='Drop_#{friend._id._id}')
               ul.f-dropdown(id='Drop_#{friend._id._id}')
                 li: a.account__friend-action(data-action='unfriend' data-friend-id='#{friend._id._id}') Unfriend
+
+script(type='text/javascript').
+  $(document).ready(function() {
+    $('.account__friend-action').on('click', function() {
+      var action = $(this).data('action');
+      var friendID = $(this).data('friend-id');
+      var $el = $(this);
+
+      $.ajax({
+        type: 'POST',
+        url: '/account/friend',
+        data: {
+            friendID: friendID
+          , action: action
+        }
+      })
+      .done(function() {
+        var $count = $('#Pending_count');
+        var count = parseInt($count.text());
+
+        if(['accept', 'ignore', 'block'].indexOf(action) != -1) {
+          count--;
+          if(count == 0) {
+            $count.remove();
+            $('#Pending_count_header').remove();
+          }
+          else {
+            $count.text(count);
+            $('#Pending_count_header').text(count);
+          }
+        }
+
+        switch(action) {
+          case 'accept':
+            $('#Friends_empty').remove();
+            $el.closest('ul').prev().children('span').trigger('click');
+            $el.closest('.account__friend__handle').detach().appendTo('#Friends');
+            $el.parent().siblings().remove();
+            $el.text('Unfriend');
+            $el.data('action', 'unfriend');
+            break;
+          case 'ignore':
+            $el.closest('.account__friend__handle').remove();
+            break;
+          case 'block':
+            $el.closest('.account__friend__handle').remove();
+            break;
+          case 'unfriend':
+            $el.closest('.account__friend__handle').remove();
+            if($('#Friends').children().length == 0) {
+              $('#Friends').append('<li id="Friends_empty"><a href="/users"></a></li>');
+            }
+            break;
+        }
+      })
+    });
+  });
