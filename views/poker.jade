@@ -7,47 +7,42 @@ block content
       h3.poker__table__info
         small Buy-in: $#{table.blind*40}
         small Blinds: $#{table.blind/2} / $#{table.blind}
-
   div.row.poker__container
-    div.poker__table
-      div.poker__table-inner
-      div.poker__table-middle
-        div#Pot 0
-        
-        ul#Community_cards
-          - for(var i=0; i<5; i++)
-            li.poker__card.poker__card-community
-        div#Winner
-      ul#Players
-        - for(var i=0; i<6; i++)
-          li(class=['poker__player', 'poker__player--empty', 'poker__player--'+i])
-            div.poker__card.poker__card-1
-            div.poker__card.poker__card-2
-            p.poker__player-name Seat Available
-            p.poker__player-chips
+    div.medium-3.column
+      div.poker__chat
+        h3.poker__chat__title Table Chat
+        ul#Chat_messages.poker__chat__messages
+        div#Send_chat.poker__chat__compose(contenteditable='true' placeholder='Send a message')
+    div.medium-9.column
+      div.poker__table
+        div.poker__table-middle
+          div#Pot 0
+          
+          ul#Community_cards
+            - for(var i=0; i<5; i++)
+              li.poker__card.poker__card-community
+          div#Winner
+        ul#Players
+          - for(var i=0; i<6; i++)
+            li(class=['poker__player', 'poker__player--empty', 'poker__player--'+i])
+              div.poker__card.poker__card-1
+              div.poker__card.poker__card-2
+              p.poker__player-name Seat Available
+              p.poker__player-chips
 
   div.poker__controls
     div.row
-      div.medium-6.column
-        ul.button-group
-          li: button#Check.small Check
-          li: button#Fold.small Fold
-          li: button#Bet.small 10
-      div.medium-4.column.end
-        div.row.collapse
-          div.small-7.column
-            input(type="number", value=10, min=10)#Bet_amount
-          div.small-5.column
-            button#All_in.postfix All In
-
+      div.small-6.column
+        ul.button-group.poker__button-group
+          li: button#Check.tiny.secondary Check
+          li: button#Fold.tiny.secondary Fold
+          li: button#Bet.tiny.secondary 10
     div.row
-      div.small-12.column
-        button#Spectate.small.no-disable Spectate
-
-  div.row
-    div.small-12.poker__chat
-      ul#Chat_messages.poker__chat__messages
-      div#Send_chat.poker__chat__compose(contenteditable='true' placeholder='Send a message')
+      div.small-6.column
+        ul.button-group.poker__button-group
+          li: button#Spectate.tiny.secondary.no-disable Spectate
+          li: button#All_in.tiny.secondary All In
+          li: input(type="number", value=10, min=10)#Bet_amount
           
   div#Error_modal.reveal-modal.small(data-reveal)
     div.row
@@ -198,7 +193,7 @@ block content
           $('#Check').text('All In (+' + chips + ')');
         }
         else {
-          $('#Check').text('Call ' + tableBet + ' (+' + call + ')');
+          $('#Check').text('Call ' + tableRoundBet + ' (+' + call + ')');
         }
       }
 
@@ -311,7 +306,7 @@ block content
           $('#Check').text('All In (+' + chips + ')');
         }
         else {
-          $('#Check').text('Call ' + tableBet + ' (+' + call + ')');
+          $('#Check').text('Call ' + tableRoundBet + ' (+' + call + ')');
         }
       }
 
@@ -454,9 +449,6 @@ block content
             break;
         }
       });
-      
-      $(window).on('resize', reposition);
-      reposition();
     });
 
     function updateBetButton(forced) {
@@ -481,25 +473,4 @@ block content
       }
 
       $raise.text(raise);
-    }
-
-    function reposition() {
-      var w = $('.poker__table').outerWidth();
-      var h = $('.poker__table').outerHeight();
-
-      $('.poker__player').each(function(idx) {
-        if(idx != 1 && idx != 4) {
-          return;
-        }
-
-        var matrix = $(this).css('transform').split(',');
-        if(idx == 1) {
-          matrix[4] = w/2;
-        }
-        else if(idx == 4) {
-          matrix[4] = -w/2;
-        }
-        var transform = matrix.join(',');
-        $(this).css('transform', transform);
-      });
     }
