@@ -96,7 +96,7 @@ module.exports = function(io) {
       .then(function(chips) {
         if(chips < table.blind * config.get('buyInMult')) {
           socket.emit('customError', {
-            message: 'You don\'t have enough chips to buy-in for $' + table.blind*config.get('buyInMult') + '.'
+            message: 'You don\'t have enough chips to buy-in for $' + table.blind*config.get('buyInMult') + '. Go to your account page to top up to $3000 for free.'
           });
           return;
         }
