@@ -5,14 +5,14 @@ var userSchema = new mongoose.Schema( {
     username: String
   , email: String
   , password: String
-  , chips: { type: Number, default: 2000 }
+  , chips: { type: Number, default: 3000 }
   , largestWin: { type: Number, default: 0 }
   , handsPlayed: { type: Number, default: 0 }
   , chipTracker: [{change: Number, date: Date}]
   , resetPasswordToken: { type: String, default: '' }
   , resetPasswordExpires: { type: Date, default: Date.now }
   , handHistory: [{
-      cards: [String]
+      hand: { name: String, cards: [String] }
     , community: [String]
     , profit: Number
     , winningHand: { name: String, cards: [String] }

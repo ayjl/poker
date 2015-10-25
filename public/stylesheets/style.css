@@ -14,8 +14,72 @@ body {
   border: 0;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4f0000;
+  background: #ff5252;
   border: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4f0000;
+}
+
+button, .button {
+  margin: 0;
+}
+
+.white {
+  color: #fff;
+}
+
+table {
+  border: 0;
+}
+table thead, table thead tr {
+  background: #4f0000 !important;
+}
+table thead th {
+  border: 0 !important;
+  color: #fff !important;
+}
+table tbody td, table tfoot td {
+  border-color: #4f0000 !important;
+}
+table tr.even, table tr.alt, table tr:nth-of-type(even) {
+  background: #ffa6a6;
+}
+table tr.odd, table tr.alt, table tr:nth-of-type(odd) {
+  background: #ffa6a6;
+}
+td {
+  font-size: 1rem !important;
+}
+.footable-paging > td {
+  text-align: center;
+}
+.footable-paging > td:empty {
+  display: none;
+}
+.pagination {
+  display: inline-block !important;
+  margin-bottom: 0;
+}
+ul.pagination li a, ul.pagination li button {
+  color: #222;
+}
+.footable-page.visible.active > a {
+  background: #4f0000;
+  color: #fff
+}
+.footable .label-default {
+  font-weight: 400;
+  background: #4f0000;
+}
+.footable-page-nav.disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.full-width {
+  display: block;
+  width: 100%;
 }
 
 .button-group > * {
@@ -26,16 +90,18 @@ body {
   background-image: url(/img/poker-dots-line.png);
   background-size: contain;
   background-repeat: no-repeat;
+  background-position: center center;
   margin-left: 20px;
-  margin-top: -10px;
-  position: absolute;
-  top: 50%;
-  width: 120px; height: 20px;
-  max-width: 120px;
+  width: 120px; height: 45px;
 }
 
 .friend-notification {
   margin-left: 5px;
+}
+
+#Chips:before {
+  content: '$';
+  display: inline-block;
 }
 
 /* === Login === */
@@ -52,21 +118,23 @@ body {
 .home__brand {
   display: block;
   margin: 0 auto;
-  padding: 25px;
+  padding: 0 25px 25px;
   width: 250px;
 }
 
 .home__box {
   background-color: rgba(0, 0, 0, 0.75);
-  margin-top: 5em;
+  border-color: #333;
   border-style: outset;
   border-width: 5px;
-  border-color: #333;
+  margin-top: 5em;
+  padding-bottom: 25px;
+  padding-top: 25px;
 }
 
 .home__hr {
   position: relative;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 .home__line {
@@ -105,9 +173,120 @@ body {
 }
 
 /* === Profile === */
-.profile__balance {
-  margin: 0 5px;
+.profile__name {
+  border-right: 2px solid #fff;
+  padding-right: 5px;
   vertical-align: middle;
+}
+.profile__balance {
+  font-size: 0.7em;
+  margin-left: 7px;
+  vertical-align: middle;
+}
+.account__well {
+  background-color: #ffa6a6;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;
+  padding: 15px 10px;
+}
+.account__stats {
+  margin-bottom: 20px;
+}
+.account__stats dt {
+  color: #a60000;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 24px;
+  margin-bottom: 3px;
+}
+.account__stats dd {
+  text-align: center;
+  font-size: 26px;
+  line-height: 26px;
+  margin-bottom: 15px;
+}
+.account__stats button, .account__stats .button {
+  width: 100%;
+}
+.account__details-button {
+  margin-top: 10px;
+}
+.account__history {
+  list-style: none;
+  margin: 0;
+}
+.account__history:empty:before {
+  color: #fff;
+  content: 'You haven\'t played any games yet';
+  display: block;
+}
+.account__history > li {
+  padding: 5px;
+}
+.account__history > li > * {
+  border: 1px solid transparent;
+  height: 67px;
+  padding: 5px;
+  vertical-align: top;
+}
+/*.account__history__win {
+  background-color: #ffa6a6;
+}
+.account__history__loss {
+  background-color: #d93434;
+}*/
+.account__history__profit {
+  display: inline-block;
+  width: 50px;
+}
+.poker__card-account {
+  margin-right: 3px;
+  display: inline-block !important;
+  position: relative !important;
+}
+.poker__card-account:last-child {
+  margin: 0;
+}
+.account__history__meta {
+  display: inline-block;
+  text-align: right;
+}
+.account__history__win .account__history__meta {
+  color: #ffa6a6;
+}
+.account__history__meta > p {
+  margin: 0;
+}
+.account__history__you {
+  border-color: #ffa6a6 !important;
+  border-radius: 8px;
+  display: inline-block;
+  position: relative;
+}
+.account__history__you > p{
+  background-color: #4f0000;
+  color: #fff;
+}
+.account__history__community {
+  display: inline-block;
+}
+.account__history__winner {
+  border-color: darkorange !important;
+  border-radius: 8px;
+  display: inline-block;
+  position: relative;
+}
+.account__history__winner > p{
+  background-color: #4f0000;
+  color: #fff;
+}
+.account__history__text {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 0.9rem;
+  position: absolute;
+  text-align: center;
+  z-index: 1;
+  bottom: 5px; left: 5px; right: 5px;
 }
 #Friends_empty > a:before {
   content: 'Poker is more fun with friends. Add some!';
@@ -118,7 +297,7 @@ body {
 }
 .account__friends .button, .account__friend-request .button {
   margin-bottom: 1px;
-  width: 170px;
+  width: 100%;
 }
 .account__friend-request{
   list-style: none;
@@ -127,6 +306,10 @@ body {
 .account__friend-request:empty:before {
   content: 'No pending requests';
   display: block;
+}
+
+#Update_result {
+  display: none;
 }
 
 /* === Chat === */
@@ -140,8 +323,12 @@ body {
   box-shadow: rgba(0, 0, 0, 0.14902) 1px -1px 3px 1px;
   display: inline-block;
   vertical-align: bottom;
-  margin-right: 20px;
+  margin-right: 10px;
   width: 200px;
+}
+.chat__list {
+  margin-right: 5px;
+  width: 170px;
 }
 #Chat_list {
   background-color: #fff;
@@ -150,12 +337,24 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   height: 200px;
+  position: relative;
+}
+#Chat_list:empty:before {
+  content: 'No friends online';
+  font-size: 1.2rem;
+  display: block;
+  position: absolute;
+  text-align: center;
+  top: 50%; left: 50%;
+  margin-left: -45px; margin-top: -30px;
+  width: 90px; height: 60px;
 }
 .chat__list__friend {
   font-size: 0.8rem;
   cursor: pointer;
-  padding: 5px;
+  padding: 5px 10px;
   position: relative;
+  border-bottom: 1px solid #ddd;
 }
 .chat__list__friend:hover {
   background-color: #f5f5f5;
@@ -171,14 +370,17 @@ body {
   right: 6px !important;
 }
 .chat__list__friend > .f-dropdown {
-  width: 80%;
   right: 10px !important; left: auto !important;
+  width: 85%;
 }
 .chat__list__friend > .f-dropdown.open::before {
   right: 10px; left: auto;
 }
 .chat__list__friend > .f-dropdown.open::after {
   right: 9px; left: auto;
+}
+.chat__list__friend > .f-dropdown li a {
+  font-size: 0.8rem;
 }
 .chat__box {
   position: relative;
@@ -187,23 +389,34 @@ body {
   height: 26px;
   overflow: hidden;
   vertical-align: bottom;
-  width: 160px;
+  width: 140px;
+}
+.chat__list i{
+  display: none;
 }
 .chat__list.chat__box--min {
-  margin: 0 0 0 -144px;
-  transform: rotate(-90deg) translate(67px, 67px);
+  margin-right: 0px;
+  width: 35px;
+}
+.chat__list.chat__box--min .chat__box__title {
+  font-size: 0;
+  text-align: center;
+}
+.chat__list.chat__box--min i {
+  display: block;
+  font-size: 16px;
 }
 .chat__box--min .chat__compose {
   display: none !important;
 }
 .chat__box__title {
-  background-color: #008CBA;
+  background-color: #4f0000;
   color: #fff;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;
   margin: 0;
-  padding: 5px;
+  padding: 5px 10px;
   position: relative;
 }
 .chat__box__badge {
@@ -222,8 +435,13 @@ body {
   cursor: pointer;
   font-size: 0.7rem;
   padding: 0 10px 0 5px;
+  text-align: center;
   position: absolute;
   right: 0; top: 5px;
+  width: 30px;
+}
+.chat__close:hover {
+  color: #ffa6a6;
 }
 .chat__messages {
   background-color: #e5e5e5;
@@ -231,7 +449,8 @@ body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  height: 200px;
+  height: 180px;
+  margin-bottom: 20px;
 }
 .chat__msg {
   background-color: #fff;
@@ -267,12 +486,14 @@ body {
   box-shadow: none;
 }
 .chat__msg--other {
+  background-color: #ffa6a6;
   margin-left: 5%;
 }
 .chat__msg--other + .chat__msg--other {
   margin-top: 0; margin-bottom: 0;
 }
 .chat__msg--other:after {
+  border-color: #ffa6a6;
   border-left-color: transparent;
   border-bottom-color: transparent;
   left: -10px; top: 0;
@@ -328,7 +549,7 @@ body {
 }
 .poker__table-middle {
   position: absolute;
-  margin-top: -70px; margin-left: -120px;
+  margin-top: -62px; margin-left: -113px;
   font-size: 0.9rem;
   top: 50%; left: 50%;
 }
@@ -338,20 +559,20 @@ body {
 .poker__container--seated + .poker__controls {
   display: block;
 }
+.poker__button-group {
+  border-bottom: 1px solid #ff5252;
+}
 .poker__button-group > li {
   width: 33.333333%;
   width: calc(100% / 3);
 }
 .poker__button-group button {
-  /*background-color: #ffa6a6;*/
   margin-bottom: 0;
   width: 100%;
 }
-.poker__button-group button:hover {
-  /*background-color: #ff5252;*/
-}
 #Bet_amount {
   border: 0;
+  border-left: 1px solid #ff5252;
   border-bottom: 1px solid #fff;
   margin: 0;
   height: 36px;
@@ -393,6 +614,7 @@ body {
 
 #Community_cards {
   margin: 0;
+  height: 54px;
 }
 
 #Pot:before {
@@ -490,6 +712,10 @@ body {
   bottom: -7em;
   left: 2.7em;
 }
+.poker__player--0 .poker__player-bet {
+  bottom: -9.2em;
+  left: 3.1em;
+}
 
 .poker__player--1 {
   -webkit-transform: rotate(333deg) translate(20.3em) rotate(-333deg);
@@ -502,6 +728,10 @@ body {
 .poker__player--1.poker__player--small-blind:after, .poker__player--1.poker__player--big-blind:after {
   bottom: -2.8em;
   left: -8em;
+}
+.poker__player--1 .poker__player-bet {
+  bottom: -4.5em;
+  left: -9.3em;
 }
 
 .poker__player--2 {
@@ -516,6 +746,10 @@ body {
   bottom: 1.4em;
   left: -8.2em;
 }
+.poker__player--2 .poker__player-bet {
+  bottom: 1.4em;
+  left: -8.2em;
+}
 
 .poker__player--3 {
   -webkit-transform: rotate(86deg) translate(12em) rotate(-86deg);
@@ -523,11 +757,15 @@ body {
 }
 .poker__player--3.poker__player--dealer:before {
   top: -7em;
-  left: 4.9em;
+  left: 4.5em;
 }
 .poker__player--3.poker__player--small-blind:after, .poker__player--3.poker__player--big-blind:after {
   top: -7em;
-  left: 2.7em;
+  left: 2.5em;
+}
+.poker__player--3 .poker__player-bet {
+  top: -7.6em;
+  left: 2.6em;
 }
 
 .poker__player--4 {
@@ -542,6 +780,11 @@ body {
   bottom: 1.6em;
   right: -8.4em;
 }
+.poker__player--4 .poker__player-bet {
+  bottom: 1.4em;
+  right: -8em;
+}
+
 .poker__player--5 {
   -webkit-transform: rotate(210deg) translate(17.5em) rotate(-210deg);
           transform: rotate(210deg) translate(17.5em) rotate(-210deg);
@@ -554,6 +797,11 @@ body {
   bottom: -2.8em;
   right: -6em;
 }
+.poker__player--5 .poker__player-bet {
+  bottom: -4.4em;
+  right: -7.5em;
+}
+
 
 .poker__player-name {
   background-color: #4f0000;
@@ -564,8 +812,15 @@ body {
   overflow: hidden;
   white-space: nowrap;
 }
+.poker__player--empty .poker__player-name {
+  background-color: transparent;
+  color: #4f0000;
+}
 .poker__player-name a{
   color: #fff !important;
+}
+.poker__player-name a:hover{
+  color: #ffa6a6 !important;
 }
 .poker__player-chips {
   color: #4f0000;
@@ -573,6 +828,16 @@ body {
   margin: 0;
 }
 .poker__player-chips:before {
+  content: '$';
+}
+.poker__player-bet {
+  font-size: 0.8rem;
+  position: absolute;
+}
+.poker__player-bet:empty {
+  display: none;
+}
+.poker__player-bet:before {
   content: '$';
 }
 .poker__card {
@@ -686,7 +951,7 @@ body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  margin: 0 10px;
+  padding: 0 10px;
   height: 320px;
 }
 .poker__chat__messages > li {
@@ -707,6 +972,33 @@ body {
 /* Tables */
 .tables__checkbox > input {
   margin-top: 0.7rem;
+  display: none;
+}
+.table__filters {
+  margin-bottom: 10px;
+}
+.table__filters label{
+  color: #fff;
+  font-size: 1.2rem;
+  transition: color .5s;
+}
+.table__filters label:hover, .table__filters input:checked + label{
+  color: #4f0000;
+}
+.table__filters button, .table__filters .button {
+  background: transparent;
+  font-size: 2rem;
+  line-height: 1.8rem;
+  margin-top: -14px;
+  padding-left: 28px !important;
+  padding: 0;
+  text-align: left;
+  text-indent: -28px;
+  transition: color .5s;
+  width: 110px;
+}
+.table__filters button:hover, .table__filters .button:hover {
+  color: #4f0000;
 }
 
 /* Overrides */
@@ -722,14 +1014,17 @@ button.tiny, .button.tiny {
   font-size: 0.7875rem;
 }
 
+.button-group>li>button, .button-group>li .button {
+  border-color: #ff5252;
+}
 button.disabled.secondary, button[disabled].secondary, .button.disabled.secondary, .button[disabled].secondary {
-  background-color: #ffc6c6;
+  background-color: #fddfdf;
   opacity: 1;
 }
 
 button.disabled.secondary:hover, button.disabled.secondary:focus, button[disabled].secondary:hover, button[disabled].secondary:focus, .button.disabled.secondary:hover, .button.disabled.secondary:focus, .button[disabled].secondary:hover, .button[disabled].secondary:focus {
   color: inherit;
-  background-color: #ffc6c6;
+  background-color: #fddfdf;
 }
 
 @font-face {

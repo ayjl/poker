@@ -3,7 +3,7 @@ div.fixed
     ul.title-area
       li.name
         h1
-          a(href='/') &nbsp;
+          a(href='/')
             div.title-brand
       li.toggle-topbar.menu-icon
         a(href='#')
@@ -15,7 +15,7 @@ div.fixed
       ul.right
         li
           a(href='/account') #{user.username}: 
-            span#Chips $#{user.chips}
+            span#Chips #{user.chips}
             if incomingFriendReq > 0
               span.label.friend-notification #{incomingFriendReq}
         if loggedIn

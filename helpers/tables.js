@@ -94,9 +94,6 @@ Tables.prototype.create = function(blinds, id) {
     idx = -(idx + 1);
     this.tables.splice(idx, 0, table);
   }
-  else{
-    console.log('Table exists');
-  }
 
   return table;
 }

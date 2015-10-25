@@ -46,10 +46,8 @@ router.post('/', function(req, res, next) {
             'http://' + req.headers.host + '/reset/' + token + '\n\n' +
             'If you did not request this, please ignore this email and your password will remain unchanged.\n'
         }
-        console.log(mailOptions);
         smtpTransport.sendMail(mailOptions, function(error, response){
           if(error){
-            console.log("Error: " + error);
             errors.push({
               name: 'email'
               , message: 'Error when sending mail, try again or contact the site admin'

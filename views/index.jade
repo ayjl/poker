@@ -41,7 +41,7 @@ block content
                     button.postfix Recover
             div.row
               div.small-12.column
-                button.show-login.tiny.secondary Cancel
+                a.button.show-login.tiny.secondary Cancel
 
         div#Signup.hide
           form#Signup_form
@@ -58,7 +58,7 @@ block content
               div.small-12.column
                 div.button-group
                   button.tiny Sign up
-                  button.show-login.tiny.secondary Cancel
+                  a.button.show-login.tiny.secondary Cancel
 
   script(type='text/javascript').
     $(document).ready(function() {
@@ -121,6 +121,7 @@ block content
           if(data.errors.length == 0) {
             $('#Recover_success').show();
             $('#Recover_form').find('small.error').remove();
+            $('#Recover_form').find('button').prop('disabled', true);
           }
           else{
             showErrors($('#Recover_form'), data.errors);

@@ -12,13 +12,16 @@ div#Chat_container
   if chatState == 'min'
     div.chat__list.chat__box--min
       div.chat__box__title Online Friends
+        i.fa.fa-users
       ul#Chat_list
   else
     div.chat__list
       div.chat__box__title Online Friends
+        i.fa.fa-users
       ul#Chat_list
+
 audio#ReceivedMessage
-  source(src="/sounds/Pop.wav" type="audio/wav")
+  source(src='/sounds/pop.mp3' type='audio/mp3')
 
 script.
   var friendSocket = io('/');
@@ -204,7 +207,9 @@ script.
     }
     else {
       friendSocket.emit('toggle chat', friendID, true);
-      scrollBtm($el.children('.chat__messages'));
+      if($el.hasClass('chat__box')) {
+        scrollBtm($el.children('.chat__messages'));
+      }
     }
   }
 
