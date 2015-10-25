@@ -215,7 +215,8 @@ ul.pagination li a, ul.pagination li button {
   margin: 0;
 }
 .account__history:empty:before {
-  content: 'Go play some poker!';
+  color: #fff;
+  content: 'You haven\'t played any games yet';
   display: block;
 }
 .account__history > li {
