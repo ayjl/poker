@@ -166,7 +166,7 @@ script.
         $chat.load('/chat/'+friendID, function() {
           $chat.children('.chat__compose').on('keypress', sendMessage);
           $chat.children('.chat__compose').get(0).focus();
-          $chat.children('.chat__close').on('click', closeChat);
+          $chat.children('.chat__box__title').children('.chat__close').on('click', closeChat);
           $chat.children('.chat__box__title').on('click', toggleChat);
           $('#Chat_container').prepend($chat);
 
