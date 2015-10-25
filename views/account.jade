@@ -51,49 +51,6 @@ block content
         });
       });
 
-  if loggedIn
-    script(type='text/javascript').
-      $(document).ready(function() {
-        $('.account__friend-action').on('click', function() {
-          var action = $(this).data('action');
-          var friendID = $(this).data('friend-id');
-          var $el = $(this);
-
-          $.ajax({
-            type: 'POST',
-            url: '/account/friend',
-            data: {
-                friendID: friendID
-              , action: action
-            }
-          })
-          .done(function() {
-            switch(action) {
-              case 'accept':
-                $('#Friends_empty').remove();
-                $el.closest('ul').prev().children('span').trigger('click');
-                $el.closest('.account__friend__handle').detach().appendTo('#Friends');
-                $el.parent().siblings().remove();
-                $el.text('Unfriend');
-                $el.data('action', 'unfriend');
-                break;
-              case 'ignore':
-                $el.closest('.account__friend__handle').remove();
-                break;
-              case 'block':
-                $el.closest('.account__friend__handle').remove();
-                break;
-              case 'unfriend':
-                $el.closest('.account__friend__handle').remove();
-                if($('#Friends').children().length == 0) {
-                  $('#Friends').append('<li id="Friends_empty"><a href="/users"></a></li>');
-                }
-                break;
-            }
-          })
-        });
-      });
-
   script(type='text/javascript').
     $(document).ready(function() {
       Highcharts.setOptions({

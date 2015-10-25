@@ -288,6 +288,10 @@ ul.pagination li a, ul.pagination li button {
   list-style: none;
   margin: 0;
 }
+#Pending_count {
+  margin-left: 10px;
+  vertical-align: middle;
+}
 .account__friends .button, .account__friend-request .button {
   margin-bottom: 1px;
   width: 100%;
@@ -586,7 +590,24 @@ ul.pagination li a, ul.pagination li button {
   width: 0%;
 }
 #FoldBar.animate {
-  animation: fold-timer 30s linear 1;
+  -webkit-animation: fold-timer 30s linear 1;
+          animation: fold-timer 30s linear 1;
+}
+@-webkit-keyframes fold-timer {
+  0% {
+    background-color: #008CBA;
+    width: 100%;
+  }
+  70% {
+    background-color: #008CBA;
+  }
+  75% {
+    background-color: #4f0000;
+  }
+  100% {
+    background-color: #4f0000;
+    width: 0%;
+  }
 }
 @keyframes fold-timer {
   0% {
