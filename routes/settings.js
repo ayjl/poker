@@ -5,6 +5,10 @@ var User = require('../models/user.js');
 var Session = require('../models/session.js');
 
 router.get('/', function(req, res, next) {
+  if(!req.isAuthenticated()) {
+    return res.redirect('/');
+  }
+
   new Promise(function(resolve, reject) {
     if(req.isAuthenticated()) {
       User.findById(req.user.id)
