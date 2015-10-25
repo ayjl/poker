@@ -60,16 +60,16 @@ router.get('/', function(req, res) {
 
 router.post('/topup-chips', function(req, res, next) {
   if(req.isAuthenticated()) {
-    if(req.user.chips < 2000) {
-      User.findByIdAndUpdate(req.user.id, { $set: { chips: 2000 } }, { new: true })
+    if(req.user.chips < 3000) {
+      User.findByIdAndUpdate(req.user.id, { $set: { chips: 3000 } }, { new: true })
       .then(function(user) {
         return res.json({chips: user.chips});
       });
     }
   }
   else {
-    if (req.session.user.chips < 2000) {
-      req.session.user.chips = 2000;
+    if (req.session.user.chips < 3000) {
+      req.session.user.chips = 3000;
     }
     return res.json({chips: req.session.user.chips});
   }

@@ -10,7 +10,7 @@ module.exports = function(req, res, next) {
 
     req.session.user = {};
     req.session.user.username = 'Guest' + padded;
-    req.session.user.chips = 2000;
+    req.session.user.chips = 3000;
   }
 
   req.session.loggedIn = false;

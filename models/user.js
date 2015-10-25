@@ -5,7 +5,7 @@ var userSchema = new mongoose.Schema( {
     username: String
   , email: String
   , password: String
-  , chips: { type: Number, default: 2000 }
+  , chips: { type: Number, default: 3000 }
   , largestWin: { type: Number, default: 0 }
   , handsPlayed: { type: Number, default: 0 }
   , chipTracker: [{change: Number, date: Date}]
